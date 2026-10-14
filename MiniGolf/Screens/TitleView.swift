@@ -79,25 +79,29 @@ struct TitleView: View {
 
     private var logo: some View {
         VStack(spacing: 6) {
-            HStack(spacing: 10) {
-                BallGlyph(index: 0, size: 30)
-                BallGlyph(index: 1, size: 30)
+            // The hard drop is the wordmark's 3D edge; on small text it reads as a doubled line.
+            VStack(spacing: 6) {
+                HStack(spacing: 10) {
+                    BallGlyph(index: 0, size: 30)
+                    BallGlyph(index: 1, size: 30)
+                }
+                .shadow(color: .black.opacity(0.4), radius: 4, y: 3)
+                Text("DOUBLE")
+                    .font(.rounded(58, .black))
+                    .kerning(2)
+                Text("PUTT")
+                    .font(.rounded(86, .black))
+                    .kerning(4)
+                    .padding(.top, -26)
             }
-            .shadow(color: .black.opacity(0.4), radius: 4, y: 3)
-            Text("DOUBLE")
-                .font(.rounded(58, .black))
-                .kerning(2)
-            Text("PUTT")
-                .font(.rounded(86, .black))
-                .kerning(4)
-                .padding(.top, -26)
+            .shadow(color: Color.ink.opacity(0.6), radius: 0, x: 0, y: 5)
             Text("One swing. Two holes.")
                 .font(.rounded(17, .semibold))
                 .foregroundStyle(.white.opacity(0.85))
+                .shadow(color: Color.ink.opacity(0.7), radius: 3, y: 1)
                 .padding(.top, -6)
         }
         .foregroundStyle(.white)
-        .shadow(color: Color.ink.opacity(0.6), radius: 0, x: 0, y: 5)
         .shadow(color: .black.opacity(0.35), radius: 12, y: 6)
     }
 }

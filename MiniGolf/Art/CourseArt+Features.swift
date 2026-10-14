@@ -13,7 +13,7 @@ extension Painter {
     func slopes(_ level: Level, _ t: Theme) {
         for s in level.slopes {
             let rect = CGRect(x: s.box.minX, y: s.box.minY, width: s.box.width, height: s.box.height)
-            let path = rounded(rect, 10)
+            let path = CourseArt.rounded(rect, 10, square: Corners(CourseArt.walledSides(s.box, level)))
             let dir = s.accel.normalized
             let c = CGPoint(x: rect.midX, y: rect.midY)
             let reach = (abs(dir.x) * rect.width + abs(dir.y) * rect.height) / 2
@@ -125,49 +125,59 @@ extension Painter {
 
     // MARK: Setting variants
 
-    func tidepool(_ rect: CGRect, _ pond: CGPath, _ t: Theme, _ rng: inout SeededRandom) {
-        fill(rounded(rect.insetBy(dx: -3, dy: -3), 14), UIColor(hex: 0xF3E6C4))
+    func tidepool(_ water: CourseArt.Pond, _ t: Theme, _ rng: inout SeededRandom) {
+        let pond = water.path, bounds = water.bounds
+        stroke(pond, UIColor(hex: 0xF3E6C4), 6)
         radial(pond, [t.waterDeep, t.waterShallow, t.waterShallow.lighter(0.25)], locations: [0, 0.7, 1],
-               center: CGPoint(x: rect.midX, y: rect.midY), radius: max(rect.width, rect.height) * 0.62)
+               center: CGPoint(x: bounds.midX, y: bounds.midY), radius: max(bounds.width, bounds.height) * 0.62)
         clipped(pond) {
-            for _ in 0..<5 {
-                let p = CGPoint(x: rng.range(rect.minX + 8, rect.maxX - 8), y: rng.range(rect.minY + 8, rect.maxY - 8))
-                let s = rng.range(3, 6)
-                fill(CGPath(ellipseIn: CGRect(x: p.x - s, y: p.y - s * 0.7, width: s * 2, height: s * 1.4), transform: nil), UIColor(hex: 0x6E8B8A).withAlphaComponent(0.7))
-            }
-            for _ in 0..<3 {
-                let p = CGPoint(x: rng.range(rect.minX + 10, rect.maxX - 10), y: rng.range(rect.minY + 10, rect.maxY - 10))
-                star(p, r: rng.range(3, 4.5), color: UIColor(hex: 0xFF8A5B))
-            }
+            for rect in water.parts { rockpool(rect, &rng) }
         }
         stroke(pond, UIColor.white.withAlphaComponent(0.7), 1.6)
     }
 
-    func ice(_ rect: CGRect, _ pond: CGPath, _ t: Theme, _ rng: inout SeededRandom) {
-        fill(rounded(rect.insetBy(dx: -3, dy: -3), 14), UIColor.white)
-        linear(pond, [t.waterShallow, t.waterDeep], from: CGPoint(x: rect.minX, y: rect.maxY), to: CGPoint(x: rect.maxX, y: rect.minY))
+    private func rockpool(_ rect: CGRect, _ rng: inout SeededRandom) {
+        for _ in 0..<5 {
+            let p = CGPoint(x: rng.range(rect.minX + 8, rect.maxX - 8), y: rng.range(rect.minY + 8, rect.maxY - 8))
+            let s = rng.range(3, 6)
+            fill(CGPath(ellipseIn: CGRect(x: p.x - s, y: p.y - s * 0.7, width: s * 2, height: s * 1.4), transform: nil), UIColor(hex: 0x6E8B8A).withAlphaComponent(0.7))
+        }
+        for _ in 0..<3 {
+            let p = CGPoint(x: rng.range(rect.minX + 10, rect.maxX - 10), y: rng.range(rect.minY + 10, rect.maxY - 10))
+            star(p, r: rng.range(3, 4.5), color: UIColor(hex: 0xFF8A5B))
+        }
+    }
+
+    func ice(_ water: CourseArt.Pond, _ t: Theme, _ rng: inout SeededRandom) {
+        let pond = water.path, bounds = water.bounds
+        stroke(pond, UIColor.white, 6)
+        linear(pond, [t.waterShallow, t.waterDeep], from: CGPoint(x: bounds.minX, y: bounds.maxY), to: CGPoint(x: bounds.maxX, y: bounds.minY))
         clipped(pond) {
-            for _ in 0..<6 {
-                let crack = CGMutablePath()
-                var p = CGPoint(x: rng.range(rect.minX, rect.maxX), y: rng.range(rect.minY, rect.maxY))
-                crack.move(to: p)
-                for _ in 0..<4 {
-                    p = CGPoint(x: p.x + rng.range(-16, 16), y: p.y + rng.range(-12, 12))
-                    crack.addLine(to: p)
-                }
-                stroke(crack, UIColor.white.withAlphaComponent(0.55), 0.7)
-            }
-            for _ in 0..<4 {
-                let x = rng.range(rect.minX + 6, rect.maxX - 30)
-                let y = rng.range(rect.minY + 6, rect.maxY - 6)
-                stroke(CourseArt.line(CGPoint(x: x, y: y), CGPoint(x: x + 22, y: y + 8)), UIColor.white.withAlphaComponent(0.4), 2.5)
-            }
+            for rect in water.parts { cracks(rect, &rng) }
         }
         stroke(pond, UIColor.white, 2)
     }
 
-    func dune(_ r: CGRect, _ t: Theme, _ rng: inout SeededRandom) {
-        let path = rounded(r, 3)
+    private func cracks(_ rect: CGRect, _ rng: inout SeededRandom) {
+        for _ in 0..<6 {
+            let crack = CGMutablePath()
+            var p = CGPoint(x: rng.range(rect.minX, rect.maxX), y: rng.range(rect.minY, rect.maxY))
+            crack.move(to: p)
+            for _ in 0..<4 {
+                p = CGPoint(x: p.x + rng.range(-16, 16), y: p.y + rng.range(-12, 12))
+                crack.addLine(to: p)
+            }
+            stroke(crack, UIColor.white.withAlphaComponent(0.55), 0.7)
+        }
+        for _ in 0..<4 {
+            let x = rng.range(rect.minX + 6, rect.maxX - 30)
+            let y = rng.range(rect.minY + 6, rect.maxY - 6)
+            stroke(CourseArt.line(CGPoint(x: x, y: y), CGPoint(x: x + 22, y: y + 8)), UIColor.white.withAlphaComponent(0.4), 2.5)
+        }
+    }
+
+    func dune(_ r: CGRect, square: Corners, _ t: Theme, _ rng: inout SeededRandom) {
+        let path = CourseArt.rounded(r, 3, square: square)
         linear(path, [t.rough.lighter(0.2), t.rough, t.roughShade], from: CGPoint(x: r.minX, y: r.maxY), to: CGPoint(x: r.maxX, y: r.minY))
         clipped(path) {
             var y = r.minY + 4
@@ -189,8 +199,8 @@ extension Painter {
         }
     }
 
-    func rockBed(_ r: CGRect, _ t: Theme, _ rng: inout SeededRandom) {
-        let path = rounded(r, 2)
+    func rockBed(_ r: CGRect, square: Corners, _ t: Theme, _ rng: inout SeededRandom) {
+        let path = CourseArt.rounded(r, 2, square: square)
         fill(path, t.borderSide.darker(0.25))
         clipped(path) {
             let count = Int(r.width * r.height / 60) + 3
@@ -213,8 +223,8 @@ extension Painter {
         }
     }
 
-    func snowbank(_ r: CGRect, _ t: Theme, _ rng: inout SeededRandom) {
-        let path = rounded(r, 4)
+    func snowbank(_ r: CGRect, square: Corners, _ t: Theme, _ rng: inout SeededRandom) {
+        let path = CourseArt.rounded(r, 4, square: square)
         fill(path, UIColor(hex: 0xCADAE8))
         clipped(path) {
             for _ in 0..<Int(r.width * r.height / 90) + 3 {
@@ -229,9 +239,12 @@ extension Painter {
 
     /// White snow along the top of walls.
     func snowCaps(_ level: Level, _ t: Theme) {
-        for w in level.rails where !CourseArt.isFrameRail(w) {
-            let a = CGPoint(x: w.a.x, y: w.a.y), b = CGPoint(x: w.b.x, y: w.b.y)
-            stroke(CourseArt.line(CGPoint(x: a.x - 0.8, y: a.y + 0.8), CGPoint(x: b.x - 0.8, y: b.y + 0.8)), UIColor.white.withAlphaComponent(0.9), w.radius * 1.1)
+        let felt = CGRect(x: 0, y: 0, width: Course.width, height: Course.height).insetBy(dx: Course.railRadius, dy: Course.railRadius)
+        clipped(CGPath(rect: felt, transform: nil)) {
+            for w in level.rails where !CourseArt.isFrameRail(w) {
+                let a = CGPoint(x: w.a.x, y: w.a.y), b = CGPoint(x: w.b.x, y: w.b.y)
+                stroke(CourseArt.line(CGPoint(x: a.x - 0.8, y: a.y + 0.8), CGPoint(x: b.x - 0.8, y: b.y + 0.8)), UIColor.white.withAlphaComponent(0.9), w.radius * 1.1)
+            }
         }
         let o = CourseArt.borderOut
         let band = CGRect(x: -o + 2, y: -o + 2, width: Course.width + 2 * o - 4, height: Course.height + 2 * o - 4)
