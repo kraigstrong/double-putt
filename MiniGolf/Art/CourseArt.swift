@@ -192,6 +192,92 @@ enum CourseArt {
         let onY = { (y: Double) in w.a.y == y && w.b.y == y }
         return onX(0) || onX(Course.width) || onY(0) || onY(Course.height)
     }
+
+    /// Sides of a box (as corner pairs, e.g. `.left`) that sit on a straight wall, outer fence included,
+    /// running the side's full length. Corners there are drawn square so the shape runs cleanly under the
+    /// wall instead of curling away from it.
+    static func walledSides(_ b: Box, _ level: Level) -> [Corners] {
+        var sides: [Corners] = []
+        for w in level.rails {
+            if w.a.x == w.b.x, min(w.a.y, w.b.y) <= b.minY, max(w.a.y, w.b.y) >= b.maxY {
+                if w.a.x == b.minX { sides.append(.left) }
+                if w.a.x == b.maxX { sides.append(.right) }
+            } else if w.a.y == w.b.y, min(w.a.x, w.b.x) <= b.minX, max(w.a.x, w.b.x) >= b.maxX {
+                if w.a.y == b.minY { sides.append(.bottom) }
+                if w.a.y == b.maxY { sides.append(.top) }
+            }
+        }
+        return sides
+    }
+
+    /// A rect rounded by `r` except at the `square` corners.
+    static func rounded(_ rect: CGRect, _ r: CGFloat, square: Corners) -> CGPath {
+        let r = max(min(r, rect.width / 2 - 0.01, rect.height / 2 - 0.01), 0)
+        let path = CGMutablePath()
+        let pts = Corners.points(of: rect)
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        for k in 1...4 {
+            let (corner, p) = pts[k % 4]
+            path.addArc(tangent1End: p, tangent2End: pts[(k + 1) % 4].1, radius: square.contains(corner) ? 0 : r)
+        }
+        path.closeSubpath()
+        return path
+    }
+
+    /// A body of water: touching water boxes merge into one pond, so there are no seams between them.
+    struct Pond {
+        var parts: [CGRect]
+        var path: CGPath
+        var bounds: CGRect { path.boundingBoxOfPath }
+    }
+
+    static func ponds(_ level: Level) -> [Pond] {
+        let boxes = level.water
+        let rects = boxes.map { CGRect(x: $0.minX, y: $0.minY, width: $0.width, height: $0.height) }
+        // Boxes join when they overlap or share a stretch of edge that isn't a wall.
+        func joined(_ i: Int, _ j: Int) -> Bool {
+            let a = rects[i], b = rects[j], walls = walledSides(boxes[i], level)
+            let ySpan = min(a.maxY, b.maxY) - max(a.minY, b.minY), xSpan = min(a.maxX, b.maxX) - max(a.minX, b.minX)
+            if ySpan > 0, a.maxX == b.minX { return !walls.contains(.right) }
+            if ySpan > 0, a.minX == b.maxX { return !walls.contains(.left) }
+            if xSpan > 0, a.maxY == b.minY { return !walls.contains(.top) }
+            if xSpan > 0, a.minY == b.maxY { return !walls.contains(.bottom) }
+            return xSpan > 0 && ySpan > 0
+        }
+        var group = Array(rects.indices)
+        func root(_ i: Int) -> Int { group[i] == i ? i : root(group[i]) }
+        for i in rects.indices { for j in rects.indices where j > i && joined(i, j) { group[root(j)] = root(i) } }
+
+        return rects.indices.filter { root($0) == $0 }.map { r in
+            let members = rects.indices.filter { root($0) == r }
+            var path: CGPath?
+            for i in members {
+                // Square where the pond meets a wall or runs on into another box; rounded where it meets turf.
+                var square = Corners(walledSides(boxes[i], level))
+                for (corner, p) in Corners.points(of: rects[i])
+                where members.contains(where: { $0 != i && rects[$0].insetBy(dx: -0.01, dy: -0.01).contains(p) }) {
+                    square.insert(corner)
+                }
+                let part = rounded(rects[i], 12, square: square)
+                path = path?.union(part) ?? part
+            }
+            return Pond(parts: members.map { rects[$0] }, path: path!)
+        }
+    }
+}
+
+/// Rect corners, for shapes rounded only where they stand free.
+struct Corners: OptionSet {
+    let rawValue: Int
+    static let bottomLeft = Corners(rawValue: 1), bottomRight = Corners(rawValue: 2)
+    static let topRight = Corners(rawValue: 4), topLeft = Corners(rawValue: 8)
+    static let left: Corners = [.bottomLeft, .topLeft], right: Corners = [.bottomRight, .topRight]
+    static let bottom: Corners = [.bottomLeft, .bottomRight], top: Corners = [.topLeft, .topRight]
+
+    static func points(of r: CGRect) -> [(Corners, CGPoint)] {
+        [(.bottomLeft, CGPoint(x: r.minX, y: r.minY)), (.bottomRight, CGPoint(x: r.maxX, y: r.minY)),
+         (.topRight, CGPoint(x: r.maxX, y: r.maxY)), (.topLeft, CGPoint(x: r.minX, y: r.maxY))]
+    }
 }
 
 // MARK: - Painter
@@ -339,57 +425,65 @@ struct Painter {
     }
 
     func water(_ level: Level, _ t: Theme, _ rng: inout SeededRandom) {
-        for box in level.water {
-            let rect = CGRect(x: box.minX, y: box.minY, width: box.width, height: box.height)
-            let pond = rounded(rect, 12)
+        for water in CourseArt.ponds(level) {
             switch t.water {
-            case .tidepool: tidepool(rect, pond, t, &rng); continue
-            case .ice: ice(rect, pond, t, &rng); continue
+            case .tidepool: tidepool(water, t, &rng); continue
+            case .ice: ice(water, t, &rng); continue
             case .pond: break
             }
-            fill(rounded(rect.insetBy(dx: -2.5, dy: -2.5), 14), UIColor(hex: 0xE3D3A6).withAlphaComponent(0.9))
-            let center = CGPoint(x: rect.midX, y: rect.midY)
+            let pond = water.path, bounds = water.bounds
+            // Sandy bank: a band hugging the water's edge (the inner half is covered by the water).
+            stroke(pond, UIColor(hex: 0xE3D3A6).withAlphaComponent(0.9), 5)
             radial(pond, [t.waterDeep, t.waterDeep.mixed(with: t.waterShallow, 0.5), t.waterShallow],
-                   locations: [0, 0.55, 1], center: center, radius: max(rect.width, rect.height) * 0.62)
+                   locations: [0, 0.55, 1], center: CGPoint(x: bounds.midX, y: bounds.midY), radius: max(bounds.width, bounds.height) * 0.62)
             clipped(pond) {
                 // Bank shadow on the near edges.
                 shadow(dx: 3, dy: -4, blur: 6, alpha: 0.55) {
                     let ring = CGMutablePath()
-                    ring.addRect(rect.insetBy(dx: -30, dy: -30))
+                    ring.addRect(bounds.insetBy(dx: -30, dy: -30))
                     ring.addPath(pond)
                     fill(ring, .black, evenOdd: true)
                 }
-                for _ in 0..<5 {
-                    let y = rng.range(rect.minY + 10, rect.maxY - 10)
-                    let x = rng.range(rect.minX + 6, rect.maxX - 40)
-                    let w = rng.range(18, 40)
-                    let ripple = CGMutablePath()
-                    ripple.move(to: CGPoint(x: x, y: y))
-                    ripple.addQuadCurve(to: CGPoint(x: x + w, y: y), control: CGPoint(x: x + w / 2, y: y + 3))
-                    stroke(ripple, UIColor.white.withAlphaComponent(0.22), 1.0)
-                }
-                for _ in 0..<3 {
-                    let p = CGPoint(x: rng.range(rect.minX + 14, rect.maxX - 14), y: rng.range(rect.minY + 12, rect.maxY - 12))
-                    let r = rng.range(5, 8)
-                    let notch = rng.range(0, .pi * 2)
-                    let pad = CGMutablePath()
-                    pad.move(to: p)
-                    pad.addArc(center: p, radius: r, startAngle: notch + 0.35, endAngle: notch + .pi * 2 - 0.35, clockwise: false)
-                    pad.closeSubpath()
-                    shadow(dx: 1, dy: -1.5, blur: 1.5, alpha: 0.35) { fill(pad, UIColor(hex: 0x4E9A3F)) }
-                    stroke(circle(p, r * 0.55), UIColor(hex: 0x6DB85A).withAlphaComponent(0.6), 0.6)
-                    if rng.unit() < 0.5 { fill(circle(CGPoint(x: p.x + r * 0.3, y: p.y + r * 0.2), 2.2), UIColor(hex: 0xFFC6DA)) }
-                }
+                for rect in water.parts { lilies(rect, &rng) }
             }
             stroke(pond, UIColor.white.withAlphaComponent(0.45), 1.2)
-            // Reeds along the outer-wall side.
-            let wallSide: CGFloat = rect.minX <= 1 ? rect.minX + 6 : rect.maxX - 6
-            for _ in 0..<9 {
-                let base = CGPoint(x: wallSide + rng.range(-4, 4), y: rng.range(rect.minY + 6, rect.maxY - 6))
-                let tip = CGPoint(x: base.x + rng.range(-5, 5), y: base.y + rng.range(6, 12))
-                stroke(CourseArt.line(base, tip), UIColor(hex: 0x3E7D35), 1.1)
-                if rng.unit() < 0.4 { fill(rounded(CGRect(x: tip.x - 0.9, y: tip.y - 3, width: 1.8, height: 4), 0.9), UIColor(hex: 0x6B4A2B)) }
-            }
+            for rect in water.parts { reeds(rect, &rng) }
+        }
+    }
+
+    /// Ripples and lily pads on one box of a pond (called inside the pond's clip).
+    private func lilies(_ rect: CGRect, _ rng: inout SeededRandom) {
+        for _ in 0..<5 {
+            let y = rng.range(rect.minY + 10, rect.maxY - 10)
+            let x = rng.range(rect.minX + 6, rect.maxX - 40)
+            let w = rng.range(18, 40)
+            let ripple = CGMutablePath()
+            ripple.move(to: CGPoint(x: x, y: y))
+            ripple.addQuadCurve(to: CGPoint(x: x + w, y: y), control: CGPoint(x: x + w / 2, y: y + 3))
+            stroke(ripple, UIColor.white.withAlphaComponent(0.22), 1.0)
+        }
+        for _ in 0..<3 {
+            let p = CGPoint(x: rng.range(rect.minX + 14, rect.maxX - 14), y: rng.range(rect.minY + 12, rect.maxY - 12))
+            let r = rng.range(5, 8)
+            let notch = rng.range(0, .pi * 2)
+            let pad = CGMutablePath()
+            pad.move(to: p)
+            pad.addArc(center: p, radius: r, startAngle: notch + 0.35, endAngle: notch + .pi * 2 - 0.35, clockwise: false)
+            pad.closeSubpath()
+            shadow(dx: 1, dy: -1.5, blur: 1.5, alpha: 0.35) { fill(pad, UIColor(hex: 0x4E9A3F)) }
+            stroke(circle(p, r * 0.55), UIColor(hex: 0x6DB85A).withAlphaComponent(0.6), 0.6)
+            if rng.unit() < 0.5 { fill(circle(CGPoint(x: p.x + r * 0.3, y: p.y + r * 0.2), 2.2), UIColor(hex: 0xFFC6DA)) }
+        }
+    }
+
+    /// Reeds along the outer-wall side of one box of a pond.
+    private func reeds(_ rect: CGRect, _ rng: inout SeededRandom) {
+        let wallSide: CGFloat = rect.minX <= 1 ? rect.minX + 6 : rect.maxX - 6
+        for _ in 0..<9 {
+            let base = CGPoint(x: wallSide + rng.range(-4, 4), y: rng.range(rect.minY + 6, rect.maxY - 6))
+            let tip = CGPoint(x: base.x + rng.range(-5, 5), y: base.y + rng.range(6, 12))
+            stroke(CourseArt.line(base, tip), UIColor(hex: 0x3E7D35), 1.1)
+            if rng.unit() < 0.4 { fill(rounded(CGRect(x: tip.x - 0.9, y: tip.y - 3, width: 1.8, height: 4), 0.9), UIColor(hex: 0x6B4A2B)) }
         }
     }
 
@@ -508,7 +602,12 @@ struct Painter {
         }
     }
 
+    /// Interior rails end flush against the border's inner face rather than poking a round cap into it.
     func rails(_ level: Level, _ t: Theme, _ rng: inout SeededRandom) {
+        clipped(CGPath(rect: feltRect, transform: nil)) { railBodies(level, t, &rng) }
+    }
+
+    private func railBodies(_ level: Level, _ t: Theme, _ rng: inout SeededRandom) {
         for w in level.rails where !CourseArt.isFrameRail(w) {
             let shape = capsule(w)
             let a = CGPoint(x: w.a.x, y: w.a.y), b = CGPoint(x: w.b.x, y: w.b.y)
@@ -535,7 +634,15 @@ struct Painter {
         }
     }
 
+    /// Planters are clipped to the open turf, so a wall they touch stays on top and they butt up against its face.
+    /// The rim on that side straddles the wall's centerline by the block radius (3), inside the wall's own (4), so it vanishes.
     func blocks(_ level: Level, _ t: Theme, _ rng: inout SeededRandom) {
+        let turf = level.rails.filter { !CourseArt.isFrameRail($0) }
+            .reduce(CGPath(rect: feltRect, transform: nil)) { $0.subtracting(capsule($1)) }
+        clipped(turf) { blockBodies(level, t, &rng) }
+    }
+
+    private func blockBodies(_ level: Level, _ t: Theme, _ rng: inout SeededRandom) {
         for b in level.blocks {
             let outer = blockRect(b)
             let path = rounded(outer, 4)
@@ -549,19 +656,20 @@ struct Painter {
             }
             rng = r2
             stroke(path, t.borderSide.darker(0.4), 0.9)
-            bed(outer.insetBy(dx: 6, dy: 6), t, &rng)
+            bed(outer.insetBy(dx: 6, dy: 6), square: Corners(CourseArt.walledSides(b, level)), t, &rng)
         }
     }
 
     /// A planted bed: soil, hedges and flowers.
-    private func bed(_ r: CGRect, _ t: Theme, _ rng: inout SeededRandom) {
+    /// `square`: corners against a wall, kept square so the bed meets the wall without a wedge of rim showing.
+    private func bed(_ r: CGRect, square: Corners, _ t: Theme, _ rng: inout SeededRandom) {
         switch t.bed {
-        case .dune: dune(r, t, &rng); return
-        case .rocks: rockBed(r, t, &rng); return
-        case .snowbank: snowbank(r, t, &rng); return
+        case .dune: dune(r, square: square, t, &rng); return
+        case .rocks: rockBed(r, square: square, t, &rng); return
+        case .snowbank: snowbank(r, square: square, t, &rng); return
         case .flowers: break
         }
-        let path = rounded(r, 2)
+        let path = CourseArt.rounded(r, 2, square: square)
         fill(path, UIColor(hex: 0x4A3424))
         clipped(path) {
             noise(alpha: 0.25)

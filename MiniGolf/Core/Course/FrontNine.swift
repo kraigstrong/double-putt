@@ -34,7 +34,7 @@ extension Levels {
         l.tee(.b, 140, 110); l.cup(.b, 106, 450)
         l.water(.b, 0, 300, 98, 350); l.water(.b, 139, 300, 200, 350)
         l.block(.b, 0, 495, 64, 530); l.block(.b, 125, 495, 200, 530)
-        l.slider(.b, 135, 475, 195, 488, dx: -75, dy: 0, period: 3.1)
+        l.slider(.b, 135, 475, 193, 488, dx: -75, dy: 0, period: 3.1)
         l.solution = Shot(angle: 84.25, power: 0.62, mirrored: true)
         return l
     }

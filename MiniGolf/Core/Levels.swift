@@ -210,7 +210,7 @@ enum Levels {
     }
 
     static func crossover() -> Level {
-        var l = Level("Crossover", par: [3, 2], hint: "A's lane is a dead end — its cup is over in B's lane. Any ball, any cup.")
+        var l = Level("Crossover", par: [3, 2], hint: "A's lane is a dead end — both cups are in B's lane. Any ball, any cup.")
         l.setting = "night"
         l.frame(gaps: [520...640])
         l.block(.a, 0, 660, 200, 800)

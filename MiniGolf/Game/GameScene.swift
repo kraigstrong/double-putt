@@ -317,14 +317,12 @@ final class GameScene: SKScene {
             finial.fillColor = UIColor(hex: 0xF2C14E)
             finial.strokeColor = .clear
             flag.addChild(finial)
+            // Neutral pennant: any ball can drop in any cup, so a cup shouldn't look like it belongs to one.
             let pennant = SKShapeNode()
-            pennant.fillColor = Palette.hole(i)
-            pennant.strokeColor = Palette.hole(i).darker(0.25)
+            pennant.fillColor = .white
+            pennant.strokeColor = UIColor(hex: 0xB9B9B0)
             pennant.lineWidth = 0.5
             flag.addChild(pennant)
-            let letter = textSprite(i == 0 ? "A" : "B", points: 0, worldHeight: 7, color: .white, outline: nil)
-            letter.position = CGPoint(x: 7, y: 31.5)
-            flag.addChild(letter)
             let phase = Double(i) * 1.3
             pennant.run(.repeatForever(.customAction(withDuration: 1) { node, _ in
                 let t = CACurrentMediaTime() * 3.2 + phase
@@ -335,10 +333,6 @@ final class GameScene: SKScene {
                 path.addQuadCurve(to: CGPoint(x: 0.9, y: 26), control: CGPoint(x: 10, y: 27 + sin(t + 0.9) * 2.0))
                 path.closeSubpath()
                 (node as? SKShapeNode)?.path = path
-            }))
-            letter.run(.repeatForever(.customAction(withDuration: 1) { node, _ in
-                let t = CACurrentMediaTime() * 3.2 + phase
-                node.position = CGPoint(x: 7.5, y: 31.5 + sin(t + 0.75) * 1.2)
             }))
             fxNode.addChild(flag)
         }
