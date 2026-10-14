@@ -110,13 +110,22 @@ struct GameView: View {
             ScoreChip(index: 0, strokes: game.strokes[0], sunk: game.sunk[0])
             Spacer(minLength: 0)
             VStack(spacing: 1) {
-                Text(game.level.name).font(.rounded(compact ? 18 : 20, .heavy)).lineLimit(1).minimumScaleFactor(0.7)
+                HStack(spacing: 5) {
+                    Text(game.level.name).font(.rounded(compact ? 18 : 20, .heavy)).lineLimit(1).minimumScaleFactor(0.7)
+                    // Tapping the name brings the pair's hint back; the bulb says so.
+                    if !game.level.hint.isEmpty {
+                        Image(systemName: showHint && game.tutorial == nil ? "lightbulb.fill" : "lightbulb")
+                            .font(.system(size: compact ? 12 : 13, weight: .bold))
+                            .foregroundStyle(showHint && game.tutorial == nil ? Color.putt : .white.opacity(0.8))
+                    }
+                }
                 Text(subtitle)
                     .font(.rounded(10, .bold)).tracking(1.2).opacity(0.75)
                     .lineLimit(1).minimumScaleFactor(0.6)
             }
             .foregroundStyle(.white)
             .shadow(color: .black.opacity(0.5), radius: 3, y: 1)
+            .contentShape(Rectangle())
             .onTapGesture { withAnimation { showHint.toggle() } }
             Spacer(minLength: 0)
             ScoreChip(index: 1, strokes: game.strokes[1], sunk: game.sunk[1])

@@ -56,6 +56,9 @@ struct Box {
     var height: Double { maxY - minY }
     var center: Vec { Vec((minX + maxX) / 2, (minY + maxY) / 2) }
     func offset(_ v: Vec) -> Box { Box(minX + v.x, minY + v.y, maxX + v.x, maxY + v.y) }
+    func distance(to p: Vec) -> Double {
+        Vec(max(minX - p.x, 0, p.x - maxX), max(minY - p.y, 0, p.y - maxY)).length
+    }
 }
 
 /// A two-way pipe. A ball rolling over one mouth pops out of the other.
@@ -83,7 +86,8 @@ struct Mound {
     var strength: Double
 }
 
-/// Something that moves while balls roll. Every swing starts it from t = 0, so shots stay deterministic.
+/// Something that never stops moving. Its pose is a function of the world clock, which keeps running between
+/// swings, so when you putt matters as much as how.
 struct Mover {
     enum Kind {
         /// Blades spinning around a hub. omega in rad/s (positive = counter-clockwise), phase in radians.
@@ -97,6 +101,26 @@ struct Mover {
 
     static let hubRadius = 7.0
     static let restitution = 0.6
+
+    /// Seconds until it looks exactly as it started (a full turn for rotors).
+    var period: Double {
+        switch kind {
+        case .rotor(_, _, _, let omega, _): return omega == 0 ? 0 : 2 * .pi / abs(omega)
+        case .slider(_, _, let period): return period
+        }
+    }
+
+    /// Distance from p to everywhere this mover ever reaches (negative = inside its path).
+    func clearance(_ p: Vec) -> Double {
+        switch kind {
+        case .rotor(let pivot, _, let length, _, _):
+            return (p - pivot).length - length - radius
+        case .slider(let box, let travel, _):
+            var d = Double.infinity
+            for k in 0...48 { d = min(d, box.offset(travel * (Double(k) / 48)).distance(to: p)) }
+            return d - radius
+        }
+    }
 
     func sliderOffset(at t: Double) -> Vec {
         guard case .slider(_, let travel, let period) = kind else { return .zero }
@@ -190,8 +214,10 @@ struct World {
     var slopes: [Slope]
     var mounds: [Mound]
     var movers: [Mover]
-    /// Seconds since the current swing started (drives movers).
+    /// The movers' clock. It runs between swings too, so a swing starts wherever the movers are.
     var time = 0.0
+    /// Every mover is back at its start pose after this many seconds (0 = no movers).
+    var moverCycle: Double
     /// Aim-guide tracing: no rolling friction, so the guide's length never depends on where the ball stops.
     var frictionless = false
 
@@ -206,38 +232,76 @@ struct World {
         slopes = level.slopes
         mounds = level.mounds
         movers = level.movers
+        moverCycle = level.moverCycle
     }
 
     var isSettled: Bool { !balls.contains { $0.isMoving } }
     var allSunk: Bool { balls.allSatisfy { $0.sunkIn != nil } }
 
     mutating func shoot(_ v: Vec, mirrored: Bool) {
-        time = 0
-        resetMovers()
         for i in balls.indices where balls[i].sunkIn == nil {
             balls[i].restPos = balls[i].pos
             balls[i].vel = (mirrored && i == 1) ? Vec(-v.x, v.y) : v
         }
     }
 
-    /// Movers return to their start pose; nudge any resting ball they would overlap.
-    mutating func resetMovers() {
-        time = 0
-        guard !movers.isEmpty else { return }
+    /// Run the movers on while the balls rest, wrapping the clock each full cycle.
+    mutating func advanceMovers(by dt: Double) {
+        time += dt
+        if moverCycle > 0 && time >= moverCycle { time = time.truncatingRemainder(dividingBy: moverCycle) }
+    }
+
+    func inMoverPath(_ p: Vec) -> Bool {
+        movers.contains { $0.clearance(p) < Tuning.ballRadius + 3 }
+    }
+
+    /// Balls resting where a mover would hit them get relief: the nearest spot clear of every mover's path
+    /// that is no nearer an open cup (falling back to the nearest clear spot). Returns where each moved ball was.
+    mutating func clearMoverPaths() -> [(ball: Int, from: Vec)] {
+        guard !movers.isEmpty else { return [] }
         let r = Tuning.ballRadius
-        for i in balls.indices where balls[i].sunkIn == nil {
-            for m in movers {
-                m.forEachWall(at: 0) { w, _ in
-                    let q = closestPoint(balls[i].pos, w.a, w.b)
-                    let d = balls[i].pos - q
-                    let minDist = r + w.radius + 0.5
-                    if d.lengthSquared < minDist * minDist {
-                        let n = d.lengthSquared > 0 ? d.normalized : Vec(0, -1)
-                        balls[i].pos = q + n * minDist
+        var moved: [(ball: Int, from: Vec)] = []
+        for i in balls.indices where balls[i].sunkIn == nil && !balls[i].isMoving && inMoverPath(balls[i].pos) {
+            let p = balls[i].pos
+            let others = balls.indices.filter { $0 != i && balls[$0].sunkIn == nil }.map { balls[$0].pos }
+            let openCups = cups.indices.filter { !cupTaken[$0] }.map { cups[$0] }
+            func toCup(_ q: Vec) -> Double { openCups.map { ($0 - q).length }.min() ?? 0 }
+            // Relief slides the ball: it can't pass through walls, bumpers or water.
+            func blocked(_ q: Vec, slack: Double, waterSlack: Double) -> Bool {
+                walls.contains { (q - closestPoint(q, $0.a, $0.b)).length < r + $0.radius + slack }
+                    || bumpers.contains { (q - $0.center).length < r + $0.radius + slack }
+                    || water.contains { Box($0.minX - waterSlack, $0.minY - waterSlack, $0.maxX + waterSlack, $0.maxY + waterSlack).contains(q) }
+            }
+            func restsSafely(_ q: Vec) -> Bool {
+                !blocked(q, slack: 0.5, waterSlack: r) && !inMoverPath(q)
+                    && !openCups.contains { ($0 - q).length < Tuning.cupRadius + r }
+                    && !tunnels.contains { ($0.a - q).length < Tunnel.radius + r || ($0.b - q).length < Tunnel.radius + r }
+                    && !others.contains { ($0 - q).length < 2 * r + 1 }
+            }
+            let start = toCup(p)
+            var best: (spot: Vec, dist: Double, fair: Bool)?
+            for k in 0..<120 {
+                let dir = Vec.shot(degrees: Double(k) * 3, speed: 1)
+                var d = 1.0
+                while d < 260 {
+                    let q = p + dir * d
+                    if blocked(q, slack: -0.5, waterSlack: 0) { break }
+                    if restsSafely(q) {
+                        let fair = toCup(q) >= start - 0.5
+                        if best == nil || (fair && !best!.fair) || (fair == best!.fair && d < best!.dist) {
+                            best = (q, d, fair)
+                        }
+                        break
                     }
+                    d += 1
                 }
             }
+            guard let best else { continue }
+            moved.append((i, p))
+            balls[i].pos = best.spot
+            balls[i].restPos = best.spot
         }
+        return moved
     }
 
     /// Advance one fixed substep (Tuning.dt).
@@ -453,15 +517,19 @@ struct World {
     }
 
     /// Trace each ball's path. With `fullPath` false, stops `afterContact` units after the ball's first contact
-    /// (or tunnel), or after `maxLength` units, whichever comes first.
-    func guide(shot v: Vec, mirrored: Bool, fullPath: Bool, afterContact: Double = 55, maxLength: Double = 320) -> [GuidePath] {
+    /// (or tunnel), or after `maxLength` units, whichever comes first. The full path predicts a swing struck
+    /// `lead` seconds from now on the movers' clock.
+    func guide(shot v: Vec, mirrored: Bool, fullPath: Bool, lead: Double = 0, afterContact: Double = 55, maxLength: Double = 320) -> [GuidePath] {
         var w = self
-        if !fullPath {
-            // The short guide is an aim line, not a prediction: no friction, cups or water, so it never
-            // shows where the ball stops, whether it drops, or whether it reaches the water.
+        if fullPath {
+            w.time += lead
+        } else {
+            // The short guide is an aim line, not a prediction: no friction, cups, water or movers, so it never
+            // shows where the ball stops, whether it drops, whether it reaches the water, or when to swing.
             w.frictionless = true
             w.cupTaken = w.cupTaken.map { _ in true }
             w.water = []
+            w.movers = []
         }
         w.shoot(v, mirrored: mirrored)
         var paths = w.balls.map { b -> GuidePath in

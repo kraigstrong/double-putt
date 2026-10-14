@@ -8,6 +8,8 @@ extension Vec {
 final class GameScene: SKScene {
     /// Finger travel (points) for a full-power pull.
     static let maxDragPoints: CGFloat = 210
+    /// Seconds from tapping Putt to the putter striking the balls.
+    static let swing = 0.11
 
     let model: GameModel
     private var level: Level
@@ -41,6 +43,9 @@ final class GameScene: SKScene {
     private var dragSide = 0
     private var tickBucket = -1
     private var drawnGuide: (aim: Shot?, canAim: Bool, full: Bool, side: Int)?
+    private var guideDrawnAt: TimeInterval = 0
+    /// Show Ace: mover-clock seconds left before tapping Putt, and how fast the clock runs until then.
+    private var demoCountdown: (left: Double, rate: Double)?
     private var lastHaptic = 0.0
 
     private let light = UIImpactFeedbackGenerator(style: .light)
@@ -280,18 +285,15 @@ final class GameScene: SKScene {
         }
     }
 
-    /// After a swing, movers glide back to their start pose (physics resets them the same way).
-    private func returnMovers() {
-        guard !level.movers.isEmpty else { return }
-        let from = world.time
-        world.resetMovers()
-        syncBalls()
-        run(.customAction(withDuration: 0.5) { [weak self] _, elapsed in
-            guard let self, !self.model.isRolling else { return }
-            let f = Double(elapsed) / 0.5
-            let eased = 1 - (1 - f) * (1 - f)
-            self.syncMovers(at: from * (1 - eased))
-        }, withKey: "movers")
+    /// A ball that stopped in a mover's path slides clear of it (World.clearMoverPaths).
+    private func giveRelief() {
+        for (i, from) in world.clearMoverPaths() where i < ballNodes.count {
+            let node = ballNodes[i]
+            node.position = from.cg
+            let slide = SKAction.move(to: world.balls[i].pos.cg, duration: 0.45)
+            slide.timingMode = .easeInEaseOut
+            node.run(.group([slide, .sequence([.scale(to: 1.25, duration: 0.2), .scale(to: 1, duration: 0.25)])]))
+        }
     }
 
     private func buildFlags() {
@@ -558,14 +560,18 @@ final class GameScene: SKScene {
     func loadLevel() {
         removeAction(forKey: "demo")
         removeAction(forKey: "result")
+        // Retrying a pair keeps the movers' clock, so they carry on instead of jumping back.
+        let clock = level.name == model.level.name ? world.time : 0
         level = model.level
         theme = model.theme
         world = World(level: level)
+        world.time = clock
         accumulator = 0
         model.strokes = [0, 0]
         model.sunk = [false, false]
         model.isRolling = false
         model.isDemo = false
+        demoCountdown = nil
         model.showResult = false
         model.aim = nil
         model.setMirrored(false)
@@ -584,7 +590,9 @@ final class GameScene: SKScene {
         let dt = min(currentTime - (lastUpdate ?? currentTime), 1.0 / 20)
         lastUpdate = currentTime
 
-        if model.isRolling && !model.paused && ballsReleased {
+        if model.paused {
+            // Nothing moves while paused.
+        } else if model.isRolling && ballsReleased {
             accumulator += dt
             var events: [PhysicsEvent] = []
             while accumulator >= Tuning.dt {
@@ -595,12 +603,27 @@ final class GameScene: SKScene {
             syncBalls()
             syncMovers(at: world.time)
             if world.isSettled { settle() }
+        } else if !level.movers.isEmpty {
+            // Movers never stop: between swings (and during the putter's swing) the clock keeps running.
+            if var demo = demoCountdown {
+                let step = min(dt * demo.rate, demo.left)
+                world.advanceMovers(by: step)
+                demo.left -= step
+                demoCountdown = demo.left > 0 ? demo : nil
+                if demo.left <= 0, let shot = level.solution { putt(shot) }
+            } else {
+                world.advanceMovers(by: dt)
+            }
+            syncMovers(at: world.time)
         }
 
         let state = (aim: model.aim, canAim: model.canAim, full: model.fullPathGuide, side: model.aimSide)
+        // The full-path guide (dev) depends on when you'd swing, so it follows the movers.
+        let stale = state.full && !level.movers.isEmpty && currentTime - guideDrawnAt > 0.1
         if drawnGuide == nil || drawnGuide!.aim != state.aim || drawnGuide!.canAim != state.canAim
-            || drawnGuide!.full != state.full || drawnGuide!.side != state.side {
+            || drawnGuide!.full != state.full || drawnGuide!.side != state.side || stale {
             drawnGuide = state
+            guideDrawnAt = currentTime
             drawGuide()
         }
     }
@@ -647,7 +670,7 @@ final class GameScene: SKScene {
     private func settle() {
         model.isRolling = false
         model.isDemo = false
-        returnMovers()
+        giveRelief()
         guard world.allSunk else { return }
         model.recordFinish()
         let doubleAce = model.strokes == [1, 1]
@@ -666,14 +689,12 @@ final class GameScene: SKScene {
 
     func putt(_ shot: Shot) {
         guard model.canAim || model.isDemo else { return }
-        removeAction(forKey: "movers")
-        syncMovers(at: 0)
         for i in world.balls.indices where world.balls[i].sunkIn == nil { model.strokes[i] += 1 }
         model.aim = nil
         model.isRolling = true
         ballsReleased = false
         accumulator = 0
-        let swing = 0.11
+        let swing = Self.swing
         for (i, putter) in putters.enumerated() where world.balls[i].sunkIn == nil {
             let dir = direction(shot, ball: i)
             let contact = world.balls[i].pos - dir * (Tuning.ballRadius + 1.5)
@@ -686,6 +707,8 @@ final class GameScene: SKScene {
         }
         run(.sequence([.wait(forDuration: swing), .run { [weak self] in
             guard let self else { return }
+            // Show Ace strikes on the exact tick the solver used (the countdown lands within a frame of it).
+            if self.model.isDemo && !self.level.movers.isEmpty { self.world.time = self.level.solutionTime }
             self.world.shoot(shot.velocity, mirrored: shot.mirrored)
             self.ballsReleased = true
             SoundFX.shared.putt(power: shot.power)
@@ -703,7 +726,17 @@ final class GameScene: SKScene {
         model.setMirrored(shot.mirrored)
         model.aim = shot
         drawnGuide = nil
-        run(.sequence([.wait(forDuration: 1.6), .run { [weak self] in self?.putt(shot) }]), withKey: "demo")
+        let show = 1.6
+        guard world.moverCycle > 0 else {
+            run(.sequence([.wait(forDuration: show), .run { [weak self] in self?.putt(shot) }]), withKey: "demo")
+            return
+        }
+        // Wait for the movers to come round to the solution's timing, fast-forwarding a long wait.
+        let cycle = world.moverCycle
+        var press = level.solutionTime - Self.swing
+        while press < world.time + show { press += cycle }
+        let left = press - world.time
+        demoCountdown = (left, max(1, left / show))
     }
 
     private func direction(_ shot: Shot, ball i: Int) -> Vec {
@@ -789,7 +822,7 @@ final class GameScene: SKScene {
             guideNode.addChild(ring)
         }
 
-        let paths = world.guide(shot: aim.velocity, mirrored: aim.mirrored, fullPath: model.fullPathGuide)
+        let paths = world.guide(shot: aim.velocity, mirrored: aim.mirrored, fullPath: model.fullPathGuide, lead: Self.swing)
         for (i, g) in paths.enumerated() where world.balls[i].sunkIn == nil {
             let color = Palette.hole(i)
             for (k, piece) in g.pieces.enumerated() where piece.points.count > 1 {

@@ -1,7 +1,9 @@
 import Foundation
 
 // Brute-force every first swing (angle x power x same/mirror) for each level and report what happens.
-// Usage: Tools/solve.sh [level name filter] [--fine] [--candidates] [--all] [--verify] [--probe <angle>]
+// Usage: Tools/solve.sh [level name filter] [--fine] [--candidates] [--all] [--verify] [--probe <angle>] [--timing]
+// Movers never stop, so every search here strikes at the movers' start pose (clock 0) unless noted; --timing
+// asks how exact the putt's timing has to be.
 //        LEVELS=Tools/levels/x.swift Tools/solve.sh --drafts   (levels in a scratch file's `Levels.drafts`)
 
 let args = Array(CommandLine.arguments.dropFirst())
@@ -78,12 +80,80 @@ if args.contains("--verify") {
     var failed = false
     for level in levels {
         guard let shot = level.solution else { print("✗ \(level.name): no solution"); failed = true; continue }
-        let out = World(level: level).simulate(shot: shot.velocity, mirrored: shot.mirrored)
-        let ok = out.world.allSunk
-        failed = failed || !ok
-        print("\(ok ? "✓" : "✗") \(level.name): \(shot.angle)° \(Int(shot.power * 100))%\(shot.mirrored ? " mirror" : "")")
+        var world = World(level: level)
+        world.time = level.solutionTime
+        let ok = world.simulate(shot: shot.velocity, mirrored: shot.mirrored).world.allSunk
+        // A tee in a mover's path would get relief before the first swing.
+        let teesClear = !level.tees.contains { world.inMoverPath($0) }
+        failed = failed || !ok || !teesClear
+        let timing = level.movers.isEmpty ? "" : String(format: " at %.2fs", level.solutionTime)
+        print("\(ok ? "✓" : "✗") \(level.name): \(shot.angle)° \(Int(shot.power * 100))%\(shot.mirrored ? " mirror" : "")\(timing)"
+              + (teesClear ? "" : "  ✗ a tee is in a mover's path"))
     }
     exit(failed ? 1 : 0)
+}
+
+/// How long (seconds) a shot keeps double-acing when struck earlier or later than `t`, scanning in `step`s.
+func timingWindow(_ level: Level, _ shot: Shot, at t: Double, step: Double = 0.005, limit: Double = 1) -> (early: Double, late: Double) {
+    func aces(_ t: Double) -> Bool {
+        var w = World(level: level)
+        w.time = t
+        return w.simulate(shot: shot.velocity, mirrored: shot.mirrored).world.allSunk
+    }
+    var early = 0.0, late = 0.0
+    while early < limit, aces(t - early - step) { early += step }
+    while late < limit, aces(t + late + step) { late += step }
+    return (early, late)
+}
+
+// --timing: for pairs with movers, how forgiving the putt's timing is. For the stored solution, the window of
+// strike times around its clock time that still double-ace; then across the whole mover cycle (coarse grid),
+// how often some double ace exists and the double ace with the widest timing window.
+if args.contains("--timing") {
+    for level in levels where !level.movers.isEmpty && (filter == nil || level.name.lowercased().contains(filter!)) {
+        let cycle = level.moverCycle
+        print("\(level.name)  (mover cycle \(String(format: "%.2f", cycle))s)")
+        if let shot = level.solution {
+            let w = timingWindow(level, shot, at: level.solutionTime)
+            print(String(format: "  stored solution at %.2fs: double-aces from %+.0f to %+.0f ms (%.0f ms window)",
+                         level.solutionTime, -w.early * 1000, w.late * 1000, (w.early + w.late) * 1000 + 5))
+        }
+        let phases = min(60, Int((cycle / 0.1).rounded(.up)))
+        let aStep = 0.5, pStep = 0.02
+        let aCount = Int(360 / aStep), pCount = Int(1 / pStep)
+        var phasesWithAce = 0
+        var best: (shot: Shot, t: Double, window: Double)?
+        for k in 0..<phases {
+            let t = cycle * Double(k) / Double(phases)
+            var world = World(level: level)
+            world.time = t
+            var found: [Shot] = []
+            let lock = NSLock()
+            for mirrored in [false, true] {
+                DispatchQueue.concurrentPerform(iterations: aCount) { ai in
+                    for pi in 0..<pCount {
+                        let shot = Shot(angle: Double(ai) * aStep, power: Double(pi + 1) * pStep, mirrored: mirrored)
+                        if world.simulate(shot: shot.velocity, mirrored: mirrored).world.allSunk {
+                            lock.lock(); found.append(shot); lock.unlock()
+                        }
+                    }
+                }
+            }
+            if !found.isEmpty { phasesWithAce += 1 }
+            // Measure the timing window of a few of this phase's aces.
+            for shot in found.shuffled().prefix(6) {
+                let w = timingWindow(level, shot, at: t, step: 0.01)
+                let width = w.early + w.late + 0.01
+                if best == nil || width > best!.window { best = (shot, t - w.early + width / 2, width) }
+            }
+        }
+        print(String(format: "  double ace exists at %d of %d strike times across the cycle", phasesWithAce, phases))
+        if let b = best {
+            print(String(format: "  widest timing found: %.0f ms around %.2fs  Shot(angle: %.2f, power: %.3f, mirrored: %@)",
+                         b.window * 1000, b.t, b.shot.angle, b.shot.power, b.shot.mirrored ? "true" : "false"))
+        }
+    }
+    exit(0)
 }
 for (index, level) in levels.enumerated() {
     if let filter, !level.name.lowercased().contains(filter) { continue }

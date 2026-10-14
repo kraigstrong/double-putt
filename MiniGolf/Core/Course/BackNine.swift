@@ -2,9 +2,10 @@
 extension Levels {
 
     /// Pair 14. Mirror-image holes, each with a mill guarding its door, but the mills turn opposite ways and
-    /// don't start in step: a soft putt gets swatted in B, a firm one in A. Only a middle power slips past both.
+    /// are never in step (always 15° off each other's mirror image): at a given moment a soft putt gets swatted in
+    /// B, a firm one in A. Only a middle power, struck at the right moment, slips past both.
     static func windmill() -> Level {
-        var l = Level("Windmill", par: [3, 3], hint: "Mirror-image mills, but they don't start in step.")
+        var l = Level("Windmill", par: [3, 3], hint: "Mirror-image mills, but they never turn in step.")
         l.setting = "winter"
         l.frame()
         // Snowbank at the top of both lanes.
@@ -60,7 +61,7 @@ extension Levels {
     }
 
     /// Pair 18. Each lantern on its jetty crosses to the other hole's far bank, right beside one shared clock
-    /// whose hands start at twelve. They sweep down onto one ball and away from the other. The cups sit off
+    /// whose hands never stop. They sweep down onto one ball and away from the other. The cups sit off
     /// the exit lines in hollows, so only a ball that is slow enough curls in.
     static func midnight() -> Level {
         var l = Level("Midnight", par: [3, 3], hint: "The lanterns swap the balls. The clock treats them differently.")

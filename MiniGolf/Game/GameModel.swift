@@ -85,6 +85,8 @@ final class GameModel {
     }
 
     @ObservationIgnored weak var scene: GameScene?
+    /// The tips were asked for again (How to Play), so they're generic: the Mirror tip doesn't depend on the pair.
+    @ObservationIgnored private var replayingTips = false
     /// First swing of the last attempt, restored on Retry so you can tweak it.
     @ObservationIgnored var lastOpeningShot: Shot?
 
@@ -194,6 +196,7 @@ final class GameModel {
         levelIndex = max(0, min(index, levelCount - 1))
         lastOpeningShot = nil
         paused = false
+        replayingTips = false
         if levelIndex == 0 && !tutorialDone {
             tutorial = .aim
         } else if level.name == "Reflection" && !UserDefaults.standard.bool(forKey: "mirrorTaught") {
@@ -247,6 +250,7 @@ final class GameModel {
 
     func dismissTutorial() {
         tutorial = nil
+        replayingTips = false
         tutorialDone = true
         UserDefaults.standard.set(true, forKey: "tutorialDone")
         UserDefaults.standard.set(true, forKey: "mirrorTaught")
@@ -254,7 +258,8 @@ final class GameModel {
 
     func finishedAiming() {
         guard tutorial == .aim, aim != nil else { return }
-        tutorial = level.solution?.mirrored == true && !mirrored ? .mirror : .putt
+        let teachMirror = replayingTips || level.solution?.mirrored == true
+        tutorial = teachMirror && !mirrored ? .mirror : .putt
     }
 
     /// Left-right flip of a direction in degrees.
@@ -303,10 +308,11 @@ final class GameModel {
         if !devMode { fullPathGuide = false }
     }
 
+    /// Show the tips again on the pair being played; the pair and the round carry on untouched.
     func replayTutorial() {
-        tutorialDone = false
-        UserDefaults.standard.set(false, forKey: "tutorialDone")
-        start(level: 0)
+        paused = false
+        replayingTips = true
+        tutorial = .aim
     }
 
     func demo() {

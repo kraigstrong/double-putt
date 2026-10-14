@@ -20,12 +20,12 @@ extension Levels {
     }
 
     /// Pair 7. A is a long putt over the moat to a cup under a tower wall. B's cup sits in front of the castle
-    /// gate, which is open when you aim: a drawbridge block slides across it during the roll. A needs more pace
-    /// than B can take, so B's ball must reach the gate after it has shut and bounce back into the cup.
-    /// Too soft and A falls short; too firm (the "A has a backboard, just hit it" instinct) and B's ball
-    /// beats the gate into the courtyard.
+    /// gate, which a drawbridge block keeps sliding open and shut. A needs more pace than B can take, so B's ball
+    /// must reach the gate while it is shut and bounce back into the cup: putt while the gate is open and the
+    /// ball arrives as it closes. Too soft and A falls short; too firm (the "A has a backboard, just hit it"
+    /// instinct) and B's ball beats the gate into the courtyard.
     static func drawbridge() -> Level {
-        var l = Level("Drawbridge", par: [3, 2], hint: "The castle gate shuts mid-roll. Pace is timing.")
+        var l = Level("Drawbridge", par: [3, 2], hint: "The castle gate never rests. Pick your moment, then your pace.")
         l.setting = "moat"
         l.frame()
         l.tee(.a, 60, 110); l.cup(.a, 110, 610)
