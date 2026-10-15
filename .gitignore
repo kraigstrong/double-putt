@@ -11,3 +11,6 @@ build/
 .env
 .env.*
 !.env.example
+
+# Course drafts (see Tools/levels/BRIEF.md); shipped pairs move into MiniGolf/Core/Course/.
+Tools/levels/*.swift
