@@ -124,7 +124,13 @@ final class GameModel {
     /// The course the round just finished unlocked, if it was locked before.
     private(set) var newlyUnlocked: Nine?
     var fullPathGuide = false
+    /// Every course open, Show Ace, the full-path guide and Reset. Xcode builds only: TestFlight and App Store builds
+    /// play the real unlocks.
+    #if DEBUG
     private(set) var devMode = UserDefaults.standard.bool(forKey: "devMode")
+    #else
+    let devMode = false
+    #endif
     private(set) var bests: [String: Int] = UserDefaults.standard.dictionary(forKey: "bests") as? [String: Int] ?? [:]
     private(set) var tutorialDone = UserDefaults.standard.bool(forKey: "tutorialDone")
 
@@ -386,9 +392,11 @@ final class GameModel {
     }
 
     func toggleDevMode() {
+        #if DEBUG
         devMode.toggle()
         UserDefaults.standard.set(devMode, forKey: "devMode")
         if !devMode { fullPathGuide = false }
+        #endif
     }
 
     /// Show the tips again on the pair being played; the pair and the round carry on untouched.

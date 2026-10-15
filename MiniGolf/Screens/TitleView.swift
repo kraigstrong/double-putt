@@ -35,12 +35,14 @@ struct TitleView: View {
                         .padding(.bottom, geo.size.height * 0.16)
                         .scaleEffect(appeared ? 1 : 0.85)
                         .opacity(appeared ? 1 : 0)
+                        #if DEBUG
                         .onLongPressGesture(minimumDuration: 1.0) {
                             app.game.toggleDevMode()
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
                             withAnimation { devToast = app.game.devMode ? "Dev mode on" : "Dev mode off" }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { withAnimation { devToast = nil } }
                         }
+                        #endif
                     Spacer()
 
                     VStack(spacing: 12) {
