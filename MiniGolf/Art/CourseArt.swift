@@ -22,6 +22,7 @@ enum CourseArt {
             p.tees(level, theme)
             p.cups(level, theme)
             p.tunnels(level, theme)
+            p.kickers(level, theme)
             p.shadow(dx: 2.6, dy: -3.6, blur: 4.5, alpha: 0.4) {
                 p.borderShape(fill: .black)
                 p.railShapes(level, fill: .black)

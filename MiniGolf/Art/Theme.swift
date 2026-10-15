@@ -22,6 +22,8 @@ struct Theme {
     var canopies: [UIColor] = []
     var flowers: [UIColor] = []
     var litter: [UIColor] = []
+    /// Candy-stripe pair for striped borders, awnings, tents and carousels.
+    var stripes = [UIColor(hex: 0xF0524F), UIColor(hex: 0xFFF4E2)]
     var waterDeep = UIColor(hex: 0x1D6FA5), waterShallow = UIColor(hex: 0x56B9DE)
     var ambient = Ambient.none
     var ground = Ground.grass

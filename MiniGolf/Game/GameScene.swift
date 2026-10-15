@@ -256,11 +256,20 @@ final class GameScene: SKScene {
                 body = SKSpriteNode(texture: SKTexture(image: make(false)))
                 shadow = SKSpriteNode(texture: SKTexture(image: make(true)))
                 body.size = CGSize(width: box.width + 2 * m.radius, height: box.height + 2 * m.radius)
+            case .carousel(_, let radius, _, _):
+                body = SKSpriteNode(texture: SKTexture(image: CourseArt.carousel(radius: radius, theme: self.theme, ppu: ppu)))
+                shadow = SKSpriteNode()
+                body.size = CGSize(width: (radius + 3) * 2, height: (radius + 3) * 2)
             }
             shadow.size = body.size
             shadow.alpha = 0.3
             body.zPosition = 17
             shadow.zPosition = 9
+            if case .carousel = m.kind {
+                // Flush with the green: under the guide and the balls, no cast shadow.
+                body.zPosition = 2
+                shadow.alpha = 0
+            }
             body.name = "mover\(k)"
             worldNode.addChild(shadow)
             worldNode.addChild(body)
@@ -274,7 +283,7 @@ final class GameScene: SKScene {
         for (k, m) in level.movers.enumerated() where k < moverNodes.count {
             let (body, shadow) = moverNodes[k]
             switch m.kind {
-            case .rotor(let pivot, _, _, _, _):
+            case .rotor(let pivot, _, _, _, _), .carousel(let pivot, _, _, _):
                 body.position = pivot.cg
                 body.zRotation = m.bladeAngle(0, at: t)
             case .slider(let box, _, _):
@@ -653,6 +662,11 @@ final class GameScene: SKScene {
                 sink(ball: ball, cup: cup)
             case .splash(let ball, let at):
                 splash(ball: ball, at: at)
+            case .kick(let ball, let at):
+                SoundFX.shared.putt(power: 0.9)
+                medium.impactOccurred(intensity: 0.8)
+                puff(at: at, count: 10, color: UIColor(hex: 0xFFD54F))
+                ballNodes[ball].run(.sequence([.scale(to: 1.25, duration: 0.06), .scale(to: 1, duration: 0.14)]))
             case .tunnel(let ball, let from, let to):
                 let color = TunnelColors.color(level.tunnels.firstIndex { $0.a == from || $0.b == from } ?? 0)
                 puff(at: from, count: 8, color: color)
