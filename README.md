@@ -34,8 +34,12 @@ never stop, so when you putt matters as much as how, and from Midway on, **kicke
 ball a set way at a set speed) and **carousels** (spinning disks that drag the ball along with them). A ball that stops
 in a mover's path or on a carousel slides to the nearest clear spot that's no nearer a cup.
 
-Long-press the title logo to toggle **dev mode** (every course unlocked; pause menu gets a full-path guide toggle,
-Show Ace and Reset).
+In Debug (Xcode) builds, long-press the title logo to toggle **dev mode** (every course unlocked; pause menu gets a
+full-path guide toggle, Show Ace and Reset). TestFlight and App Store builds don't have it.
+
+The title's gear opens **Settings**: sound, the privacy policy and support pages, and the version. The game sends
+anonymous gameplay counts (pair difficulty and the course funnel; no names or device IDs) to brightbench.app, as
+described in `docs/analytics.md`. `docs/testflight.md` is the beta checklist and upload guide.
 Show Ace waits (fast-forwarding a long wait) for the movers to reach the stored solution's timing.
 
 Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to Play** replays the tips on the pair you're on.

@@ -5,24 +5,24 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 ## Before the first build
 
 ### In this repo
-- [ ] **App icon without an alpha channel.** App Store Connect rejects icons that have one.
-- [ ] **Privacy manifest** (`MiniGolf/PrivacyInfo.xcprivacy`): UserDefaults for saved progress and settings
+- [x] **App icon without an alpha channel.** App Store Connect rejects icons that have one.
+- [x] **Privacy manifest** (`MiniGolf/PrivacyInfo.xcprivacy`): UserDefaults for saved progress and settings
   (reason CA92.1), and anonymous gameplay counts (product interaction, not linked to the player, not tracking).
-- [ ] **`ITSAppUsesNonExemptEncryption = NO`**: the only encryption is the system's HTTPS, so App Store Connect
+- [x] **`ITSAppUsesNonExemptEncryption = NO`**: the only encryption is the system's HTTPS, so App Store Connect
   won't ask the export-compliance question on each upload.
-- [ ] **Bundle ID `com.kraigstrong.doubleputt`** (team `MKACSCQ588`, automatic signing). Permanent once the App
+- [x] **Bundle ID `com.kraigstrong.doubleputt`** (team `MKACSCQ588`, automatic signing). Permanent once the App
   Store Connect record exists. A phone that ran the old `com.kraig.minigolf` builds gets this as a separate app,
   so its local progress doesn't carry over.
-- [ ] **Debug tools in Debug builds only**: dev mode (long-press the logo: every course open, Show Ace, full-path
+- [x] **Debug tools in Debug builds only**: dev mode (long-press the logo: every course open, Show Ace, full-path
   guide, Reset), the debug launch arguments and the mechanic test pairs. TestFlight and App Store builds play the
   real unlock flow.
-- [ ] **The screen stays awake while playing** (aiming can take longer than auto-lock), and sleeps normally on
+- [x] **The screen stays awake while playing** (aiming can take longer than auto-lock), and sleeps normally on
   the menus.
-- [ ] **Coming back to the app shows the pause menu** if a pair was in play.
-- [ ] **Settings screen** from the title: Sound, How to Play, Privacy Policy, Support, and the version.
-- [ ] **Anonymous gameplay counts** (see `docs/analytics.md`): per-pair difficulty and the course funnel, no
+- [x] **Coming back to the app shows the pause menu** if a pair was in play.
+- [x] **Settings screen** from the title's gear: Sound, Privacy Policy, Support, and the version.
+- [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-pair difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
-- [ ] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
+- [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
 - Version 0.1, build 1 (Xcode's "Manage Version and Build Number" bumps the build on each upload).
 - iPhone only, portrait, full screen. Sound follows the silent switch (ambient), so it never surprises anyone.
 
