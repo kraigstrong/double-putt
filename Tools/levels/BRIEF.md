@@ -95,6 +95,8 @@ about where the previous course's middle sat. Shipped courses, measured:
 | 2 Nightfall | 0.06 0.07 0.09 0.07 0.12 0.06 0.04 0.06 0.06 | 1.25–3° × 6–17% | 46 | 300 ms–1 s | |
 | 3 Thunderhead | 0.096 0.087 0.067 0.061 0.059 0.056 0.043 0.039 0.033 | 1.5–2.5° × 7–13% | 48 | 570–685 ms | "hard, in a good way" |
 | 4 Midway | 0.080 0.075 0.068 0.062 0.052 0.044 0.040 0.038 0.029 | 1.5–3.25° × 6–11% | 47 | 410–465 ms | fun, but played easier than Thunderhead |
+| 5 Big Top | 0.065 0.051 0.049 0.047 0.042 0.037 0.033 0.029 0.024 | 1.0–1.75° × 5–10% | 47 | 245–400 ms | not yet playtested |
+| 6 Fireworks | 0.043 0.042 0.037 0.033 0.031 0.028 0.026 0.021 0.018 | 1.25–1.75° × 5–8% | 50 | 230–595 ms | not yet playtested |
 
 Midway measured a touch harder than Thunderhead yet played easier. Likely causes: wide windows (several ≥ 2.5°), and
 holes a player can ace almost at will (Springboard's A, High Striker's B and Teacups' B each ace 2.5–3% of all swings,
