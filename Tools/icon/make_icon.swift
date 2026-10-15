@@ -232,9 +232,17 @@ func render(_ draw: (CGContext) -> Void) -> CGImage {
     return c.makeImage()!
 }
 
+/// App Store Connect rejects an icon with an alpha channel, even a fully opaque one, so flatten before saving.
+func opaque(_ img: CGImage) -> CGImage {
+    let c = CGContext(data: nil, width: img.width, height: img.height, bitsPerComponent: 8, bytesPerRow: 0, space: space,
+                      bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
+    c.draw(img, in: CGRect(x: 0, y: 0, width: img.width, height: img.height))
+    return c.makeImage()!
+}
+
 func save(_ img: CGImage, _ url: URL) {
     let d = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil)!
-    CGImageDestinationAddImage(d, img, nil)
+    CGImageDestinationAddImage(d, opaque(img), nil)
     CGImageDestinationFinalize(d)
 }
 
