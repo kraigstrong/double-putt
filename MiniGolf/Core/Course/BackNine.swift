@@ -13,11 +13,11 @@ extension Levels {
         // Each mill house sits on the inside; its blades sweep the door on the open side of the lane.
         l.block(.a, 125, 400, 200, 460); l.block(.b, 0, 400, 75, 460)
         l.block(.a, 0, 400, 45, 460); l.block(.b, 155, 400, 200, 460)
-        l.rotor(.a, 125, 430, blades: 2, length: 68, rpm: 30, phase: 165)
-        l.rotor(.b, 75, 430, blades: 2, length: 68, rpm: -30, phase: 0)
+        l.rotor(.a, 125, 430, blades: 2, length: 68, rpm: 24, phase: 195)
+        l.rotor(.b, 75, 430, blades: 2, length: 68, rpm: -24, phase: 330)
         l.tee(.a, 95, 120); l.tee(.b, 105, 120)
         l.cup(.a, 55, 620); l.cup(.b, 145, 620)
-        l.solution = Shot(angle: 94.75, power: 0.650, mirrored: true)
+        l.solution = Shot(angle: 95.00, power: 0.720, mirrored: true)
         return l
     }
 
@@ -62,12 +62,13 @@ extension Levels {
 
     /// Pair 18. Each lantern on its jetty crosses to the other hole's far bank, right beside one shared clock
     /// whose hands never stop. They sweep down onto one ball and away from the other. The cups sit off
-    /// the exit lines in hollows, so only a ball that is slow enough curls in.
+    /// the exit lines in hollows, so only a ball that is slow enough curls in. Two hands, not three, so both
+    /// exit lines open at once (with three, one line was always closing as the other opened).
     static func midnight() -> Level {
         var l = Level("Midnight", par: [3, 3], hint: "The lanterns swap the balls. The clock treats them differently.")
         l.setting = "night"
         l.frame(gaps: [513...687])
-        l.rotor(.a, 200, 600, blades: 3, length: 72, rpm: 17.5, phase: 90)
+        l.rotor(.a, 200, 600, blades: 2, length: 80, rpm: 17.5, phase: 30)
         for s in [Side.a, .b] {
             l.water(s, 0, 390, 200, 450)
             l.water(s, 0, 200, 20, 390); l.water(s, 180, 200, 200, 390)
@@ -75,10 +76,10 @@ extension Levels {
         l.tunnel(.a, 70, 350, .b, 70, 480, exitB: 90)
         l.tunnel(.b, 140, 350, .a, 122, 480, exitB: 90)
         l.cup(.a, 107, 735); l.cup(.b, 85, 735)
-        l.bowl(.a, 107, 735, radius: 40, strength: 140)
-        l.bowl(.b, 85, 735, radius: 40, strength: 140)
+        l.bowl(.a, 107, 735, radius: 40, strength: 80)
+        l.bowl(.b, 85, 735, radius: 40, strength: 80)
         l.tee(.a, 100, 120); l.tee(.b, 100, 120)
-        l.solution = Shot(angle: 99.00, power: 0.730, mirrored: true)
+        l.solution = Shot(angle: 98.50, power: 0.730, mirrored: true)
         return l
     }
 }
