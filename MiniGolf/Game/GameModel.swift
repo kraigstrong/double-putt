@@ -102,7 +102,9 @@ final class GameModel {
     var isRolling = false
     var isDemo = false
     var showResult = false
-    var paused = false
+    var paused = false {
+        didSet { if paused != oldValue { analytics.setPaused(paused) } }
+    }
     var tutorial: TutorialStep?
     /// Where the course sits on screen (scene/view points), so HUD pieces can hug it.
     var courseFrame: CGRect = .zero
@@ -403,8 +405,8 @@ final class GameModel {
             tutorialDone = true
             UserDefaults.standard.set(true, forKey: "tutorialDone")
         }
-        analytics.swing(mirrored: shot.mirrored)
         scene?.putt(shot)
+        analytics.swing(mirrored: shot.mirrored, strokes: strokes, sunk: sunk)
     }
 
     /// The game screen closed: an unfinished pair counts as quit.

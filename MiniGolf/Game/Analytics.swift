@@ -124,7 +124,9 @@ final class Analytics {
     private let sender: AnalyticsSender
     private let prefix = "doublePutt.metrics.v1."
     private var attempt: Attempt?
-    private var attemptStart = Date()
+    /// Time on the current attempt counts only while it's in play: paused (or away from the app) doesn't count.
+    private var playedBefore: TimeInterval = 0
+    private var playingSince: Date?
 
     init(defaults: UserDefaults = .standard, sender: AnalyticsSender = URLAnalyticsSender(), enabled: Bool = Analytics.defaultEnabled) {
         self.defaults = defaults
@@ -158,13 +160,27 @@ final class Analytics {
         guard enabled else { return }
         pairLeft()
         attempt = Attempt(context: context, mode: mode, par: par)
-        attemptStart = Date()
+        playedBefore = 0
+        playingSince = Date()
     }
 
-    func swing(mirrored: Bool) {
+    /// The pause menu opened or closed (leaving the app opens it).
+    func setPaused(_ paused: Bool) {
+        if paused, let since = playingSince {
+            playedBefore += Date().timeIntervalSince(since)
+            playingSince = nil
+        } else if !paused, playingSince == nil {
+            playingSince = Date()
+        }
+    }
+
+    /// A swing was struck; `strokes` already counts it, so an attempt cut short mid-roll is saved with it.
+    func swing(mirrored: Bool, strokes: [Int], sunk: [Bool]) {
         guard enabled, attempt != nil else { return }
         attempt?.swings += 1
         if mirrored { attempt?.mirrorSwings += 1 }
+        attempt?.strokes = strokes
+        attempt?.sunk = sunk
         checkpoint()
     }
 
@@ -208,7 +224,10 @@ final class Analytics {
         defaults.removeObject(forKey: prefix + "attempt")
     }
 
-    private var elapsed: Int { min(3600, max(0, Int(Date().timeIntervalSince(attemptStart).rounded()))) }
+    private var elapsed: Int {
+        let played = playedBefore + (playingSince.map { Date().timeIntervalSince($0) } ?? 0)
+        return min(3600, max(0, Int(played.rounded())))
+    }
 
     private func checkpoint() {
         guard var a = attempt else { return }
