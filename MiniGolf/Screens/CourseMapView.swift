@@ -43,10 +43,16 @@ struct CourseMapView: View {
                 VStack(alignment: .leading, spacing: 26) {
                     ForEach(game.nines) { nine in
                         VStack(alignment: .leading, spacing: 14) {
+                            let locked = !game.isUnlocked(nine)
                             HStack(alignment: .firstTextBaseline) {
                                 Text(nine.name).font(.rounded(22, .black))
                                 Spacer()
-                                Text(nineSummary(nine)).font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.6))
+                                if locked, let before = game.prerequisite(of: nine) {
+                                    Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
+                                        .font(.rounded(12, .bold)).foregroundStyle(Color.putt)
+                                } else {
+                                    Text(nineSummary(nine)).font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.6))
+                                }
                             }
                             ForEach(sections(nine)) { section in
                                 VStack(alignment: .leading, spacing: 8) {
@@ -60,7 +66,7 @@ struct CourseMapView: View {
                                         ForEach(section.indices, id: \.self) { i in
                                             let level = GameModel.levels[i]
                                             PairCard(number: game.pairNumber(i), level: level, best: game.best(for: level),
-                                                     trophy: game.hasTrophy(level)) {
+                                                     trophy: game.hasTrophy(level), locked: locked) {
                                                 app.play(level: i)
                                             }
                                         }
@@ -98,6 +104,8 @@ private struct PairCard: View {
     let level: Level
     let best: Int?
     let trophy: Bool
+    /// Its course isn't open yet.
+    let locked: Bool
     let action: () -> Void
 
     var body: some View {
@@ -118,9 +126,15 @@ private struct PairCard: View {
                             .frame(width: 22, height: 22)
                             .background(Circle().fill(Color(theme.accent)))
                         Spacer()
-                        TrophyView(earned: trophy, accent: Color(theme.accent), size: 22)
-                            .padding(5)
-                            .background(Circle().fill(Color.ink.opacity(0.5)))
+                        Group {
+                            if locked {
+                                Image(systemName: "lock.fill").font(.system(size: 13, weight: .bold)).frame(width: 20, height: 22)
+                            } else {
+                                TrophyView(earned: trophy, accent: Color(theme.accent), size: 22)
+                            }
+                        }
+                        .padding(5)
+                        .background(Circle().fill(Color.ink.opacity(0.5)))
                     }
                     Spacer()
                     Text(level.name).font(.rounded(13, .heavy)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.7)
@@ -134,7 +148,9 @@ private struct PairCard: View {
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
             .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
             .animation(.easeOut(duration: 0.3), value: MenuArt.shared.cards[level.name] != nil)
+            .opacity(locked ? 0.45 : 1)
         }
         .buttonStyle(PressStyle(scale: 0.95))
+        .disabled(locked)
     }
 }
