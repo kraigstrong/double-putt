@@ -1,8 +1,8 @@
 import UIKit
 
-// Funfair settings (Midway, Big Top, Fireworks): painted boardwalk walls, striped tents and booth awnings, balloons
-// and rubber ducks. Colours come from the theme's `borderTop`/`trim` (walls), `stripes` (awnings, carousels),
-// `canopies` (tents) and `flowers` (balloons).
+// Funfair settings (Midway, Big Top, Fireworks): painted boardwalk walls, booth roofs, striped tents, balloons and
+// rubber ducks. Colours come from the theme's `borderTop`/`trim` (walls), `booths` (booth roofs), `stripes`
+// (carousels), `canopies` (tents) and `flowers` (balloons).
 
 extension CourseArt {
     /// A paper confetti strip for the ambient emitter (tinted per particle).
@@ -48,35 +48,37 @@ extension Painter {
         stroke(seam, t.borderSide.darker(0.3), 0.8)
     }
 
-    /// A striped booth awning filling a block: bands, a scalloped valance on the near (lower) edge, soft shading.
+    /// A booth roof filling a block: plain canvas in one of the setting's booth colours (each booth picks its own), with
+    /// faint seams, and stripes only on the scalloped valance along its front (lower) edge.
     func awning(_ r: CGRect, square: Corners, _ t: Theme, _ rng: inout SeededRandom) {
         let path = CourseArt.rounded(r, 2, square: square)
+        let canvas = rng.pick(t.booths).mixed(with: UIColor(hex: 0xFFF4E2), 0.12)
+        let cream = UIColor(hex: 0xFFF4E2)
         clipped(path) {
-            let horizontal = r.width >= r.height
-            let band: CGFloat = 9
-            var k = 0
-            var s: CGFloat = horizontal ? r.minX : r.minY
-            while s < (horizontal ? r.maxX : r.maxY) {
-                let piece = horizontal ? CGRect(x: s, y: r.minY, width: band, height: r.height)
-                                       : CGRect(x: r.minX, y: s, width: r.width, height: band)
-                fill(piece, t.stripes[k % t.stripes.count])
-                s += band
-                k += 1
+            fill(path, canvas)
+            // Seams run front to back, like canvas panels.
+            var x = r.minX + 18
+            while x < r.maxX - 4 {
+                stroke(CourseArt.line(CGPoint(x: x, y: r.minY), CGPoint(x: x, y: r.maxY)), canvas.darker(0.16), 0.7)
+                x += 18
             }
-            // Folds catch the light near the top, darken toward the valance.
-            linear(path, [UIColor.white.withAlphaComponent(0.22), UIColor.clear, UIColor.black.withAlphaComponent(0.2)],
+            // Light catches the roof's ridge (back), the valance sits in shade.
+            linear(path, [UIColor.white.withAlphaComponent(0.2), UIColor.clear, UIColor.black.withAlphaComponent(0.18)],
                    from: CGPoint(x: r.midX, y: r.maxY), to: CGPoint(x: r.midX, y: r.minY))
-            // Scalloped valance along the lower edge.
-            var x = r.minX
+            // Valance: a striped band with scallops along the front edge.
+            let band: CGFloat = 8
+            let depth = min(9, r.height * 0.35)
+            var bx = r.minX
             var j = 0
-            while x < r.maxX {
-                let scallop = circle(CGPoint(x: x + band / 2, y: r.minY + 1), band / 2)
-                fill(scallop, t.stripes[j % t.stripes.count].darker(0.08))
-                x += band
+            while bx < r.maxX {
+                let color = j % 2 == 0 ? canvas.darker(0.05) : cream
+                fill(CGRect(x: bx, y: r.minY, width: band, height: depth), color)
+                fill(circle(CGPoint(x: bx + band / 2, y: r.minY + 0.5), band / 2), color.darker(0.06))
+                bx += band
                 j += 1
             }
-            stroke(CourseArt.line(CGPoint(x: r.minX, y: r.minY + 1), CGPoint(x: r.maxX, y: r.minY + 1)),
-                   UIColor.black.withAlphaComponent(0.18), 0.8)
+            stroke(CourseArt.line(CGPoint(x: r.minX, y: r.minY + depth), CGPoint(x: r.maxX, y: r.minY + depth)),
+                   UIColor.black.withAlphaComponent(0.2), 0.8)
         }
         shadow(dx: 0, dy: 0, blur: 3, alpha: 0.45) {
             let ring = CGMutablePath()

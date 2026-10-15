@@ -26,6 +26,8 @@ struct Theme {
     var stripes = [UIColor(hex: 0xF0524F), UIColor(hex: 0xFFF4E2)]
     /// The trim line painted along a `.painted` border and its rails.
     var trim = UIColor(hex: 0xFFF4E2)
+    /// Booth roof colours (blocks), chosen to stand apart from the walls, the water and the green.
+    var booths = [UIColor(hex: 0xFFC94A)]
     var waterDeep = UIColor(hex: 0x1D6FA5), waterShallow = UIColor(hex: 0x56B9DE)
     var ambient = Ambient.none
     var ground = Ground.grass
@@ -155,6 +157,7 @@ struct Theme {
         t.feltLight = UIColor(hex: 0x4CC17F); t.feltDark = UIColor(hex: 0x43B273)
         t.border = .painted; t.borderTop = UIColor(hex: 0x4FA3E0); t.borderSide = UIColor(hex: 0x2D6FA3)
         t.stripes = [UIColor(hex: 0xF0524F), UIColor(hex: 0xFFF4E2)]
+        t.booths = [UIColor(hex: 0xFFC94A), UIColor(hex: 0xF0775A), UIColor(hex: 0xA77BD8)]
         t.canopies = [UIColor(hex: 0xF0524F), UIColor(hex: 0x3D8BFD), UIColor(hex: 0xFFC94A), UIColor(hex: 0x2BB673)]
         t.flowers = [UIColor(hex: 0xFF6FA8), UIColor(hex: 0x6FD3FF), UIColor(hex: 0xFFE066), UIColor(hex: 0xB28DFF)]
         t.trees = .tents; t.bed = .awning; t.post = .balloon; t.ducks = true; t.ambient = .confetti
@@ -170,6 +173,7 @@ struct Theme {
         t.border = .painted; t.borderTop = UIColor(hex: 0xB3213A); t.borderSide = UIColor(hex: 0x6E1222)
         t.trim = UIColor(hex: 0xFFC94A)
         t.stripes = [UIColor(hex: 0xD7263D), UIColor(hex: 0xFFC94A)]
+        t.booths = [UIColor(hex: 0xFFC94A), UIColor(hex: 0x2EC4B6), UIColor(hex: 0x9B6BD6)]
         t.canopies = [UIColor(hex: 0xD7263D), UIColor(hex: 0x2E5BFF), UIColor(hex: 0xFFC94A)]
         t.flowers = [UIColor(hex: 0xFF4D6D), UIColor(hex: 0xFFD166), UIColor(hex: 0x4CC9F0)]
         t.waterDeep = UIColor(hex: 0x1B5FA8); t.waterShallow = UIColor(hex: 0x58B4E8)
@@ -186,6 +190,7 @@ struct Theme {
         t.border = .painted; t.borderTop = UIColor(hex: 0x3D5291); t.borderSide = UIColor(hex: 0x1F2C57)
         t.trim = UIColor(hex: 0xFFE8A3)
         t.stripes = [UIColor(hex: 0x7B2CBF), UIColor(hex: 0xFFE8A3)]
+        t.booths = [UIColor(hex: 0xE63973), UIColor(hex: 0x2EC4B6), UIColor(hex: 0xFF9F1C)]
         t.canopies = [UIColor(hex: 0x7B2CBF), UIColor(hex: 0xE63973), UIColor(hex: 0x2EC4B6), UIColor(hex: 0xFF9F1C)]
         t.flowers = [UIColor(hex: 0xFF5DA2), UIColor(hex: 0x5DE2FF), UIColor(hex: 0xFFE45D)]
         t.waterDeep = UIColor(hex: 0x0D2747); t.waterShallow = UIColor(hex: 0x245887)
