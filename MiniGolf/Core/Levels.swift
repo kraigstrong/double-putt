@@ -167,6 +167,12 @@ enum Levels {
             windmill(), sledRun(),                   // Winter Village
             crossover(), lanterns(), midnight(),     // Night Garden
         ]),
+        ("thunderhead", "Thunderhead", [
+            breakwater(), tidePools(),               // Seaside Boardwalk
+            sundial(), topiary(),                    // Walled Garden
+            plateau(), arroyo(),                     // Desert Canyon
+            avalanche(), iceBridge(), thunderclap(), // Winter Village
+        ]),
     ]
 
     /// Display names of the visual settings (`Level.setting`).
