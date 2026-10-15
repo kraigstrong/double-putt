@@ -4,6 +4,7 @@ import SwiftUI
 struct GameView: View {
     let app: AppState
     @State private var showHint = false
+    @Environment(\.scenePhase) private var scenePhase
 
     private var game: GameModel { app.game }
     private static let topBar: CGFloat = 52
@@ -77,8 +78,14 @@ struct GameView: View {
             .animation(.easeInOut(duration: 0.25), value: game.paused)
             .animation(.easeInOut(duration: 0.3), value: game.showResult)
             .animation(.easeInOut(duration: 0.3), value: game.showScorecard)
-            .onAppear { updateInsets(geo) }
+            .onAppear { updateInsets(geo); keepAwake(!game.paused) }
+            .onDisappear { keepAwake(false) }
             .onChange(of: geo.size) { updateInsets(geo) }
+            .onChange(of: game.paused) { _, paused in keepAwake(!paused) }
+            .onChange(of: scenePhase) { _, phase in
+                // Leaving the app mid-pair pauses it, so the pause menu is up on return and nothing moved meanwhile.
+                if phase != .active && !game.showResult && !game.showScorecard && !game.isComplete { game.paused = true }
+            }
             .task(id: game.loadToken) {
                 withAnimation { showHint = true }
                 try? await Task.sleep(for: .seconds(5))
@@ -92,6 +99,9 @@ struct GameView: View {
         if game.inRound { s += " · " + (game.roundToPar.map { "ROUND \(GameModel.toPar($0))" } ?? "ROUND E") }
         return s
     }
+
+    /// Aiming can outlast auto-lock, so the screen stays on while a pair is in play; paused, it sleeps as usual.
+    private func keepAwake(_ on: Bool) { UIApplication.shared.isIdleTimerDisabled = on }
 
     private func updateInsets(_ geo: GeometryProxy) {
         let s = geo.safeAreaInsets
