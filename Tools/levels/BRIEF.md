@@ -27,11 +27,11 @@ l.tunnel(.a, x, y, .b, x, y, exitA: nil, exitB: 90)  // two-way pipe; exitX = de
 l.slope(.a, minX, minY, maxX, maxY, downhill: 0, strength: 140)  // constant push; strength ≤ 200
 l.hill(.b, x, y, radius: 50, strength: 140)   // pushes outward
 l.bowl(.b, x, y, radius: 50, strength: 140)   // pulls inward (great around a cup)
-l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; resets to phase every swing
-l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back; resets every swing
+l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; blades at `phase` when the pair loads, then never stop
+l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
 l.solution = Shot(angle: 72.5, power: 0.81, mirrored: true)       // from the solver
 ```
-Useful physics numbers: ball radius 7, cup radius 12 (fast balls > 330 u/s lip out), rails radius 4, max shot speed 1050 (power 1.0) travels roughly 1600 units on flat green, wall restitution 0.72, tunnel mouth radius 11. Movers only move while balls roll and restart from their start pose every swing — so the puzzle stays deterministic and power = timing.
+Useful physics numbers: ball radius 7, cup radius 12 (fast balls > 330 u/s lip out), rails radius 4, max shot speed 1050 (power 1.0) travels roughly 1600 units on flat green, wall restitution 0.72, tunnel mouth radius 11. Movers never stop: a swing starts wherever they are, so putt timing matters as well as power. The solver strikes at mover clock 0 (the pose they load in); check how exact the timing must be with `--timing` and aim for a window of at least ~150 ms.
 
 ## Your file
 The shipped pairs live in `MiniGolf/Core/Levels.swift` and `MiniGolf/Core/Course/*.swift`, with the round order in `Levels.course`.

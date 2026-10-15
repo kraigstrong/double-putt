@@ -25,9 +25,13 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 
 Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tunnels** (color-coded mouths,
 optional exit direction), **slopes** and round **hills / bowls**, and **movers** (windmill rotors, sliding blocks)
-that move only while balls roll and restart from the same pose every swing — so every shot stays deterministic.
+that never stop, so when you putt matters as much as how. A ball that stops in a mover's path slides to the nearest
+clear spot that's no nearer a cup.
 
 Long-press the title logo to toggle **dev mode** (pause menu gets a full-path guide toggle, Show Ace and Reset).
+Show Ace waits (fast-forwarding a long wait) for the movers to reach the stored solution's timing.
+
+Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to Play** replays the tips on the pair you're on.
 
 ## Layout
 
@@ -74,10 +78,12 @@ Tools/solve.sh              # double-ace / single-ace / water stats for every pa
 Tools/solve.sh moat         # one pair
 Tools/solve.sh --verify     # every pair's stored solution still double-aces
 Tools/solve.sh twins --probe 90         # outcome at every power for one angle
+Tools/solve.sh --timing                 # mover pairs: how exact the putt's timing must be
 LEVELS=Tools/levels/draft.swift Tools/solve.sh --drafts   # a scratch file defining `Levels.drafts`
 ```
 
-Run `--verify` after touching `Tuning` or level geometry.
+Run `--verify` after touching `Tuning` or level geometry. The solver strikes every shot at mover clock 0 (the pose
+the movers load in); a level's `solutionTime` says when its stored solution is struck.
 
 ## Debug launch args (Debug builds)
 

@@ -40,11 +40,24 @@ struct Level {
     var movers: [Mover] = []
     /// A known double ace, found by Tools/solver.
     var solution: Shot?
+    /// Where the movers' clock must be when `solution` is struck (the clock starts at 0 when the pair loads).
+    var solutionTime = 0.0
 
     init(_ name: String, par: [Int], hint: String) {
         self.name = name
         self.par = par
         self.hint = hint
+    }
+
+    /// Seconds until every mover is back at its start pose together (0 = no movers).
+    var moverCycle: Double {
+        let periods = movers.map(\.period).filter { $0 > 0 }
+        guard let longest = periods.max() else { return 0 }
+        for k in 1...240 {
+            let t = longest * Double(k)
+            if periods.allSatisfy({ abs((t / $0).rounded() - t / $0) < 1e-6 }) { return t }
+        }
+        return 0
     }
 
     var walls: [Wall] {
@@ -116,13 +129,13 @@ struct Level {
         mounds.append(Mound(center: Vec(x + s.offset, y), radius: radius, strength: -min(strength, 200)))
     }
 
-    /// A windmill-style spinner. rpm > 0 spins counter-clockwise; blades start at `phase` degrees every swing.
+    /// A windmill-style spinner. rpm > 0 spins counter-clockwise; blades are at `phase` degrees when the pair loads.
     mutating func rotor(_ s: Side, _ x: Double, _ y: Double, blades: Int = 2, length: Double, rpm: Double, phase: Double = 0) {
         movers.append(Mover(kind: .rotor(pivot: Vec(x + s.offset, y), blades: blades, length: length,
                                          omega: rpm * 2 * .pi / 60, phase: phase * .pi / 180)))
     }
 
-    /// A block that slides by (dx, dy) and back every `period` seconds, starting from this rect every swing.
+    /// A block that slides by (dx, dy) and back every `period` seconds, starting from this rect when the pair loads.
     mutating func slider(_ s: Side, _ minX: Double, _ minY: Double, _ maxX: Double, _ maxY: Double,
                          dx: Double, dy: Double, period: Double) {
         movers.append(Mover(kind: .slider(box: Box(minX + s.offset, minY, maxX + s.offset, maxY),
