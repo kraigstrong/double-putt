@@ -17,7 +17,7 @@ struct DoublePuttApp: App {
 @MainActor
 @Observable
 final class AppState {
-    enum Screen: Equatable { case title, courses, levels, trophies, game }
+    enum Screen: Equatable { case title, courses, levels, trophies, settings, game }
 
     var screen: Screen = .title
     var soundOn = SoundFX.shared.isEnabled
@@ -33,6 +33,7 @@ final class AppState {
         scene = GameScene(model: game)
         game.scene = scene
         SoundFX.shared.start()
+        game.analytics.launched()
         #if DEBUG
         // Launch args for testing, e.g. `-level 3 -aim 70.25,0.71,mirror -guide full`
         let d = UserDefaults.standard
@@ -86,6 +87,7 @@ final class AppState {
 
 struct RootView: View {
     let app: AppState
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ZStack {
@@ -95,9 +97,11 @@ struct RootView: View {
             case .courses: CoursesView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .levels: CourseMapView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .trophies: TrophyShelfView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
+            case .settings: SettingsView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .game: GameView(app: app).transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.35), value: app.screen)
+        .onChange(of: scenePhase) { _, phase in if phase == .background { app.game.analytics.backgrounded() } }
     }
 }

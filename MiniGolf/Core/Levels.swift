@@ -203,6 +203,10 @@ enum Levels {
         ]),
     ]
 
+    /// The course content's revision, sent with analytics so counts never mix two versions of a pair. Bump it
+    /// whenever any pair's layout, par or order changes.
+    static let revision = "2026-10-16.1"
+
     /// Display names of the visual settings (`Level.setting`).
     static let settingNames = [
         "meadow": "Spring Meadow", "garden": "Walled Garden", "moat": "Castle Moat", "seaside": "Seaside Boardwalk",

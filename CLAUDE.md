@@ -5,6 +5,8 @@ See README.md for the game, layout, solver and debug launch args.
 ## Workflow
 - Every change goes on its own branch and lands on `main` through a pull request, merged with a merge commit once CI
   is green. Never commit or push to `main` directly.
+- Codex reviews every pull request. Before merging, address each of its comments (fix, or reply why not), or have its
+  👍 reaction on the PR.
 - Name branches by kind: `feat/…`, `fix/…`, `ci/…`, `docs/…`.
 - Keep commits small and focused: one logical change each (e.g. model, then screens, then docs), with a subject line
   saying what changed and a body saying why. Don't fold unrelated fixes into a feature commit.
