@@ -15,9 +15,9 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 
 ## How to play
 
-- Two nine-pair courses: **Daybreak** (pairs 1–9, par 40) and **Nightfall** (pairs 10–18, par 46). A round shows a
-  running score vs par and ends with a scorecard and a medal: bronze at par or better, silver 4 under, gold 8 under
-  (best round per course saved; a round in progress survives relaunches).
+- **Courses** lists the nine-pair courses: Daybreak, Nightfall and Thunderhead so far, each harder than the last. A
+  round shows a running score vs par and ends with a scorecard and a medal: bronze at par or better, silver 4 under,
+  gold 8 under (best round per course saved; a round in progress survives relaunches). A medal unlocks the next course.
 - **Single Hole** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
   **Trophy Shelf** (one per pair).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
@@ -32,7 +32,8 @@ optional exit direction), **slopes** and round **hills / bowls**, and **movers**
 that never stop, so when you putt matters as much as how. A ball that stops in a mover's path slides to the nearest
 clear spot that's no nearer a cup.
 
-Long-press the title logo to toggle **dev mode** (pause menu gets a full-path guide toggle, Show Ace and Reset).
+Long-press the title logo to toggle **dev mode** (every course unlocked; pause menu gets a full-path guide toggle,
+Show Ace and Reset).
 Show Ace waits (fast-forwarding a long wait) for the movers to reach the stored solution's timing.
 
 Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to Play** replays the tips on the pair you're on.
@@ -44,44 +45,70 @@ Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to P
 | `MiniGolf/Core/` | Deterministic physics (fixed 1/480 s step) and level geometry. Shared with the solver. |
 | `MiniGolf/Art/` | Themes and procedural art: every course, tree, ball and the menu art is drawn in code. |
 | `MiniGolf/Game/` | SpriteKit scene (camera fit around the HUD, aim, guide, effects) and the SwiftUI HUD. |
-| `MiniGolf/Screens/` | Title, Single Hole, Trophy Shelf, scorecard, shared components. |
+| `MiniGolf/Screens/` | Title, Courses, Single Hole, Trophy Shelf, scorecard, shared components. |
 | `MiniGolf/Audio/Sound.swift` | Synthesized sound effects (no audio assets). |
 | `Tools/solver/` | Headless brute-force solver. |
 | `Tools/icon/make_icon.swift` | Generates the app icon. |
 
-## The course
+## The courses
 
-| # | Pair | Setting | Par | Double ace needs | Featured |
+Each course is nine pairs played as a round. Daybreak and Nightfall are open from the start; each later course unlocks
+with a medal on the one before. In the app each course numbers its pairs 1–9. The tables come from
+`Tools/solve.sh --readme`.
+
+### Daybreak (par 40)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Twins | Spring Meadow | 4 | Same | warm-up (tutorial) |
-| 2 | Reflection | Spring Meadow | 4 | Mirror | mirror lesson |
-| 3 | Bank Shot | Spring Meadow | 5 | Same | banks |
-| 4 | Backboard | Walled Garden | 4 | Same | power |
-| 5 | Hedgerow | Walled Garden | 4 | Mirror | gaps |
+| 1 | Twins | Spring Meadow | 4 | Same | — |
+| 2 | Reflection | Spring Meadow | 4 | Mirror | — |
+| 3 | Bank Shot | Spring Meadow | 5 | Same | — |
+| 4 | Backboard | Walled Garden | 4 | Same | — |
+| 5 | Hedgerow | Walled Garden | 4 | Mirror | — |
 | 6 | Moat | Castle Moat | 6 | Mirror | water |
-| 7 | Drawbridge | Castle Moat | 5 | Mirror | slider (gate) |
+| 7 | Drawbridge | Castle Moat | 5 | Mirror | water, sliders |
 | 8 | Buoys | Seaside Boardwalk | 4 | Mirror | bumpers |
 | 9 | Dunes | Seaside Boardwalk | 4 | Same | slopes |
-| 10 | Carom | Autumn Grove | 4 | Mirror | shared green |
-| 11 | Hollow | Autumn Grove | 4 | Same | hill + bowl |
-| 12 | Canyon Pipe | Desert Canyon | 5 | Mirror | tunnel swap |
-| 13 | Mesa | Desert Canyon | 4 | Mirror | slopes + tunnels |
-| 14 | Windmill | Winter Village | 6 | Mirror | rotors |
-| 15 | Sled Run | Winter Village | 6 | Same | slope + slider |
-| 16 | Crossover | Night Garden | 5 | Mirror | gap |
-| 17 | Lanterns | Night Garden | 6 | Same | tunnels + sliders |
-| 18 | Midnight | Night Garden | 6 | Mirror | finale: tunnels, bowls, clock rotor |
 
-Pairs 1–9 are Daybreak (par 40) and 10–18 are Nightfall (par 46); in the app each course numbers its pairs 1–9.
-Pairs 1–4, 6, 8, 10 and 16 are in `Levels.swift`; the rest are in `MiniGolf/Core/Course/`.
-`Tools/levels/BRIEF.md` is the design brief used to make pairs 5, 7, 9 and 11–18.
+### Nightfall (par 46)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Carom | Autumn Grove | 4 | Mirror | — |
+| 2 | Hollow | Autumn Grove | 4 | Same | hills, bowls |
+| 3 | Canyon Pipe | Desert Canyon | 5 | Mirror | tunnels |
+| 4 | Mesa | Desert Canyon | 4 | Mirror | tunnels, slopes |
+| 5 | Windmill | Winter Village | 6 | Mirror | rotors |
+| 6 | Sled Run | Winter Village | 6 | Same | water, slopes, sliders |
+| 7 | Crossover | Night Garden | 5 | Mirror | — |
+| 8 | Lanterns | Night Garden | 6 | Same | water, tunnels, sliders |
+| 9 | Midnight | Night Garden | 6 | Mirror | water, tunnels, bowls, rotors |
+
+### Thunderhead (par 48)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Breakwater | Seaside Boardwalk | 5 | Mirror | bumpers, bowls |
+| 2 | Tide Pools | Seaside Boardwalk | 5 | Same | water, slopes |
+| 3 | Sundial | Walled Garden | 5 | Mirror | rotors |
+| 4 | Topiary | Walled Garden | 5 | Mirror | hills |
+| 5 | Plateau | Desert Canyon | 5 | Mirror | slopes, bowls |
+| 6 | Arroyo | Desert Canyon | 5 | Mirror | tunnels, slopes |
+| 7 | Avalanche | Winter Village | 6 | Mirror | water, sliders |
+| 8 | Ice Bridge | Winter Village | 6 | Same | water, tunnels, rotors |
+| 9 | Thunderclap | Winter Village | 6 | Mirror | water, bumpers, tunnels, bowls, rotors |
+
+The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
+course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).
 
 ## Solver
 
 ```bash
 Tools/solve.sh              # double-ace / single-ace / water stats for every pair
 Tools/solve.sh moat         # one pair
-Tools/solve.sh --verify     # every pair's stored solution still double-aces
+Tools/solve.sh --verify     # stored solutions still double-ace; tees clear; 9 pairs per course; unique names
+Tools/solve.sh --report --course thunderhead   # one line per pair: difficulty, window, par check, mechanics
+Tools/solve.sh --readme     # the course tables below, as markdown
 Tools/solve.sh twins --probe 90         # outcome at every power for one angle
 Tools/solve.sh --timing                 # mover pairs: how exact the putt's timing must be
 LEVELS=Tools/levels/draft.swift Tools/solve.sh --drafts   # a scratch file defining `Levels.drafts`
