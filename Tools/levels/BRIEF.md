@@ -37,6 +37,8 @@ l.hill(.b, x, y, radius: 50, strength: 140)   // pushes outward
 l.bowl(.b, x, y, radius: 50, strength: 140)   // pulls inward (great around a cup)
 l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; blades at `phase` when the pair loads, then never stop
 l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
+l.kicker(.a, x, y, toward: 90, speed: 520)    // springboard pad (radius 13): launches a ball rolling onto it toward `toward`° at `speed`
+l.carousel(.b, x, y, radius: 45, rpm: 25)     // spinning disk, flush with the green: drags a ball on it along with its surface
 l.solution = Shot(angle: 72.5, power: 0.81, mirrored: true)       // from the solver
 l.solutionTime = 0                   // mover clock when `solution` is struck (movers only; 0 = the load pose)
 ```
@@ -44,6 +46,15 @@ Useful physics numbers: ball radius 7, cup radius 12 (fast balls > 330 u/s lip o
 1050 (power 1.0) travels roughly 1600 units on flat green, wall restitution 0.72, tunnel mouth radius 11. Movers never
 stop: a swing starts wherever they are, so putt timing matters as well as power. A ball that stops in a mover's path
 slides to the nearest clear spot (no nearer a cup), so tees must sit outside every mover's sweep.
+
+Kickers and carousels (from course 4):
+- A **kicker** replaces the ball's velocity, whatever it came in with, so everything after the pad is fixed: only
+  reaching the pad (and the other ball) depends on the swing. Rough carry after the pad on flat green: speed 520 →
+  ~360 units, 700 → ~620, 900 → ~1000. A ball ignores a pad again until it rolls clear of it.
+- A **carousel** pulls a ball's velocity toward the disk's surface motion (grip 2.5/s; surface speed = rpm × 2π/60 ×
+  distance from the centre), so a crossing ball curves with the spin and a slow one is carried round and flung off.
+  It turns at a steady rate, so its pull doesn't depend on when you swing (no timing window), and the aim guide
+  ignores it. A ball can't rest on a carousel; tees must be off the disk.
 
 ## Your file
 Draft pairs in a scratch file under `Tools/levels/` (one per designer):

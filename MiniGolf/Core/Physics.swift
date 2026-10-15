@@ -73,6 +73,16 @@ struct Tunnel {
     static let speedKept = 0.9
 }
 
+/// A springboard pad. A ball that rolls onto it is launched toward `direction` (degrees) at `speed`, whatever it
+/// came in with; it ignores the pad again until it has rolled clear.
+struct Kicker {
+    var center: Vec
+    var direction: Double
+    var speed: Double
+
+    static let radius = 13.0
+}
+
 /// A tilted area that pushes rolling balls. Keep |accel| below Tuning.rollDecel so balls can rest on it.
 struct Slope {
     var box: Box
@@ -94,6 +104,9 @@ struct Mover {
         case rotor(pivot: Vec, blades: Int, length: Double, omega: Double, phase: Double)
         /// A block sliding from `box` to `box + travel` and back, smoothly, every `period` seconds.
         case slider(box: Box, travel: Vec, period: Double)
+        /// A spinning disk, flush with the green, that drags any ball on it toward its surface's motion. It turns
+        /// at a steady rate, so its pull doesn't depend on when you swing; only its art follows the clock.
+        case carousel(center: Vec, radius: Double, omega: Double, phase: Double)
     }
 
     var kind: Kind
@@ -101,11 +114,13 @@ struct Mover {
 
     static let hubRadius = 7.0
     static let restitution = 0.6
+    /// How quickly a carousel brings a ball up to its surface speed (1/s).
+    static let carouselGrip = 2.5
 
     /// Seconds until it looks exactly as it started (a full turn for rotors).
     var period: Double {
         switch kind {
-        case .rotor(_, _, _, let omega, _): return omega == 0 ? 0 : 2 * .pi / abs(omega)
+        case .rotor(_, _, _, let omega, _), .carousel(_, _, let omega, _): return omega == 0 ? 0 : 2 * .pi / abs(omega)
         case .slider(_, _, let period): return period
         }
     }
@@ -119,7 +134,23 @@ struct Mover {
             var d = Double.infinity
             for k in 0...48 { d = min(d, box.offset(travel * (Double(k) / 48)).distance(to: p)) }
             return d - radius
+        case .carousel(let center, let r, _, _):
+            return (p - center).length - r
         }
+    }
+
+    /// Whether a ball resting at p would be moved: hit by blades or a block, or carried off by a carousel.
+    func reaches(_ p: Vec) -> Bool {
+        if case .carousel = kind { return clearance(p) < 0 }
+        return clearance(p) < Tuning.ballRadius + 3
+    }
+
+    /// The carousel's surface velocity at p (zero off the disk, or for other movers).
+    func surfaceVelocity(at p: Vec) -> Vec {
+        guard case .carousel(let center, let r, let omega, _) = kind else { return .zero }
+        let d = p - center
+        guard d.lengthSquared < r * r else { return .zero }
+        return Vec(-omega * d.y, omega * d.x)
     }
 
     func sliderOffset(at t: Double) -> Vec {
@@ -128,8 +159,11 @@ struct Mover {
     }
 
     func bladeAngle(_ k: Int, at t: Double) -> Double {
-        guard case .rotor(_, let blades, _, let omega, let phase) = kind else { return 0 }
-        return phase + omega * t + 2 * .pi * Double(k) / Double(blades)
+        switch kind {
+        case .rotor(_, let blades, _, let omega, let phase): return phase + omega * t + 2 * .pi * Double(k) / Double(blades)
+        case .carousel(_, _, let omega, let phase): return phase + omega * t
+        case .slider: return 0
+        }
     }
 
     /// Calls `body` with each solid piece at time t and the surface velocity function for it.
@@ -153,6 +187,8 @@ struct Mover {
             body(Wall(a: p1, b: p2, radius: radius), surface)
             body(Wall(a: p2, b: p3, radius: radius), surface)
             body(Wall(a: p3, b: p0, radius: radius), surface)
+        case .carousel:
+            break
         }
     }
 }
@@ -165,6 +201,8 @@ struct Ball {
     var sunkIn: Int?
     /// The tunnel mouth this ball just came out of; ignored until the ball rolls clear.
     var ignoreMouth: Vec?
+    /// The kicker pad that just launched this ball (index); ignored until the ball rolls clear.
+    var onKicker: Int?
 
     init(at p: Vec) { pos = p; restPos = p }
 
@@ -178,12 +216,13 @@ enum PhysicsEvent {
     case sunk(ball: Int, cup: Int)
     case splash(ball: Int, at: Vec)
     case tunnel(ball: Int, from: Vec, to: Vec)
+    case kick(ball: Int, at: Vec)
 
     var contactBalls: [Int] {
         switch self {
         case .wall(let b, _), .bumper(let b, _): return [b]
         case .balls(let a, let b, _): return [a, b]
-        case .sunk, .splash, .tunnel: return []
+        case .sunk, .splash, .tunnel, .kick: return []
         }
     }
 }
@@ -211,6 +250,7 @@ struct World {
     var bumpers: [Bumper]
     var water: [Box]
     var tunnels: [Tunnel]
+    var kickers: [Kicker]
     var slopes: [Slope]
     var mounds: [Mound]
     var movers: [Mover]
@@ -229,6 +269,7 @@ struct World {
         bumpers = level.bumpers
         water = level.water
         tunnels = level.tunnels
+        kickers = level.kickers
         slopes = level.slopes
         mounds = level.mounds
         movers = level.movers
@@ -252,7 +293,7 @@ struct World {
     }
 
     func inMoverPath(_ p: Vec) -> Bool {
-        movers.contains { $0.clearance(p) < Tuning.ballRadius + 3 }
+        movers.contains { $0.reaches(p) }
     }
 
     /// Balls resting where a mover would hit them get relief: the nearest spot clear of every mover's path
@@ -276,6 +317,7 @@ struct World {
                 !blocked(q, slack: 0.5, waterSlack: r) && !inMoverPath(q)
                     && !openCups.contains { ($0 - q).length < Tuning.cupRadius + r }
                     && !tunnels.contains { ($0.a - q).length < Tunnel.radius + r || ($0.b - q).length < Tunnel.radius + r }
+                    && !kickers.contains { ($0.center - q).length < Kicker.radius + r }
                     && !others.contains { ($0 - q).length < 2 * r + 1 }
             }
             let start = toCup(p)
@@ -348,10 +390,14 @@ struct World {
                 }
             }
 
-            // Movers also shove resting balls.
+            // Movers also shove resting balls, and carousels carry any ball on them round with them.
             if !movers.isEmpty {
                 let t = time
                 for m in movers {
+                    let carried = m.surfaceVelocity(at: b.pos)
+                    if carried.x != 0 || carried.y != 0 {
+                        b.vel += (carried - b.vel) * min(1, Mover.carouselGrip * dt)
+                    }
                     m.forEachWall(at: t) { w, surface in
                         let q = closestPoint(b.pos, w.a, w.b)
                         let d = b.pos - q
@@ -436,6 +482,17 @@ struct World {
                     break
                 }
                 if let m = b.ignoreMouth, (b.pos - m).length > Tunnel.radius + 2 { b.ignoreMouth = nil }
+            }
+
+            if !kickers.isEmpty {
+                let rr = Kicker.radius * Kicker.radius
+                for (k, kick) in kickers.enumerated() where b.onKicker != k && (b.pos - kick.center).lengthSquared < rr {
+                    b.vel = .shot(degrees: kick.direction, speed: kick.speed)
+                    b.onKicker = k
+                    events.append(.kick(ball: i, at: kick.center))
+                    break
+                }
+                if let k = b.onKicker, (b.pos - kickers[k].center).length > Kicker.radius + 2 { b.onKicker = nil }
             }
 
             if water.contains(where: { $0.contains(b.pos) }) {
@@ -560,6 +617,12 @@ struct World {
                     paths[b].pieces.append(.init(points: [p], faded: true))
                 }
                 switch e {
+                case .kick(let b, let at) where tracing[b]:
+                    paths[b].add(w.balls[b].pos)
+                    paths[b].markers.append(at)
+                    paths[b].pieces.append(.init(points: [w.balls[b].pos], faded: true))
+                    contacted[b] = true
+                    travelAfter[b] = 0
                 case .tunnel(let b, let from, let to) where tracing[b]:
                     paths[b].add(from)
                     paths[b].markers.append(from)

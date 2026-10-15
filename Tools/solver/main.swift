@@ -122,6 +122,8 @@ func mechanics(_ l: Level) -> String {
     if l.mounds.contains(where: { $0.strength < 0 }) { m.append("bowls") }
     if l.movers.contains(where: { if case .rotor = $0.kind { true } else { false } }) { m.append("rotors") }
     if l.movers.contains(where: { if case .slider = $0.kind { true } else { false } }) { m.append("sliders") }
+    if l.movers.contains(where: { if case .carousel = $0.kind { true } else { false } }) { m.append("carousels") }
+    if !l.kickers.isEmpty { m.append("kickers") }
     return m.isEmpty ? "—" : m.joined(separator: ", ")
 }
 
