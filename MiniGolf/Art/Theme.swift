@@ -11,7 +11,8 @@ struct Theme {
     enum Post { case stone, buoy, lantern }
 
     var id = ""
-    var setting = ""
+    /// Display name, e.g. "Spring Meadow".
+    var setting: String { Levels.settingNames[id] ?? id }
     var rough = UIColor.green, roughShade = UIColor.green, roughLight = UIColor.green
     var feltLight = UIColor.green, feltDark = UIColor.green
     var border = Border.wood
@@ -35,7 +36,7 @@ struct Theme {
 
     static let meadow: Theme = {
         var t = Theme()
-        t.id = "meadow"; t.setting = "Spring Meadow"
+        t.id = "meadow"
         t.rough = UIColor(hex: 0x5C9A3A); t.roughShade = UIColor(hex: 0x4A8530); t.roughLight = UIColor(hex: 0x7DB451)
         t.feltLight = UIColor(hex: 0x5DBB5A); t.feltDark = UIColor(hex: 0x51AD4F)
         t.border = .wood; t.borderTop = UIColor(hex: 0xD8B47A); t.borderSide = UIColor(hex: 0x9C7243)
@@ -47,7 +48,7 @@ struct Theme {
 
     static let garden: Theme = {
         var t = Theme()
-        t.id = "garden"; t.setting = "Walled Garden"
+        t.id = "garden"
         t.rough = UIColor(hex: 0x4F8A3B); t.roughShade = UIColor(hex: 0x41782F); t.roughLight = UIColor(hex: 0x6BA34C)
         t.feltLight = UIColor(hex: 0x58B25E); t.feltDark = UIColor(hex: 0x4CA353)
         t.border = .stone; t.borderTop = UIColor(hex: 0xD9D2C5); t.borderSide = UIColor(hex: 0x9E968A)
@@ -59,7 +60,7 @@ struct Theme {
 
     static let moat: Theme = {
         var t = Theme()
-        t.id = "moat"; t.setting = "Castle Moat"
+        t.id = "moat"
         t.rough = UIColor(hex: 0x4E7F3D); t.roughShade = UIColor(hex: 0x3F6D32); t.roughLight = UIColor(hex: 0x6A9750)
         t.feltLight = UIColor(hex: 0x52AC5F); t.feltDark = UIColor(hex: 0x479E55)
         t.border = .stone; t.borderTop = UIColor(hex: 0xBFC0B8); t.borderSide = UIColor(hex: 0x7F817B)
@@ -72,7 +73,7 @@ struct Theme {
 
     static let seaside: Theme = {
         var t = Theme()
-        t.id = "seaside"; t.setting = "Seaside Boardwalk"
+        t.id = "seaside"
         t.rough = UIColor(hex: 0xE9D6A6); t.roughShade = UIColor(hex: 0xD8BF88); t.roughLight = UIColor(hex: 0xF6EACB)
         t.feltLight = UIColor(hex: 0x4FBE86); t.feltDark = UIColor(hex: 0x44B07A)
         t.border = .wood; t.borderTop = UIColor(hex: 0xDCCFB6); t.borderSide = UIColor(hex: 0x9A8C73)
@@ -86,7 +87,7 @@ struct Theme {
 
     static let autumn: Theme = {
         var t = Theme()
-        t.id = "autumn"; t.setting = "Autumn Grove"
+        t.id = "autumn"
         t.rough = UIColor(hex: 0x7F8E3E); t.roughShade = UIColor(hex: 0x6C7A33); t.roughLight = UIColor(hex: 0x9AA853)
         t.feltLight = UIColor(hex: 0x62AE52); t.feltDark = UIColor(hex: 0x57A049)
         t.border = .wood; t.borderTop = UIColor(hex: 0xA8714A); t.borderSide = UIColor(hex: 0x6B4229)
@@ -99,7 +100,7 @@ struct Theme {
 
     static let desert: Theme = {
         var t = Theme()
-        t.id = "desert"; t.setting = "Desert Canyon"
+        t.id = "desert"
         t.rough = UIColor(hex: 0xD99E63); t.roughShade = UIColor(hex: 0xC4844C); t.roughLight = UIColor(hex: 0xEABB86)
         t.feltLight = UIColor(hex: 0x74B45A); t.feltDark = UIColor(hex: 0x68A64F)
         t.border = .stone; t.borderTop = UIColor(hex: 0xCB7A50); t.borderSide = UIColor(hex: 0x8C4A2F)
@@ -113,7 +114,7 @@ struct Theme {
 
     static let winter: Theme = {
         var t = Theme()
-        t.id = "winter"; t.setting = "Winter Village"
+        t.id = "winter"
         t.rough = UIColor(hex: 0xEAF1F7); t.roughShade = UIColor(hex: 0xCFDCE9); t.roughLight = UIColor(hex: 0xFFFFFF)
         t.feltLight = UIColor(hex: 0x5DB47E); t.feltDark = UIColor(hex: 0x52A672)
         t.border = .wood; t.borderTop = UIColor(hex: 0x94725A); t.borderSide = UIColor(hex: 0x5C4535); t.snowCaps = true
@@ -127,7 +128,7 @@ struct Theme {
 
     static let night: Theme = {
         var t = Theme()
-        t.id = "night"; t.setting = "Night Garden"
+        t.id = "night"
         t.rough = UIColor(hex: 0x1C3325); t.roughShade = UIColor(hex: 0x13261A); t.roughLight = UIColor(hex: 0x2A4834)
         t.feltLight = UIColor(hex: 0x2A7448); t.feltDark = UIColor(hex: 0x24673F)
         t.border = .stone; t.borderTop = UIColor(hex: 0x737B88); t.borderSide = UIColor(hex: 0x40454E)

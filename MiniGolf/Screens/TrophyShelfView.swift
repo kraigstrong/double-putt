@@ -25,12 +25,20 @@ struct TrophyShelfView: View {
                 VStack(spacing: 24) {
                     ForEach(game.nines) { nine in
                         VStack(alignment: .leading, spacing: 10) {
+                            let locked = !game.isUnlocked(nine)
                             HStack(alignment: .firstTextBaseline) {
                                 Text(nine.name).font(.rounded(22, .black))
                                 Spacer()
-                                Text("\(won(nine.pairs))/\(nine.pairs.count)").font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
+                                if locked, let before = game.prerequisite(of: nine) {
+                                    Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
+                                        .font(.rounded(12, .bold)).foregroundStyle(Color.putt)
+                                } else {
+                                    Text("\(won(nine.pairs))/\(nine.pairs.count)").font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
+                                }
                             }
                             cabinet(Array(nine.pairs))
+                                .disabled(locked)
+                                .opacity(locked ? 0.55 : 1)
                         }
                     }
                 }

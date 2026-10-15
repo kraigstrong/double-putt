@@ -1,16 +1,24 @@
-# Level design brief — Double Putt
+# Course design brief — Double Putt
 
-You are designing hole **pairs** for Double Putt, an iOS mini golf puzzle game.
+You are designing hole **pairs** for Double Putt, an iOS mini golf puzzle game. Pairs come in **courses** of nine,
+played as a round. About ten courses are planned, each a little harder than the last.
 
 ## The game
-- Each screen is a **pair**: hole A (left, x 0–200) and hole B (right, x 200–400), side by side in a 400 × 800 course (y up). Tees sit near the bottom (y ≈ 100–130), cups toward the top.
-- **One swing moves both balls.** The player sets one angle + power. Per swing they choose **Same** (both balls get the identical velocity) or **Mirror** (ball B gets it flipped left↔right: vx → −vx).
-- **Any ball can drop in any cup** (one ball per cup). A ball that crosses into the other hole (gap, tunnel, shared green) is fine.
-- Scoring is per hole: every swing counts as a stroke on each hole whose ball is still out. Par per hole is 2 or 3. A **double ace** (both in on the first swing) is the jackpot.
-- The aim guide only shows each ball's direction and first bounce — never where it stops. So the puzzle is reasoning about angles, banks, power and mechanics.
+- Each screen is a **pair**: hole A (left, x 0–200) and hole B (right, x 200–400), side by side in a 400 × 800 course
+  (y up). Tees usually sit near the bottom (y ≈ 100–130), cups toward the top.
+- **One swing moves both balls.** The player sets one angle + power. Per swing they choose **Same** (both balls get the
+  identical velocity) or **Mirror** (ball B gets it flipped left↔right: vx → −vx).
+- **Any ball can drop in any cup** (one ball per cup). A ball that crosses into the other hole (gap, tunnel, shared
+  green) is fine.
+- Scoring is per hole: every swing counts as a stroke on each hole whose ball is still out. Par per hole is 2 or 3.
+  A **double ace** (both in on the first swing) is the jackpot and wins that pair's trophy.
+- The aim guide only shows each ball's direction and first bounce — never where it stops, and it ignores movers. So
+  the puzzle is reasoning about angles, banks, power, timing and mechanics.
 
 ## Read these first
-- `MiniGolf/Core/Levels.swift` — the `Level` builder API and the 8 existing pairs (good examples: `reflection`, `backboard`, `moat`, `carom`, `crossover`).
+- `MiniGolf/Core/Levels.swift` — the `Level` builder API, the course lineup, and the first pairs (good examples:
+  `reflection`, `backboard`, `moat`, `carom`, `crossover`).
+- `MiniGolf/Core/Course/*.swift` — the other shipped pairs (e.g. `windmill`, `lanterns`, `midnight`).
 - `MiniGolf/Core/Physics.swift` — the exact simulation (don't change it).
 
 ## Builder API (x/y are local to the side's hole: 0–200 wide; `.a` or `.b`)
@@ -30,12 +38,15 @@ l.bowl(.b, x, y, radius: 50, strength: 140)   // pulls inward (great around a cu
 l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; blades at `phase` when the pair loads, then never stop
 l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
 l.solution = Shot(angle: 72.5, power: 0.81, mirrored: true)       // from the solver
+l.solutionTime = 0                   // mover clock when `solution` is struck (movers only; 0 = the load pose)
 ```
-Useful physics numbers: ball radius 7, cup radius 12 (fast balls > 330 u/s lip out), rails radius 4, max shot speed 1050 (power 1.0) travels roughly 1600 units on flat green, wall restitution 0.72, tunnel mouth radius 11. Movers never stop: a swing starts wherever they are, so putt timing matters as well as power. The solver strikes at mover clock 0 (the pose they load in); check how exact the timing must be with `--timing` and aim for a window of at least ~150 ms.
+Useful physics numbers: ball radius 7, cup radius 12 (fast balls > 330 u/s lip out), rails radius 4, max shot speed
+1050 (power 1.0) travels roughly 1600 units on flat green, wall restitution 0.72, tunnel mouth radius 11. Movers never
+stop: a swing starts wherever they are, so putt timing matters as well as power. A ball that stops in a mover's path
+slides to the nearest clear spot (no nearer a cup), so tees must sit outside every mover's sweep.
 
 ## Your file
-The shipped pairs live in `MiniGolf/Core/Levels.swift` and `MiniGolf/Core/Course/*.swift`, with the round order in `Levels.course`.
-Draft new pairs in a scratch file under `Tools/levels/` (then move them into `Course/` and add them to `Levels.course`):
+Draft pairs in a scratch file under `Tools/levels/` (one per designer):
 ```swift
 extension Levels {
     static let drafts: [Level] = [pairOne(), pairTwo()]
@@ -43,25 +54,77 @@ extension Levels {
     static func pairOne() -> Level { ... }
 }
 ```
-Use exactly the function and level names you were assigned. **Do not edit any other file.**
+Use exactly the function and level names you were assigned. **Do not edit any other file.** Pair names must be unique
+across every course (bests and trophies are saved by name).
 
 ## Solver (your main tool)
 ```bash
-LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts            # all your pairs
-LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts dunes      # name filter
-LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts dunes --probe 85   # outcome per power at one angle
-LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts --verify   # check every l.solution double-aces
+LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts            # full stats for all your pairs
+LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts --report   # one line per pair: the numbers below
+LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts gust       # name filter
+LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts gust --probe 85   # outcome per power at one angle
+LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts --verify   # every l.solution double-aces; tees clear
+LEVELS=Tools/levels/<yourfile>.swift Tools/solve.sh --drafts --timing   # mover pairs: how exact the timing must be
+Tools/solve.sh --report --course nightfall                               # compare with a shipped course
 ```
-It brute-forces every first swing (1440 angles × 100 powers × Same/Mirror) with the real physics and prints: double-ace %, A-only / B-only %, water %, ball-hit / tunnel aces, per-hole ace % with a suggested par, double-ace regions, and the most robust double ace (`level.solution = ...`). ~1–3 s per pair.
+It brute-forces every first swing (1440 angles × 100 powers × Same/Mirror) with the real physics: double-ace %,
+A-only / B-only %, water %, ball-hit / tunnel aces, per-hole ace % with a suggested par, double-ace regions, and the
+most robust double ace (`level.solution = ...`). A few seconds per pair (`--report` ~5 s; `--timing` longer).
+
+## Difficulty
+Measure difficulty with `--report`: **Dbl ace** (share of all first swings that double-ace, better of Same/Mirror)
+and **Window** (the most forgiving ace's angle × power window). Each course ramps up across its nine pairs, and opens
+about where the previous course's middle sat. Shipped courses, measured:
+
+| Course | Double ace % by pair | Windows | Par | Mover timing |
+| --- | --- | --- | --- | --- |
+| 1 Daybreak | 0.59 0.60 0.06 0.05 0.12 0.14 0.08 0.17 0.10 | 1.5–2.75° × 7–13% | 40 | ~1 s |
+| 2 Nightfall | 0.06 0.07 0.09 0.07 0.12 0.06 0.04 0.06 0.06 | 1.25–3° × 6–17% | 46 | 300 ms–1 s |
+
+Targets for the rest of the plan (guides, not rules; the window floor matters most, since a player must be able to
+find and repeat the shot):
+
+| Courses | Opens → ends (double ace %) | Window at least | Mover timing at least | Par |
+| --- | --- | --- | --- | --- |
+| 3 | ~0.10 → ~0.03 | 1.25° × 6% | 250 ms | 46–50 |
+| 4–6 | ~0.08 → ~0.02 | 1.0° × 5% | 200 ms | 48–52 |
+| 7–9 | ~0.05 → ~0.01 | 1.0° × 5% | 150 ms | 50–54 |
+| 10 | ~0.03 → ~0.005 | 0.75° × 4% | 150 ms | 52–54 |
+
+Harder isn't only a smaller double-ace share: more mechanics working together, more asymmetry between A and B, and
+more 3-par holes all count.
+
+## Asymmetry (from course 3 on)
+The early courses lean on near-mirror layouts. Later ones should make the shared swing far from obvious:
+- **Unrelated layouts:** A and B look nothing alike: different shapes, obstacles, tee and cup spots.
+- **One-sided mechanics:** a mechanic on only one side (a windmill in A, a slope in B), so the balls behave
+  differently.
+- **Short vs long:** one hole a short chip (tee high up, e.g. y ≈ 400) beside a long haul, so one power must suit both
+  distances (a backboard, bowl or slope usually makes that possible).
+Keep each hole readable on its own: a player should see what it asks.
 
 ## Design targets (check every pair with the solver)
-1. **A double ace exists**, and the best window is at least **~1.0° × 5% power** (players fine-tune in 0.25° and 1% steps).
-2. **Not trivial:** double-ace share of all shots within the target range in your assignment (the tutorial pairs are ~0.6%; hard pairs ~0.03%).
-3. **The featured mechanic matters:** the double ace should depend on it (e.g. `tunnel aces > 0` for a tunnel pair; or temporarily remove the mechanic and confirm the double ace disappears or changes a lot).
-4. **A real decision:** Same vs Mirror should matter, or "ace one now vs set both up". A pair where one obvious straight shot aces both is too easy.
-5. **Par:** use the solver's per-hole suggestion (hole ace ≥ 0.25% → 2, else 3), but sanity-check that each hole is playable in that many strokes.
-6. **Readable layout:** don't clutter. Keep y < 95 empty (a hint banner sits there), cups at y ≤ 745 (flags draw ~40 units upward), nothing overlapping tees or cups, tunnel mouths ≥ 20 units from walls and each other. Both holes should look like holes (not a maze of rails).
+1. **A double ace exists**, inside the course's window and timing floors above.
+2. **Difficulty fits its slot** in the course's ramp (see the table; compare with `--report` on a shipped course).
+3. **The featured mechanic matters:** the double ace should depend on it (e.g. `tunnel aces > 0` for a tunnel pair; or
+   temporarily remove the mechanic and confirm the double ace disappears or changes a lot).
+4. **A real decision:** Same vs Mirror should matter, or "ace one now vs set both up". A pair where one obvious
+   straight shot aces both is too easy.
+5. **Par:** use the solver's per-hole suggestion (hole ace ≥ 0.25% → 2, else 3), but sanity-check that each hole is
+   playable in that many strokes.
+6. **Readable layout:** don't clutter. Keep y < 95 empty (a hint banner sits there), cups at y ≤ 745 (flags draw ~40
+   units upward), nothing overlapping tees or cups, tunnel mouths ≥ 20 units from walls and each other, tees outside
+   every mover's sweep.
 7. **Hint:** one sentence ≤ 70 characters that sets up the idea without giving away the answer.
 
+## Shipping a course
+1. Move the nine pairs into `MiniGolf/Core/Course/<Name>.swift` (an `extension Levels` of pair functions).
+2. Add one line to `Levels.lineup` in `MiniGolf/Core/Levels.swift`: `("id", "Name", [pairOne(), ...])`. The course
+   unlocks with a medal on the one before it (Daybreak and Nightfall are always open).
+3. `Tools/solve.sh --verify` (CI runs it), then `Tools/solve.sh --readme --course <name>` and paste the table into
+   README's course section.
+
 ## Report back
-For each pair: name, setting, the idea / "aha", par, double-ace %, best window, Same or Mirror, whether the mechanic is used by the double aces, and anything you're unsure about.
+For each pair: name, setting, the idea / "aha", which asymmetry it uses, par, double-ace %, best window, Same or
+Mirror, mover timing window (if any), whether the mechanic is used by the double aces, and anything you're unsure
+about.

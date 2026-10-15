@@ -17,7 +17,7 @@ struct DoublePuttApp: App {
 @MainActor
 @Observable
 final class AppState {
-    enum Screen: Equatable { case title, levels, trophies, game }
+    enum Screen: Equatable { case title, courses, levels, trophies, game }
 
     var screen: Screen = .title
     var soundOn = SoundFX.shared.isEnabled
@@ -92,6 +92,7 @@ struct RootView: View {
             Color(uiColor: Palette.ink).ignoresSafeArea()
             switch app.screen {
             case .title: TitleView(app: app).transition(.opacity)
+            case .courses: CoursesView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .levels: CourseMapView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .trophies: TrophyShelfView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .game: GameView(app: app).transition(.opacity)

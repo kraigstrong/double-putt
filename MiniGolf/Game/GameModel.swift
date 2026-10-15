@@ -41,19 +41,10 @@ enum Medal: Int, Comparable {
     static func < (a: Medal, b: Medal) -> Bool { a.rawValue < b.rawValue }
 }
 
-/// A nine-pair course, played as a round.
-struct Nine: Identifiable, Equatable {
-    let id: String
-    let name: String
-    /// Indices into the course's pairs.
-    let pairs: Range<Int>
-
-    static let daybreak = Nine(id: "daybreak", name: "Daybreak", pairs: 0..<9)
-    static let nightfall = Nine(id: "nightfall", name: "Nightfall", pairs: 9..<18)
-
+extension Nine {
     /// The nines that exist for these pairs (debug builds can swap in a short test course).
     static func all(levelCount: Int) -> [Nine] {
-        [daybreak, nightfall].compactMap { n in
+        Levels.nines.compactMap { n in
             let pairs = n.pairs.clamped(to: 0..<levelCount)
             return pairs.isEmpty ? nil : Nine(id: n.id, name: n.name, pairs: pairs)
         }
@@ -130,6 +121,8 @@ final class GameModel {
     private(set) var trophies: [String: Date] = GameModel.loadTrophies()
     var showScorecard = false
     private(set) var newBestRound = false
+    /// The course the round just finished unlocked, if it was locked before.
+    private(set) var newlyUnlocked: Nine?
     var fullPathGuide = false
     private(set) var devMode = UserDefaults.standard.bool(forKey: "devMode")
     private(set) var bests: [String: Int] = UserDefaults.standard.dictionary(forKey: "bests") as? [String: Int] ?? [:]
@@ -168,6 +161,22 @@ final class GameModel {
     func nine(containing index: Int) -> Nine? { nines.first { $0.pairs.contains(index) } }
     func par(of nine: Nine) -> Int { nine.pairs.reduce(0) { $0 + par(of: Self.levels[$1]) } }
     func bestRound(_ nine: Nine) -> Int? { bestRounds[nine.id] }
+    func medal(_ nine: Nine) -> Medal { Medal(round: bestRound(nine), par: par(of: nine)) }
+
+    /// How many courses are open from the start; each later one unlocks with a medal on the one before.
+    static let openCourses = 2
+
+    /// The course that has to be medalled to open this one (nil if it's open from the start).
+    func prerequisite(of nine: Nine) -> Nine? {
+        guard let i = nines.firstIndex(of: nine), i >= Self.openCourses else { return nil }
+        return nines[i - 1]
+    }
+
+    /// Earned by a medal on the course before (or open from the start).
+    func hasEarnedUnlock(_ nine: Nine) -> Bool { prerequisite(of: nine).map { medal($0) != .none } ?? true }
+
+    /// Dev mode opens everything.
+    func isUnlocked(_ nine: Nine) -> Bool { devMode || hasEarnedUnlock(nine) }
     /// A pair's number within its nine (1–9).
     func pairNumber(_ index: Int) -> Int { index - (nine(containing: index)?.pairs.lowerBound ?? 0) + 1 }
     /// The nine the saved round is on.
@@ -192,6 +201,7 @@ final class GameModel {
     // MARK: Round
 
     func startRound(_ nine: Nine) {
+        newlyUnlocked = nil
         round = RoundState(nine: nine.id, scores: Array(repeating: nil, count: nine.pairs.count))
         saveRound()
         inRound = true
@@ -222,12 +232,15 @@ final class GameModel {
 
     private func finishRound() {
         guard let nine = roundNine, let total = round?.scores.compactMap({ $0 }).reduce(0, +) else { return }
+        let next = nines.first { prerequisite(of: $0) == nine }
+        let wasLocked = next.map { !hasEarnedUnlock($0) } ?? false
         let best = bestRounds[nine.id]
         newBestRound = best == nil || total < best!
         if newBestRound {
             bestRounds[nine.id] = total
             UserDefaults.standard.set(bestRounds, forKey: "bestRounds")
         }
+        newlyUnlocked = wasLocked && next.map(hasEarnedUnlock) == true ? next : nil
         showResult = false
         showScorecard = true
     }

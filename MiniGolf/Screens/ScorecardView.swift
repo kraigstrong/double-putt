@@ -9,7 +9,7 @@ struct ScorecardView: View {
     let close: () -> Void
 
     private var scores: [Int?] { game.round?.scores ?? [] }
-    private var nine: Nine { game.roundNine ?? .daybreak }
+    private var nine: Nine { game.roundNine ?? game.nines[0] }
     private var pairs: [Int] { Array(nine.pairs) }
 
     var body: some View {
@@ -30,6 +30,13 @@ struct ScorecardView: View {
                                 .font(.rounded(11, .semibold))
                                 .foregroundStyle(.white.opacity(0.55))
                         }
+                    }
+                    if let next = game.newlyUnlocked {
+                        Label("\(next.name) unlocked!", systemImage: "lock.open.fill")
+                            .font(.rounded(15, .heavy))
+                            .padding(.horizontal, 14).padding(.vertical, 7)
+                            .background(Capsule().fill(Color.putt))
+                            .foregroundStyle(Color.ink)
                     }
                 }
                 VStack(spacing: 2) {
