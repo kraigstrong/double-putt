@@ -116,8 +116,12 @@ private struct CourseCard: View {
                     }
                     LinearGradient(colors: [Color.ink.opacity(0.9), Color.ink.opacity(0.35)], startPoint: .leading, endPoint: .trailing)
                 }
+                // The art fills a wide card from a tall image, so it spills far past the card; clipping hides that
+                // but doesn't stop it catching taps meant for the cards around it.
+                .allowsHitTesting(false)
             }
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
             .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
             .opacity(unlocked ? 1 : 0.6)

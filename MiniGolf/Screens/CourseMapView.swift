@@ -145,6 +145,7 @@ private struct PairCard: View {
             }
             .aspectRatio(0.62, contentMode: .fit)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
             .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
             .animation(.easeOut(duration: 0.3), value: MenuArt.shared.cards[level.name] != nil)
