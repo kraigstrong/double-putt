@@ -61,8 +61,9 @@ struct PillButton: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 if let symbol { Image(systemName: symbol) }
-                Text(title)
+                Text(title).lineLimit(1).minimumScaleFactor(0.7)
             }
+            .padding(.horizontal, 12)
             .font(.rounded(20, .heavy))
             .foregroundStyle(text)
             .frame(maxWidth: .infinity)
@@ -77,7 +78,7 @@ struct PillButton: View {
     }
 }
 
-/// A medal: gold = double ace, silver = 3, bronze = par.
+/// A nine-pair round's medal (see Medal for the thresholds).
 struct MedalView: View {
     let medal: Medal
     var size: CGFloat = 44
@@ -109,6 +110,80 @@ struct MedalView: View {
         case .bronze: return [Color(UIColor(hex: 0xF3B786)), Color(UIColor(hex: 0xC97A43)), Color(UIColor(hex: 0x8C4F25))]
         case .none: return []
         }
+    }
+}
+
+/// A pair's double-ace trophy: a gold cup with a gem in the pair's setting color, or a dashed outline until it's won.
+struct TrophyView: View {
+    var earned = true
+    var accent: Color = .putt
+    /// Height; the cup is a little narrower.
+    var size: CGFloat = 44
+
+    var body: some View {
+        let h = size
+        ZStack {
+            if earned {
+                TrophyHandles().stroke(Color(UIColor(hex: 0xD99A0B)), lineWidth: h * 0.055)
+                TrophyBody().fill(LinearGradient(colors: [Color(UIColor(hex: 0xFFE27A)), Color(UIColor(hex: 0xF2A900)), Color(UIColor(hex: 0xC77C02))],
+                                                 startPoint: .topLeading, endPoint: .bottomTrailing))
+                TrophyBody().stroke(Color(UIColor(hex: 0x9A5F00)).opacity(0.55), lineWidth: max(0.6, h * 0.014))
+                Image(systemName: "star.fill")
+                    .font(.system(size: h * 0.15, weight: .black))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .offset(y: -h * 0.27)
+                Ellipse().fill(.white.opacity(0.5))
+                    .frame(width: h * 0.06, height: h * 0.2)
+                    .rotationEffect(.degrees(-12))
+                    .offset(x: -h * 0.17, y: -h * 0.3)
+                Circle().fill(accent)
+                    .overlay(Circle().strokeBorder(.white.opacity(0.6), lineWidth: max(0.5, h * 0.012)))
+                    .frame(width: h * 0.09, height: h * 0.09)
+                    .offset(y: h * 0.28)
+            } else {
+                ZStack {
+                    TrophyHandles().stroke(.white.opacity(0.2), lineWidth: h * 0.05)
+                    // The cup is see-through, so cut the handles away behind it.
+                    TrophyBody().fill(.black).blendMode(.destinationOut)
+                    TrophyBody().fill(.white.opacity(0.06))
+                    TrophyBody().stroke(.white.opacity(0.28), style: StrokeStyle(lineWidth: max(1, h * 0.02), dash: [h * 0.06, h * 0.05]))
+                }
+                .compositingGroup()
+            }
+        }
+        .frame(width: h * 0.9, height: h)
+        .shadow(color: .black.opacity(earned ? 0.35 : 0), radius: h * 0.06, y: h * 0.04)
+    }
+}
+
+/// Cup, stem and base of a trophy, filling the rect's height.
+private struct TrophyBody: Shape {
+    func path(in r: CGRect) -> Path {
+        let h = r.height, cx = r.midX
+        func y(_ f: CGFloat) -> CGFloat { r.minY + h * f }
+        var p = Path()
+        p.move(to: CGPoint(x: cx - h * 0.3, y: y(0.04)))
+        p.addLine(to: CGPoint(x: cx + h * 0.3, y: y(0.04)))
+        p.addQuadCurve(to: CGPoint(x: cx + h * 0.06, y: y(0.54)), control: CGPoint(x: cx + h * 0.3, y: y(0.46)))
+        p.addLine(to: CGPoint(x: cx - h * 0.06, y: y(0.54)))
+        p.addQuadCurve(to: CGPoint(x: cx - h * 0.3, y: y(0.04)), control: CGPoint(x: cx - h * 0.3, y: y(0.46)))
+        p.closeSubpath()
+        p.addRect(CGRect(x: cx - h * 0.05, y: y(0.52), width: h * 0.1, height: h * 0.2))
+        let corner = CGSize(width: h * 0.03, height: h * 0.03)
+        p.addRoundedRect(in: CGRect(x: cx - h * 0.22, y: y(0.7), width: h * 0.44, height: h * 0.16), cornerSize: corner)
+        p.addRoundedRect(in: CGRect(x: cx - h * 0.28, y: y(0.86), width: h * 0.56, height: h * 0.1), cornerSize: corner)
+        return p
+    }
+}
+
+private struct TrophyHandles: Shape {
+    func path(in r: CGRect) -> Path {
+        let h = r.height
+        var p = Path()
+        for side in [-1.0, 1.0] as [CGFloat] {
+            p.addEllipse(in: CGRect(x: r.midX + side * h * 0.3 - h * 0.12, y: r.minY + h * 0.08, width: h * 0.24, height: h * 0.26))
+        }
+        return p
     }
 }
 

@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The round's scorecard, in classic notation: circle = under par, double circle = double ace, square = over par.
+/// A nine's scorecard, in classic notation: filled circle = double ace, circle = under par, square = over par.
+/// A finished round shows its medal.
 struct ScorecardView: View {
     let game: GameModel
     /// The round just finished (vs. peeking mid-round).
@@ -8,13 +9,31 @@ struct ScorecardView: View {
     let close: () -> Void
 
     private var scores: [Int?] { game.round?.scores ?? [] }
+    private var nine: Nine { game.roundNine ?? .daybreak }
+    private var pairs: [Int] { Array(nine.pairs) }
 
     var body: some View {
         ZStack {
             Color.black.opacity(0.55).ignoresSafeArea().onTapGesture { if !final { close() } }
             VStack(spacing: 12) {
+                if final {
+                    let par = game.par(of: nine)
+                    let medal = Medal(round: totalSoFar, par: par)
+                    HStack(spacing: 14) {
+                        MedalView(medal: medal, size: 64)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("\(nine.name) Complete").font(.rounded(24, .black)).lineLimit(1).minimumScaleFactor(0.7)
+                            Text(medal == .none ? "No medal this time" : "\(medal.title) medal")
+                                .font(.rounded(15, .heavy))
+                                .foregroundStyle(medal == .none ? .white.opacity(0.7) : Color.putt)
+                            Text([Medal.bronze, .silver, .gold].map { "\($0.title) ≤ \($0.threshold(par: par))" }.joined(separator: " · "))
+                                .font(.rounded(11, .semibold))
+                                .foregroundStyle(.white.opacity(0.55))
+                        }
+                    }
+                }
                 VStack(spacing: 2) {
-                    Text(final ? "Round Complete" : "Scorecard").font(.rounded(26, .black))
+                    if !final { Text(nine.name).font(.rounded(26, .black)) }
                     if let total = totalSoFar {
                         HStack(spacing: 8) {
                             Text("\(total) strokes").font(.rounded(15, .bold))
@@ -37,15 +56,13 @@ struct ScorecardView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         header
-                        ForEach(Array(Levels.course.enumerated()), id: \.offset) { i, level in
-                            row(i, level)
-                            if i == 8 { subtotal("OUT", 0..<9) }
+                        ForEach(Array(pairs.enumerated()), id: \.offset) { k, i in
+                            row(k, i)
                         }
-                        subtotal("IN", 9..<Levels.course.count)
-                        subtotal("TOTAL", 0..<Levels.course.count, strong: true)
+                        total
                     }
                 }
-                .frame(maxHeight: 520)
+                .frame(maxHeight: 430)
                 PillButton(title: final ? "Done" : "Back to Game", symbol: final ? "flag.checkered" : "play.fill", fill: .putt, height: 50, action: close)
             }
             .padding(20)
@@ -73,11 +90,13 @@ struct ScorecardView: View {
         .padding(.vertical, 6)
     }
 
-    private func row(_ i: Int, _ level: Level) -> some View {
+    /// Row `k` of the nine: course pair `i`.
+    private func row(_ k: Int, _ i: Int) -> some View {
+        let level = GameModel.levels[i]
         let par = game.par(of: level)
-        let score = i < scores.count ? scores[i] : nil
+        let score = k < scores.count ? scores[k] : nil
         return HStack {
-            Text("\(i + 1)").font(.rounded(13, .bold).monospacedDigit()).foregroundStyle(.white.opacity(0.6)).frame(width: 26, alignment: .leading)
+            Text("\(k + 1)").font(.rounded(13, .bold).monospacedDigit()).foregroundStyle(.white.opacity(0.6)).frame(width: 26, alignment: .leading)
             Text(level.name).font(.rounded(14, .semibold)).frame(maxWidth: .infinity, alignment: .leading).lineLimit(1)
             Text("\(par)").font(.rounded(14, .semibold).monospacedDigit()).foregroundStyle(.white.opacity(0.7)).frame(width: 40)
             ScoreMark(score: score, par: par).frame(width: 56)
@@ -88,19 +107,17 @@ struct ScorecardView: View {
         .overlay(alignment: .bottom) { Rectangle().fill(.white.opacity(0.07)).frame(height: 1) }
     }
 
-    private func subtotal(_ label: String, _ range: Range<Int>, strong: Bool = false) -> some View {
-        let levels = Levels.course
-        let par = range.reduce(0) { $0 + game.par(of: levels[$1]) }
-        let done = range.compactMap { $0 < scores.count ? scores[$0] : nil }
+    private var total: some View {
+        let done = scores.compactMap { $0 }
         return HStack {
-            Text(label).font(.rounded(12, .black)).tracking(1).frame(maxWidth: .infinity, alignment: .leading)
-            Text("\(par)").font(.rounded(14, .heavy).monospacedDigit()).frame(width: 40)
-            Text(done.isEmpty ? "–" : "\(done.reduce(0, +))").font(.rounded(strong ? 18 : 15, .black).monospacedDigit()).frame(width: 56)
+            Text("TOTAL").font(.rounded(12, .black)).tracking(1).frame(maxWidth: .infinity, alignment: .leading)
+            Text("\(game.par(of: nine))").font(.rounded(14, .heavy).monospacedDigit()).frame(width: 40)
+            Text(done.isEmpty ? "–" : "\(done.reduce(0, +))").font(.rounded(18, .black).monospacedDigit()).frame(width: 56)
         }
-        .foregroundStyle(strong ? Color.putt : .white)
+        .foregroundStyle(Color.putt)
         .padding(.vertical, 7)
         .padding(.leading, 26)
-        .background(Color.white.opacity(strong ? 0.1 : 0.05))
+        .background(Color.white.opacity(0.1))
     }
 }
 

@@ -668,11 +668,12 @@ final class GameScene: SKScene {
     }
 
     private func settle() {
+        let demo = model.isDemo
         model.isRolling = false
         model.isDemo = false
         giveRelief()
         guard world.allSunk else { return }
-        model.recordFinish()
+        model.recordFinish(demo: demo)
         let doubleAce = model.strokes == [1, 1]
         if doubleAce {
             confetti()
