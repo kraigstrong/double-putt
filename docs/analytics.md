@@ -76,8 +76,8 @@ and leaving without swinging sends nothing and isn't numbered.
 | `swings` | integer 0–200, swings taken |
 | `mirrorSwings` | integer 0–`swings`, swings taken in Mirror |
 | `water` | integer 0–200, water penalties across both holes |
-| `aces` | integer 0–2, holes made in one stroke |
-| `doubleAce` | boolean, `true` only if `finished` with strokes `[1, 1]` |
+| `aces` | integer 0–2, holes made in one stroke: when `finished`, exactly the number of 1s in `strokes`; otherwise at most that number |
+| `doubleAce` | boolean, `true` exactly when `finished` with strokes `[1, 1]` |
 | `seconds` | integer 0–3600, time on the pair, rounded and capped |
 
 ### `round` (course rounds)
