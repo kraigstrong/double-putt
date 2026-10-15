@@ -2,13 +2,13 @@ import UIKit
 
 /// Visual setting for a hole pair. Everything is drawn in code from these values.
 struct Theme {
-    enum Border { case wood, stone }
-    enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust }
+    enum Border { case wood, stone, striped }
+    enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust, confetti, sparks }
     enum Ground { case grass, sand, snow }
-    enum Trees { case round, palm, cactus, pine }
-    enum Bed { case flowers, dune, rocks, snowbank }
+    enum Trees { case round, palm, cactus, pine, tents }
+    enum Bed { case flowers, dune, rocks, snowbank, awning }
     enum Water { case pond, tidepool, ice }
-    enum Post { case stone, buoy, lantern }
+    enum Post { case stone, buoy, lantern, balloon }
 
     var id = ""
     /// Display name, e.g. "Spring Meadow".
@@ -33,6 +33,8 @@ struct Theme {
     var post = Post.stone
     /// Glowing lanterns around the course (night).
     var lanterns = false
+    /// Rubber ducks on the ponds instead of lily pads (funfair).
+    var ducks = false
     /// SwiftUI accents for cards and the results screen.
     var accent = UIColor.white
 
@@ -142,8 +144,54 @@ struct Theme {
         return t
     }()
 
+    // MARK: Funfair (courses 4–6): candy-striped walls, tents, booth awnings, balloon bumpers, duck ponds.
+
+    static let midway: Theme = {
+        var t = Theme()
+        t.id = "midway"
+        t.rough = UIColor(hex: 0x6DB04B); t.roughShade = UIColor(hex: 0x5C9C3E); t.roughLight = UIColor(hex: 0x8CC764)
+        t.feltLight = UIColor(hex: 0x4CC17F); t.feltDark = UIColor(hex: 0x43B273)
+        t.border = .striped; t.borderTop = UIColor(hex: 0xF0524F); t.borderSide = UIColor(hex: 0xB2302C)
+        t.stripes = [UIColor(hex: 0xF0524F), UIColor(hex: 0xFFF4E2)]
+        t.canopies = [UIColor(hex: 0xF0524F), UIColor(hex: 0x3D8BFD), UIColor(hex: 0xFFC94A), UIColor(hex: 0x2BB673)]
+        t.flowers = [UIColor(hex: 0xFF6FA8), UIColor(hex: 0x6FD3FF), UIColor(hex: 0xFFE066), UIColor(hex: 0xB28DFF)]
+        t.trees = .tents; t.bed = .awning; t.post = .balloon; t.ducks = true; t.ambient = .confetti
+        t.accent = UIColor(hex: 0xFF7A7A)
+        return t
+    }()
+
+    static let bigtop: Theme = {
+        var t = Theme()
+        t.id = "bigtop"
+        t.rough = UIColor(hex: 0xD9B27C); t.roughShade = UIColor(hex: 0xC99A5E); t.roughLight = UIColor(hex: 0xE8C99A)
+        t.feltLight = UIColor(hex: 0x33AE6A); t.feltDark = UIColor(hex: 0x2C9F5F)
+        t.border = .striped; t.borderTop = UIColor(hex: 0xD7263D); t.borderSide = UIColor(hex: 0x8E1426)
+        t.stripes = [UIColor(hex: 0xD7263D), UIColor(hex: 0xFFC94A)]
+        t.canopies = [UIColor(hex: 0xD7263D), UIColor(hex: 0x2E5BFF), UIColor(hex: 0xFFC94A)]
+        t.flowers = [UIColor(hex: 0xFF4D6D), UIColor(hex: 0xFFD166), UIColor(hex: 0x4CC9F0)]
+        t.waterDeep = UIColor(hex: 0x1B5FA8); t.waterShallow = UIColor(hex: 0x58B4E8)
+        t.ground = .sand; t.trees = .tents; t.bed = .awning; t.post = .balloon; t.ducks = true; t.ambient = .confetti
+        t.accent = UIColor(hex: 0xFFC94A)
+        return t
+    }()
+
+    static let fireworks: Theme = {
+        var t = Theme()
+        t.id = "fireworks"
+        t.rough = UIColor(hex: 0x17213A); t.roughShade = UIColor(hex: 0x10182B); t.roughLight = UIColor(hex: 0x24324F)
+        t.feltLight = UIColor(hex: 0x24765C); t.feltDark = UIColor(hex: 0x1F6851)
+        t.border = .striped; t.borderTop = UIColor(hex: 0x7B2CBF); t.borderSide = UIColor(hex: 0x3C1361)
+        t.stripes = [UIColor(hex: 0x7B2CBF), UIColor(hex: 0xFFE8A3)]
+        t.canopies = [UIColor(hex: 0x7B2CBF), UIColor(hex: 0xE63973), UIColor(hex: 0x2EC4B6), UIColor(hex: 0xFF9F1C)]
+        t.flowers = [UIColor(hex: 0xFF5DA2), UIColor(hex: 0x5DE2FF), UIColor(hex: 0xFFE45D)]
+        t.waterDeep = UIColor(hex: 0x0D2747); t.waterShallow = UIColor(hex: 0x245887)
+        t.trees = .tents; t.bed = .awning; t.post = .balloon; t.ducks = true; t.lanterns = true; t.ambient = .sparks
+        t.accent = UIColor(hex: 0xFF5DA2)
+        return t
+    }()
+
     static let all: [String: Theme] = Dictionary(uniqueKeysWithValues:
-        [meadow, garden, moat, seaside, autumn, desert, winter, night].map { ($0.id, $0) })
+        [meadow, garden, moat, seaside, autumn, desert, winter, night, midway, bigtop, fireworks].map { ($0.id, $0) })
 
     static func `for`(_ level: Level) -> Theme { all[level.setting] ?? .meadow }
 }

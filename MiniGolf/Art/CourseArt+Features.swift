@@ -121,7 +121,7 @@ extension Painter {
 
     /// Round posts: stone, buoys (seaside) or lantern posts (night).
     func posts(_ level: Level, _ t: Theme) {
-        for b in level.bumpers {
+        for (i, b) in level.bumpers.enumerated() {
             let c = CGPoint(x: b.center.x, y: b.center.y)
             let r = CGFloat(b.radius)
             shadow(dx: r * 0.18, dy: -r * 0.28, blur: r * 0.3, alpha: 0.45) { fill(circle(c, r), .black) }
@@ -137,6 +137,8 @@ extension Painter {
             case .stone:
                 radial(circle(c, r), [t.borderTop.lighter(0.25), t.borderTop, t.borderSide], center: CGPoint(x: c.x - r * 0.3, y: c.y + r * 0.3), radius: r * 1.3)
                 stroke(circle(c, r * 0.72), t.borderSide.withAlphaComponent(0.5), 1)
+            case .balloon:
+                balloonPost(c, radius: r, color: t.flowers[i % t.flowers.count])
             }
             stroke(circle(c, r), UIColor.black.withAlphaComponent(0.35), 0.8)
         }

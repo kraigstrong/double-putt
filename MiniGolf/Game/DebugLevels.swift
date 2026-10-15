@@ -1,16 +1,20 @@
 #if DEBUG
 // Mechanic test pairs for checking visuals: launch with `-tests 1`.
 enum DebugLevels {
-    static let all: [Level] = [tunnelTest(), slopeTest(), rotorTest(), sliderTest(), funfairTest()]
+    static let all: [Level] = [tunnelTest(), slopeTest(), rotorTest(), sliderTest(),
+                               funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]
 
-    static func funfairTest() -> Level {
-        var l = Level("funfairTest", par: [2, 2], hint: "")
-        l.setting = "midway"
-        l.frame()
+    /// Kicker, carousel, balloon bumpers, a booth awning, a rail and a duck pond in one of the funfair looks.
+    static func funfairTest(_ setting: String) -> Level {
+        var l = Level("\(setting)Test", par: [2, 2], hint: "")
+        l.setting = setting
+        l.frame(gaps: [480...560])
         l.tee(.a, 100, 110); l.tee(.b, 100, 110)
         l.kicker(.a, 100, 260, toward: 80, speed: 600)
         l.carousel(.b, 100, 420, radius: 50, rpm: 24)
-        l.bumper(.a, 60, 520, r: 16); l.block(.b, 20, 600, 90, 630)
+        l.bumper(.a, 60, 520, r: 16); l.bumper(.a, 140, 600, r: 14)
+        l.block(.b, 20, 600, 110, 640)
+        l.rail(.b, 120, 250, 190, 300)
         l.water(.a, 120, 380, 190, 440)
         l.cup(.a, 140, 700); l.cup(.b, 100, 720)
         return l

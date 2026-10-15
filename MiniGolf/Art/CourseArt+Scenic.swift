@@ -27,6 +27,8 @@ extension CourseArt {
                     p.tree(theme, radius: r, color: color, &rng)
                 } else if theme.trees == .cactus || theme.ground == .snow {
                     p.rockShape(radius: r * 0.6, tone: theme.ground == .snow ? UIColor(hex: 0xB9C6D2) : theme.borderTop, &rng)
+                } else if theme.trees == .tents {
+                    p.balloons(radius: r, theme, &rng)
                 } else {
                     p.canopy(radius: r, color: color.mixed(with: theme.rough, 0.25), &rng, flowers: rng.unit() < 0.6 ? theme.flowers : nil)
                 }

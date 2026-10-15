@@ -185,7 +185,7 @@ final class GameScene: SKScene {
             guard free(p, r, overlap: 0.75) else { continue }
             placed.append((p, r))
             let variant = k % 5
-            add(CourseArt.tree(theme, radius: 44, seed: seed &+ UInt64(variant), ppu: ppu), key: "tree\(variant)", at: p, sway: true)
+            add(CourseArt.tree(theme, radius: 44, seed: seed &+ UInt64(variant), ppu: ppu), key: "tree\(variant)", at: p, sway: theme.trees != .tents)
             propsNode.children.last?.setScale(r / 44)
         }
         for k in 0..<120 {
@@ -456,6 +456,46 @@ final class GameScene: SKScene {
             e.particleScale = 1.8
             e.particleScaleRange = 1
             e.particleAlpha = 0.45
+        case .confetti:
+            e.particleTexture = texture("confetti") { CourseArt.confetti(pixels: 24) }
+            e.particleColor = UIColor(white: 0.55, alpha: 1)
+            e.particleColorBlendFactor = 1
+            e.particleColorRedRange = 0.9
+            e.particleColorGreenRange = 0.9
+            e.particleColorBlueRange = 0.9
+            e.particleBirthRate = 1.6
+            e.particleLifetime = 24
+            e.particleSpeed = 26
+            e.particleSpeedRange = 10
+            e.emissionAngle = -.pi / 2
+            e.emissionAngleRange = 0.5
+            e.particleScale = 2.6
+            e.particleScaleRange = 1
+            e.particleRotationRange = .pi * 2
+            e.particleRotationSpeed = 2.4
+            e.particleAlpha = 0.95
+        case .sparks:
+            // Embers drifting down from fireworks overhead.
+            e.position = CGPoint(x: rect.midX, y: rect.midY)
+            e.particlePositionRange = CGVector(dx: rect.width, dy: rect.height)
+            e.particleTexture = texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
+            e.particleColor = UIColor(hex: 0xFFB0D8)
+            e.particleColorBlendFactor = 1
+            e.particleColorRedRange = 0.3
+            e.particleColorGreenRange = 0.6
+            e.particleColorBlueRange = 0.6
+            e.particleBlendMode = .add
+            e.particleBirthRate = 6
+            e.particleLifetime = 4
+            e.particleLifetimeRange = 2
+            e.particleSpeed = 14
+            e.particleSpeedRange = 8
+            e.emissionAngle = -.pi / 2
+            e.emissionAngleRange = 0.8
+            e.particleScale = 0.9
+            e.particleScaleRange = 0.5
+            e.particleScaleSpeed = -0.15
+            e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [0, 1, 0.6, 0], times: [0, 0.15, 0.6, 1])
         case .fireflies, .motes:
             e.position = CGPoint(x: rect.midX, y: rect.midY)
             e.particlePositionRange = CGVector(dx: rect.width, dy: rect.height)
