@@ -556,7 +556,7 @@ struct Painter {
             switch t.border {
             case .wood: len = min(rng.range(70, 130), length - pos)
             case .stone: len = min(rng.range(18, 34), length - pos)
-            case .striped: len = min(14, length - pos)
+            case .painted: len = min(rng.range(60, 110), length - pos)
             }
             let piece = horizontal
                 ? CGRect(x: r.minX + pos, y: r.minY, width: len, height: r.height)
@@ -564,7 +564,7 @@ struct Painter {
             switch t.border {
             case .wood: plank(piece, horizontal: horizontal, t, &rng)
             case .stone: stone(piece, t, &rng)
-            case .striped: candy(piece, horizontal: horizontal, color: t.stripes[k % t.stripes.count])
+            case .painted: paintedPlank(piece, horizontal: horizontal, t, &rng)
             }
             pos += len
             k += 1
@@ -633,13 +633,13 @@ struct Painter {
             var n = CGPoint(x: -d.y, y: d.x)
             if n.y - n.x < 0 { n = CGPoint(x: -n.x, y: -n.y) }   // toward the light (up-left)
             fill(shape, t.borderTop)
-            if t.border == .striped {
-                // Candy-cane rails: slanted bands, then roundness on top.
+            if t.border == .painted {
+                // Painted rails: the wall colour with a trim line down the middle.
                 clipped(shape) {
-                    candyBands(from: a, to: b, radius: CGFloat(w.radius), t)
-                    linear(shape, [UIColor.white.withAlphaComponent(0.3), UIColor.clear, UIColor.black.withAlphaComponent(0.28)],
+                    linear(shape, [t.borderTop.lighter(0.15), t.borderTop, t.borderSide],
                            from: CGPoint(x: a.x + n.x * w.radius, y: a.y + n.y * w.radius),
                            to: CGPoint(x: a.x - n.x * w.radius, y: a.y - n.y * w.radius))
+                    stroke(CourseArt.line(a, b), t.trim.withAlphaComponent(0.9), 1.1)
                 }
                 stroke(shape, t.borderSide.darker(0.4), 0.8)
                 continue

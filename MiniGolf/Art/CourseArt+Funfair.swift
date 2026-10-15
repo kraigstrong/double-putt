@@ -1,7 +1,8 @@
 import UIKit
 
-// Funfair settings (Midway, Big Top, Fireworks): candy-striped walls, striped tents, booth awnings, balloons and
-// rubber ducks. Colours come from the theme's `stripes`, `canopies` (tents) and `flowers` (balloons).
+// Funfair settings (Midway, Big Top, Fireworks): painted boardwalk walls, striped tents and booth awnings, balloons
+// and rubber ducks. Colours come from the theme's `borderTop`/`trim` (walls), `stripes` (awnings, carousels),
+// `canopies` (tents) and `flowers` (balloons).
 
 extension CourseArt {
     /// A paper confetti strip for the ambient emitter (tinted per particle).
@@ -17,36 +18,34 @@ extension CourseArt {
 }
 
 extension Painter {
-    /// One candy stripe of a striped border or block rim.
-    func candy(_ r: CGRect, horizontal: Bool, color: UIColor) {
+    /// A painted boardwalk plank: the wall colour, faint grain, and a trim line along its light edge, so the trim runs
+    /// unbroken round a border or a booth's frame.
+    func paintedPlank(_ r: CGRect, horizontal: Bool, _ t: Theme, _ rng: inout SeededRandom) {
+        let tone = t.borderTop.mixed(with: t.borderSide, rng.range(0, 0.12))
         let path = CGPath(rect: r, transform: nil)
-        linear(path, [color.lighter(0.18), color, color.darker(0.12)],
+        linear(path, [tone.lighter(0.1), tone, tone.darker(0.1)],
                from: horizontal ? CGPoint(x: r.midX, y: r.maxY) : CGPoint(x: r.minX, y: r.midY),
                to: horizontal ? CGPoint(x: r.midX, y: r.minY) : CGPoint(x: r.maxX, y: r.midY))
+        clipped(path) {
+            for _ in 0..<3 {
+                let g = CGMutablePath()
+                if horizontal {
+                    let y = rng.range(r.minY, r.maxY)
+                    g.move(to: CGPoint(x: r.minX, y: y)); g.addLine(to: CGPoint(x: r.maxX, y: y + rng.range(-1, 1)))
+                } else {
+                    let x = rng.range(r.minX, r.maxX)
+                    g.move(to: CGPoint(x: x, y: r.minY)); g.addLine(to: CGPoint(x: x + rng.range(-1, 1), y: r.maxY))
+                }
+                stroke(g, t.borderSide.withAlphaComponent(0.18), 0.5)
+            }
+            let inset: CGFloat = min(3, (horizontal ? r.height : r.width) * 0.25)
+            let trim = horizontal ? CourseArt.line(CGPoint(x: r.minX, y: r.maxY - inset), CGPoint(x: r.maxX, y: r.maxY - inset))
+                                  : CourseArt.line(CGPoint(x: r.minX + inset, y: r.minY), CGPoint(x: r.minX + inset, y: r.maxY))
+            stroke(trim, t.trim.withAlphaComponent(0.9), 1.2)
+        }
         let seam = horizontal ? CourseArt.line(CGPoint(x: r.maxX, y: r.minY), CGPoint(x: r.maxX, y: r.maxY))
                               : CourseArt.line(CGPoint(x: r.minX, y: r.maxY), CGPoint(x: r.maxX, y: r.maxY))
-        stroke(seam, UIColor.black.withAlphaComponent(0.12), 0.6)
-    }
-
-    /// Candy-cane bands across a rail (a capsule from a to b, `radius` thick), drawn inside its clip.
-    func candyBands(from a: CGPoint, to b: CGPoint, radius: CGFloat, _ t: Theme) {
-        let len = hypot(b.x - a.x, b.y - a.y)
-        guard len > 0 else { return }
-        let d = CGPoint(x: (b.x - a.x) / len, y: (b.y - a.y) / len)
-        let n = CGPoint(x: -d.y, y: d.x)
-        let w = radius + 2
-        var s: CGFloat = -8
-        while s < len + 8 {
-            let band = CGMutablePath()
-            // Slanted bands read as a striped pole.
-            func pt(_ along: CGFloat, _ across: CGFloat) -> CGPoint {
-                CGPoint(x: a.x + d.x * along + n.x * across, y: a.y + d.y * along + n.y * across)
-            }
-            band.move(to: pt(s, -w)); band.addLine(to: pt(s + 7, -w))
-            band.addLine(to: pt(s + 11, w)); band.addLine(to: pt(s + 4, w)); band.closeSubpath()
-            fill(band, t.stripes[1 % t.stripes.count])
-            s += 14
-        }
+        stroke(seam, t.borderSide.darker(0.3), 0.8)
     }
 
     /// A striped booth awning filling a block: bands, a scalloped valance on the near (lower) edge, soft shading.

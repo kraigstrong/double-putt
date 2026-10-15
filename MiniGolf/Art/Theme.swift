@@ -2,7 +2,7 @@ import UIKit
 
 /// Visual setting for a hole pair. Everything is drawn in code from these values.
 struct Theme {
-    enum Border { case wood, stone, striped }
+    enum Border { case wood, stone, painted }
     enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust, confetti, sparks }
     enum Ground { case grass, sand, snow }
     enum Trees { case round, palm, cactus, pine, tents }
@@ -22,8 +22,10 @@ struct Theme {
     var canopies: [UIColor] = []
     var flowers: [UIColor] = []
     var litter: [UIColor] = []
-    /// Candy-stripe pair for striped borders, awnings, tents and carousels.
+    /// Candy-stripe pair for awnings, tents and carousels.
     var stripes = [UIColor(hex: 0xF0524F), UIColor(hex: 0xFFF4E2)]
+    /// The trim line painted along a `.painted` border and its rails.
+    var trim = UIColor(hex: 0xFFF4E2)
     var waterDeep = UIColor(hex: 0x1D6FA5), waterShallow = UIColor(hex: 0x56B9DE)
     var ambient = Ambient.none
     var ground = Ground.grass
@@ -144,14 +146,14 @@ struct Theme {
         return t
     }()
 
-    // MARK: Funfair (courses 4–6): candy-striped walls, tents, booth awnings, balloon bumpers, duck ponds.
+    // MARK: Funfair (courses 4–6): painted boardwalk walls, striped tents and booth awnings, balloons, duck ponds.
 
     static let midway: Theme = {
         var t = Theme()
         t.id = "midway"
         t.rough = UIColor(hex: 0x6DB04B); t.roughShade = UIColor(hex: 0x5C9C3E); t.roughLight = UIColor(hex: 0x8CC764)
         t.feltLight = UIColor(hex: 0x4CC17F); t.feltDark = UIColor(hex: 0x43B273)
-        t.border = .striped; t.borderTop = UIColor(hex: 0xF0524F); t.borderSide = UIColor(hex: 0xB2302C)
+        t.border = .painted; t.borderTop = UIColor(hex: 0x4FA3E0); t.borderSide = UIColor(hex: 0x2D6FA3)
         t.stripes = [UIColor(hex: 0xF0524F), UIColor(hex: 0xFFF4E2)]
         t.canopies = [UIColor(hex: 0xF0524F), UIColor(hex: 0x3D8BFD), UIColor(hex: 0xFFC94A), UIColor(hex: 0x2BB673)]
         t.flowers = [UIColor(hex: 0xFF6FA8), UIColor(hex: 0x6FD3FF), UIColor(hex: 0xFFE066), UIColor(hex: 0xB28DFF)]
@@ -165,7 +167,8 @@ struct Theme {
         t.id = "bigtop"
         t.rough = UIColor(hex: 0xD9B27C); t.roughShade = UIColor(hex: 0xC99A5E); t.roughLight = UIColor(hex: 0xE8C99A)
         t.feltLight = UIColor(hex: 0x33AE6A); t.feltDark = UIColor(hex: 0x2C9F5F)
-        t.border = .striped; t.borderTop = UIColor(hex: 0xD7263D); t.borderSide = UIColor(hex: 0x8E1426)
+        t.border = .painted; t.borderTop = UIColor(hex: 0xB3213A); t.borderSide = UIColor(hex: 0x6E1222)
+        t.trim = UIColor(hex: 0xFFC94A)
         t.stripes = [UIColor(hex: 0xD7263D), UIColor(hex: 0xFFC94A)]
         t.canopies = [UIColor(hex: 0xD7263D), UIColor(hex: 0x2E5BFF), UIColor(hex: 0xFFC94A)]
         t.flowers = [UIColor(hex: 0xFF4D6D), UIColor(hex: 0xFFD166), UIColor(hex: 0x4CC9F0)]
@@ -180,7 +183,8 @@ struct Theme {
         t.id = "fireworks"
         t.rough = UIColor(hex: 0x17213A); t.roughShade = UIColor(hex: 0x10182B); t.roughLight = UIColor(hex: 0x24324F)
         t.feltLight = UIColor(hex: 0x24765C); t.feltDark = UIColor(hex: 0x1F6851)
-        t.border = .striped; t.borderTop = UIColor(hex: 0x7B2CBF); t.borderSide = UIColor(hex: 0x3C1361)
+        t.border = .painted; t.borderTop = UIColor(hex: 0x3D5291); t.borderSide = UIColor(hex: 0x1F2C57)
+        t.trim = UIColor(hex: 0xFFE8A3)
         t.stripes = [UIColor(hex: 0x7B2CBF), UIColor(hex: 0xFFE8A3)]
         t.canopies = [UIColor(hex: 0x7B2CBF), UIColor(hex: 0xE63973), UIColor(hex: 0x2EC4B6), UIColor(hex: 0xFF9F1C)]
         t.flowers = [UIColor(hex: 0xFF5DA2), UIColor(hex: 0x5DE2FF), UIColor(hex: 0xFFE45D)]
