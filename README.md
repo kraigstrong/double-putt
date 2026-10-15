@@ -15,9 +15,10 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 
 ## How to play
 
-- **Courses** lists the nine-pair courses: Daybreak, Nightfall, Thunderhead and Midway so far, each harder than the last. A
-  round shows a running score vs par and ends with a scorecard and a medal: bronze at par or better, silver 4 under,
-  gold 8 under (best round per course saved; a round in progress survives relaunches). A medal unlocks the next course.
+- **Courses** lists the nine-pair courses: Daybreak, Nightfall, Thunderhead, then the Funfair set (Midway, Big Top,
+  Fireworks), each harder than the last. A round shows a running score vs par and ends with a scorecard and a medal:
+  bronze at par or better, silver 4 under, gold 8 under (best round per course saved; a round in progress survives
+  relaunches). A medal unlocks the next course.
 - **Single Hole** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
   **Trophy Shelf** (one per pair).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
@@ -112,6 +113,34 @@ with a medal on the one before. In the app each course numbers its pairs 1–9. 
 | 7 | Merry-Go-Round | Midway | 6 | Mirror | water, bumpers, carousels, kickers |
 | 8 | Bumper Cars | Midway | 5 | Mirror | water, bumpers, sliders |
 | 9 | Grand Prize | Midway | 6 | Same | water, tunnels, carousels, kickers |
+
+### Big Top (par 47)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Ringmaster | Big Top | 5 | Mirror | bowls, kickers |
+| 2 | Juggler | Big Top | 5 | Same | bumpers, carousels |
+| 3 | Trapeze | Big Top | 5 | Mirror | water, sliders |
+| 4 | Human Cannonball | Big Top | 5 | Same | water, tunnels, bowls |
+| 5 | Tightrope | Big Top | 5 | Mirror | water, slopes, hills |
+| 6 | Spinning Plates | Big Top | 5 | Mirror | water, rotors, carousels |
+| 7 | Fire Hoop | Big Top | 6 | Same | water, bumpers, sliders, kickers |
+| 8 | Clown Car | Big Top | 5 | Mirror | water, tunnels, rotors, kickers |
+| 9 | Showstopper | Big Top | 6 | Mirror | water, tunnels, rotors, carousels, kickers |
+
+### Fireworks (par 50)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Sparkler | Fireworks | 5 | Mirror | kickers |
+| 2 | Ferris Wheel | Fireworks | 5 | Same | water, bumpers, rotors |
+| 3 | Hall of Mirrors | Fireworks | 5 | Same | water |
+| 4 | Roman Candle | Fireworks | 5 | Mirror | water, bowls, carousels, kickers |
+| 5 | Ghost Train | Fireworks | 6 | Same | tunnels, sliders |
+| 6 | Catherine Wheel | Fireworks | 6 | Mirror | water, rotors, carousels, kickers |
+| 7 | Rocket | Fireworks | 6 | Same | water, sliders, kickers |
+| 8 | Starburst | Fireworks | 6 | Mirror | water, bumpers, tunnels, bowls |
+| 9 | Grand Finale | Fireworks | 6 | Mirror | water, tunnels, rotors, carousels, kickers |
 
 The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
 course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).

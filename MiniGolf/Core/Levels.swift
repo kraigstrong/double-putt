@@ -191,6 +191,16 @@ enum Levels {
             shootingGallery(), highStriker(), duckPond(),
             merryGoRound(), bumperCars(), grandPrize(),
         ]),
+        ("bigtop", "Big Top", [                      // Funfair: Big Top
+            ringmaster(), juggler(), trapeze(),
+            humanCannonball(), tightrope(), spinningPlates(),
+            fireHoop(), clownCar(), showstopper(),
+        ]),
+        ("fireworks", "Fireworks", [                 // Funfair: Fireworks
+            sparkler(), ferrisWheel(), hallOfMirrors(),
+            romanCandle(), ghostTrain(), catherineWheel(),
+            rocket(), starburst(), grandFinale(),
+        ]),
     ]
 
     /// Display names of the visual settings (`Level.setting`).
