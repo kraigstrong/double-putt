@@ -52,9 +52,11 @@ Kickers and carousels (from course 4):
   reaching the pad (and the other ball) depends on the swing. Rough carry after the pad on flat green: speed 520 →
   ~360 units, 700 → ~620, 900 → ~1000. A ball ignores a pad again until it rolls clear of it.
 - A **carousel** pulls a ball's velocity toward the disk's surface motion (grip 2.5/s; surface speed = rpm × 2π/60 ×
-  distance from the centre), so a crossing ball curves with the spin and a slow one is carried round and flung off.
-  It turns at a steady rate, so its pull doesn't depend on when you swing (no timing window), and the aim guide
-  ignores it. A ball can't rest on a carousel; tees must be off the disk.
+  distance from the centre). In practice it mostly *brakes* a fast crossing ball (handy for taking pace off a short
+  hole) and only visibly *bends* slow ones; for a readable curve use a big, fast disk (radius 60+, 40–50 rpm) with
+  the cup close beyond it. It turns at a steady rate, so its pull doesn't depend on when you swing (no timing
+  window; `--report` leaves Timing blank), and the aim guide ignores it. A ball can't rest on a carousel; tees must
+  be off the disk.
 
 ## Your file
 Draft pairs in a scratch file under `Tools/levels/` (one per designer):

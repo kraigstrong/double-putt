@@ -111,6 +111,11 @@ func timingWindow(_ level: Level, _ shot: Shot, at t: Double, step: Double = 0.0
     return (early, late)
 }
 
+extension Level {
+    /// Rotors or sliders, whose pose (and so the shot) depends on when you swing. Carousels pull the same way always.
+    var hasTimedMovers: Bool { movers.contains { if case .carousel = $0.kind { false } else { true } } }
+}
+
 /// The mechanics a pair uses, for reports and the README.
 func mechanics(_ l: Level) -> String {
     var m: [String] = []
@@ -178,7 +183,7 @@ if args.contains("--verify") {
         // A tee in a mover's path would get relief before the first swing.
         let teesClear = !level.tees.contains { world.inMoverPath($0) }
         failed = failed || !ok || !teesClear
-        let timing = level.movers.isEmpty ? "" : String(format: " at %.2fs", level.solutionTime)
+        let timing = level.hasTimedMovers ? String(format: " at %.2fs", level.solutionTime) : ""
         print("\(ok ? "✓" : "✗") \(level.name): \(shot.angle)° \(Int(shot.power * 100))%\(shot.mirrored ? " mirror" : "")\(timing)"
               + (teesClear ? "" : "  ✗ a tee is in a mover's path"))
     }
@@ -216,7 +221,7 @@ if args.contains("--readme") {
 // strike times around its clock time that still double-ace; then across the whole mover cycle (coarse grid),
 // how often some double ace exists and the double ace with the widest timing window.
 if args.contains("--timing") {
-    for (_, level) in picked where !level.movers.isEmpty {
+    for (_, level) in picked where level.hasTimedMovers {
         let cycle = level.moverCycle
         print("\(level.name)  (mover cycle \(String(format: "%.2f", cycle))s)")
         if let shot = level.solution {
@@ -266,7 +271,7 @@ if args.contains("--timing") {
 // double-ace in the better of Same / Mirror; "window" is the most forgiving ace's angle x power window.
 if args.contains("--report") {
     func pad(_ s: String, _ n: Int) -> String { s.count >= n ? s : s + String(repeating: " ", count: n - s.count) }
-    print(pad("#", 4) + pad("Course", 13) + pad("Pair", 14) + pad("Par", 6) + pad("Sugg", 6) + pad("Dbl ace", 9)
+    print(pad("#", 4) + pad("Course", 13) + pad("Pair", 18) + pad("Par", 6) + pad("Sugg", 6) + pad("Dbl ace", 9)
           + pad("Needs", 8) + pad("Window", 13) + pad("Ace A/B %", 12) + pad("Water", 7) + pad("Timing", 9) + "Mechanics")
     var summary: [(course: String, par: Int, aces: [Double])] = []
     for (i, level) in picked {
@@ -288,13 +293,13 @@ if args.contains("--report") {
         let needs = both[0] == 0 && both[1] == 0 ? "none" : both[1] > both[0] ? "Mirror" : "Same"
         let window = best.map { String(format: "%.2f°×%.0f%%", $0.angleWindow, $0.powerWindow * 100) } ?? "—"
         var timing = "—"
-        if !level.movers.isEmpty, let shot = level.solution {
+        if level.hasTimedMovers, let shot = level.solution {
             let w = timingWindow(level, shot, at: level.solutionTime)
             timing = String(format: "%.0fms", (w.early + w.late) * 1000 + 5)
         }
         let c = course(of: i)
         let n = c.map { i - $0.pairs.lowerBound + 1 } ?? i + 1
-        print(pad("\(n)", 4) + pad(c?.name ?? "draft", 13) + pad(level.name, 14) + pad("\(level.par[0])/\(level.par[1])", 6)
+        print(pad("\(n)", 4) + pad(c?.name ?? "draft", 13) + pad(level.name, 18) + pad("\(level.par[0])/\(level.par[1])", 6)
               + pad("\(holeAce[0] >= 0.25 ? 2 : 3)/\(holeAce[1] >= 0.25 ? 2 : 3)", 6) + pad(String(format: "%.3f%%", ace), 9)
               + pad(needs, 8) + pad(window, 13) + pad(String(format: "%.2f/%.2f", holeAce[0], holeAce[1]), 12)
               + pad(String(format: "%.0f%%", water), 7) + pad(timing, 9) + mechanics(level))
