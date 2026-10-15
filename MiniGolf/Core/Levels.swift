@@ -169,6 +169,12 @@ enum Levels {
         ]),
     ]
 
+    /// Display names of the visual settings (`Level.setting`).
+    static let settingNames = [
+        "meadow": "Spring Meadow", "garden": "Walled Garden", "moat": "Castle Moat", "seaside": "Seaside Boardwalk",
+        "autumn": "Autumn Grove", "desert": "Desert Canyon", "winter": "Winter Village", "night": "Night Garden",
+    ]
+
     /// Every pair, in course order.
     static let course: [Level] = lineup.flatMap(\.pairs)
 
