@@ -763,6 +763,7 @@ final class GameScene: SKScene {
         model.isRolling = false
         model.isDemo = false
         giveRelief()
+        model.analytics.settled(strokes: model.strokes, sunk: world.balls.map { $0.sunkIn != nil })
         guard world.allSunk else { return }
         model.recordFinish(demo: demo)
         let doubleAce = model.strokes == [1, 1]
@@ -999,6 +1000,7 @@ final class GameScene: SKScene {
 
     private func splash(ball i: Int, at p: Vec) {
         model.strokes[i] += 1
+        model.analytics.splashed()
         SoundFX.shared.splash()
         notify.notificationOccurred(.error)
         let e = SKEmitterNode()

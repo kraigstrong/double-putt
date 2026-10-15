@@ -58,6 +58,8 @@ This file is the contract between the app (`MiniGolf/Game/Analytics.swift`) and 
 - `trophy_won`: `context`; the first double ace on the pair (its trophy).
 
 ### `pair` (one per attempt at a pair)
+An attempt starts when a pair loads (fresh, Retry or Restart Pair) and counts once a swing is taken: loading a pair
+and leaving without swinging sends nothing and isn't numbered.
 ```json
 { "kind": "pair", "context": { "course": "midway", "pair": 2, "slug": "springboard", "revision": "2026-10-15.1" },
   "mode": "round", "outcome": "finished", "replay": false, "attempt": 1,
@@ -68,7 +70,7 @@ This file is the contract between the app (`MiniGolf/Game/Analytics.swift`) and 
 |---|---|
 | `outcome` | `finished` (both balls in), `quit` (Restart Pair, leaving the round or Single Hole, or moving on), `abandoned` (the app was closed mid-pair; sent on the next launch) |
 | `replay` | `true` if this install had already finished the pair before this attempt |
-| `attempt` | integer 0–1000: `0` on a replay; otherwise this attempt's number among this install's attempts at the pair before its first finish (1 = first try) |
+| `attempt` | integer 0–1000: `0` on a replay; otherwise this attempt's number among this install's attempts at the pair before its first finish (1 = first try); always `0` exactly when `replay` |
 | `strokes` | two integers 0–99, hole A then hole B (each includes water penalties); both ≥ 1 when `finished` |
 | `par` | integer 2–12, the pair's par |
 | `swings` | integer 0–200, swings taken |

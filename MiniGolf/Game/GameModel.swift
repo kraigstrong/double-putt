@@ -140,6 +140,7 @@ final class GameModel {
     }
 
     @ObservationIgnored weak var scene: GameScene?
+    @ObservationIgnored let analytics = Analytics()
     /// The tips were asked for again (How to Play), so they're generic: the Mirror tip doesn't depend on the pair.
     @ObservationIgnored private var replayingTips = false
     /// First swing of the last attempt, restored on Retry so you can tweak it.
@@ -208,6 +209,10 @@ final class GameModel {
 
     func startRound(_ nine: Nine) {
         newlyUnlocked = nil
+        if let old = round, !old.isFinished, old.hasProgress, let oldNine = roundNine {
+            analytics.roundLeft(course: oldNine.id, pair: old.current + 1)
+        }
+        analytics.roundStarted(course: nine.id)
         round = RoundState(nine: nine.id, scores: Array(repeating: nil, count: nine.pairs.count))
         saveRound()
         inRound = true
@@ -222,7 +227,12 @@ final class GameModel {
     }
 
     /// Leave the round in place (it can be continued later) and play single pairs.
-    func leaveRound() { inRound = false }
+    func leaveRound() {
+        if inRound, let r = round, !r.isFinished, let nine = roundNine {
+            analytics.roundLeft(course: nine.id, pair: r.current + 1)
+        }
+        inRound = false
+    }
 
     func nextInRound() {
         guard var r = round, let nine = roundNine else { return next() }
@@ -247,6 +257,9 @@ final class GameModel {
             UserDefaults.standard.set(bestRounds, forKey: "bestRounds")
         }
         newlyUnlocked = wasLocked && next.map(hasEarnedUnlock) == true ? next : nil
+        analytics.roundFinished(course: nine.id, strokes: total, par: par(of: nine),
+                                medal: Medal(round: total, par: par(of: nine)), best: newBestRound)
+        if let newlyUnlocked { analytics.courseUnlocked(newlyUnlocked.id) }
         showResult = false
         showScorecard = true
     }
@@ -295,11 +308,13 @@ final class GameModel {
         }
         scene?.loadLevel()
         loadToken += 1
+        analytics.pairStarted(pairContext, mode: inRound ? "round" : "single", par: par)
     }
 
     func restart() {
         paused = false
         scene?.loadLevel()
+        analytics.pairStarted(pairContext, mode: inRound ? "round" : "single", par: par)
         if let shot = lastOpeningShot, tutorial == nil {
             setMirrored(shot.mirrored)
             aim = shot
@@ -388,7 +403,23 @@ final class GameModel {
             tutorialDone = true
             UserDefaults.standard.set(true, forKey: "tutorialDone")
         }
+        analytics.swing(mirrored: shot.mirrored)
         scene?.putt(shot)
+    }
+
+    /// The game screen closed: an unfinished pair counts as quit.
+    func leftGame() { analytics.pairLeft() }
+
+    /// Which pair this is, for analytics.
+    var pairContext: PairContext {
+        PairContext(course: nine(containing: levelIndex)?.id ?? "unknown", pair: pairNumber(levelIndex),
+                    slug: Self.slug(level.name), revision: Levels.revision)
+    }
+
+    /// "Merry-Go-Round" → "merry-go-round".
+    static func slug(_ name: String) -> String {
+        let dashed = name.lowercased().map { $0.isASCII && ($0.isLetter || $0.isNumber) ? String($0) : "-" }.joined()
+        return String(dashed.split(separator: "-").joined(separator: "-").prefix(48))
     }
 
     func toggleDevMode() {
@@ -408,6 +439,7 @@ final class GameModel {
 
     func demo() {
         paused = false
+        analytics.pairDiscarded()
         scene?.playDemo()
     }
 
@@ -421,6 +453,7 @@ final class GameModel {
         newBest = false
         newTrophy = false
         guard !demo else { return }
+        analytics.pairFinished(strokes: strokes)
         newBest = best == nil || total < best!
         if newBest {
             bests[level.name] = total

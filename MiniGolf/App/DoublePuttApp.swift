@@ -33,6 +33,7 @@ final class AppState {
         scene = GameScene(model: game)
         game.scene = scene
         SoundFX.shared.start()
+        game.analytics.launched()
         #if DEBUG
         // Launch args for testing, e.g. `-level 3 -aim 70.25,0.71,mirror -guide full`
         let d = UserDefaults.standard
@@ -86,6 +87,7 @@ final class AppState {
 
 struct RootView: View {
     let app: AppState
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ZStack {
@@ -100,5 +102,6 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: app.screen)
+        .onChange(of: scenePhase) { _, phase in if phase == .background { app.game.analytics.backgrounded() } }
     }
 }

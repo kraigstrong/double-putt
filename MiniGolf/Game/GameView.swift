@@ -79,7 +79,7 @@ struct GameView: View {
             .animation(.easeInOut(duration: 0.3), value: game.showResult)
             .animation(.easeInOut(duration: 0.3), value: game.showScorecard)
             .onAppear { updateInsets(geo); keepAwake(!game.paused) }
-            .onDisappear { keepAwake(false) }
+            .onDisappear { keepAwake(false); game.leftGame() }
             .onChange(of: geo.size) { updateInsets(geo) }
             .onChange(of: game.paused) { _, paused in keepAwake(!paused) }
             .onChange(of: scenePhase) { _, phase in
