@@ -1,5 +1,7 @@
 # Double Putt
 
+[![CI](https://github.com/kraigstrong/double-putt/actions/workflows/ci.yml/badge.svg)](https://github.com/kraigstrong/double-putt/actions/workflows/ci.yml)
+
 Two mini golf holes, one swing. Every swing hits both balls with the same shot — or, with **Mirror**,
 hole B's ball gets the shot flipped left-to-right.
 
@@ -94,6 +96,12 @@ the movers load in); a level's `solutionTime` says when its stored solution is s
 xcrun simctl launch booted com.kraig.minigolf -level 3 -aim 70.25,0.71,mirror -guide full
 xcrun simctl launch booted com.kraig.minigolf -dumpArt 1   # writes course PNGs to the app's Documents/art
 ```
+
+## Workflow
+
+Changes land on `main` through pull requests, one branch per change, in small focused commits. CI (GitHub Actions,
+`.github/workflows/ci.yml`) builds the app and runs `Tools/solve.sh --verify` on every pull request and every push
+to `main`.
 
 ## License
 
