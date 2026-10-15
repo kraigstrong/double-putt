@@ -186,6 +186,11 @@ enum Levels {
             plateau(), arroyo(),                     // Desert Canyon
             avalanche(), iceBridge(), thunderclap(), // Winter Village
         ]),
+        ("midway", "Midway", [                       // Funfair: Midway
+            ringToss(), springboard(), teacups(),
+            shootingGallery(), highStriker(), duckPond(),
+            merryGoRound(), bumperCars(), grandPrize(),
+        ]),
     ]
 
     /// Display names of the visual settings (`Level.setting`).
