@@ -19,10 +19,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Show Xcode version
         run: xcodebuild -version
-      - name: Build for the iOS Simulator
+      - name: Build for the iOS Simulator (Debug)
         run: |
           xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath .build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO -quiet build
+      # TestFlight archives use Release, where Debug-only code (dev mode, test pairs) is compiled out.
+      - name: Build for iOS devices (Release)
+        run: |
+          xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
+            -destination 'generic/platform=iOS' \
             -derivedDataPath .build/DerivedData \
             CODE_SIGNING_ALLOWED=NO -quiet build
 
