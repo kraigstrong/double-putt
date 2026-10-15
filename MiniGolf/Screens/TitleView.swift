@@ -5,8 +5,6 @@ struct TitleView: View {
     @State private var zoom = false
     @State private var appeared = false
     @State private var devToast: String?
-    /// Starting this nine would end the round in progress, so ask first.
-    @State private var confirmNine: Nine?
     private var game: GameModel { app.game }
 
     var body: some View {
@@ -52,10 +50,10 @@ struct TitleView: View {
                                 app.continueRound()
                             }
                         }
-                        HStack(spacing: 12) {
-                            ForEach(game.nines) { nine in
-                                CourseButton(nine: nine, game: game, primary: !continuing) { play(nine) }
-                            }
+                        PillButton(title: "Courses", symbol: continuing ? "flag.fill" : "play.fill",
+                                   fill: continuing ? .white.opacity(0.14) : .putt, text: continuing ? .white : .ink,
+                                   height: continuing ? 50 : 56) {
+                            app.screen = .courses
                         }
                         HStack(spacing: 12) {
                             PillButton(title: "Single Hole", symbol: "square.grid.3x3.fill", fill: .white.opacity(0.14), text: .white, height: 48) {
@@ -85,23 +83,6 @@ struct TitleView: View {
             zoom = true
             withAnimation(.spring(response: 0.7, dampingFraction: 0.7).delay(0.1)) { appeared = true }
         }
-        .confirmationDialog("Start a new round?", isPresented: Binding(get: { confirmNine != nil }, set: { if !$0 { confirmNine = nil } }),
-                            titleVisibility: .visible, presenting: confirmNine) { nine in
-            Button("Start \(nine.name)", role: .destructive) { app.playRound(nine) }
-            Button("Cancel", role: .cancel) {}
-        } message: { _ in
-            if let nine = game.roundNine, let round = game.round {
-                Text("Your \(nine.name) round in progress (pair \(round.current + 1)) will end.")
-            }
-        }
-    }
-
-    private func play(_ nine: Nine) {
-        if let round = game.round, !round.isFinished, round.hasProgress {
-            confirmNine = nine
-        } else {
-            app.playRound(nine)
-        }
     }
 
     private var logo: some View {
@@ -130,43 +111,5 @@ struct TitleView: View {
         }
         .foregroundStyle(.white)
         .shadow(color: .black.opacity(0.35), radius: 12, y: 6)
-    }
-}
-
-/// Starts a nine-pair round; shows the nine's best medal and score.
-private struct CourseButton: View {
-    let nine: Nine
-    let game: GameModel
-    let primary: Bool
-    let action: () -> Void
-
-    var body: some View {
-        let par = game.par(of: nine)
-        let best = game.bestRound(nine)
-        let medal = Medal(round: best, par: par)
-        Button(action: action) {
-            HStack(spacing: 8) {
-                if medal != .none {
-                    MedalView(medal: medal, size: 26)
-                } else {
-                    Image(systemName: "play.fill").font(.system(size: 16, weight: .heavy))
-                }
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(nine.name).font(.rounded(19, .heavy))
-                    Text(best.map { "Par \(par) · Best \($0)" } ?? "Par \(par)").font(.rounded(11, .bold)).opacity(0.75)
-                }
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            }
-            .foregroundStyle(primary ? Color.ink : .white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 58)
-            .background(
-                Capsule().fill(primary ? Color.putt : .white.opacity(0.14))
-                    .shadow(color: .black.opacity(0.3), radius: 0, y: 4)
-            )
-            .overlay(Capsule().strokeBorder(.white.opacity(0.35), lineWidth: 1.5).padding(1))
-        }
-        .buttonStyle(PressStyle(scale: 0.96))
     }
 }
