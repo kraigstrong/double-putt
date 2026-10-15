@@ -891,7 +891,8 @@ final class GameScene: SKScene {
         ]))
         node.childNode(withName: "shadow")?.run(.fadeOut(withDuration: 0.1))
         let strokes = model.strokes[i]
-        let text = strokes == 1 ? "ACE!" : strokes == 2 ? "PAR" : strokes == 3 ? "BOGEY" : "+\(strokes - 2)"
+        // Just the hole's strokes: par words only make sense for the whole pair, on the result card.
+        let text = strokes == 1 ? "ACE!" : "\(strokes)"
         if strokes == 1, model.strokes != [1, 1] || world.balls.contains(where: { $0.sunkIn == nil }) {
             run(.sequence([.wait(forDuration: 0.25), .run { SoundFX.shared.ace() }]))
         }
