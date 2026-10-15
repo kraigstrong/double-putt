@@ -384,6 +384,8 @@ final class GameScene: SKScene {
     private func buildAmbient(in rect: CGRect) {
         ambient?.removeFromParent()
         ambient = nil
+        removeAction(forKey: "fireworks")
+        if theme.ambient == .sparks { startFireworks(in: rect) }
         let e = SKEmitterNode()
         e.position = CGPoint(x: rect.midX, y: rect.maxY + 10)
         e.particlePositionRange = CGVector(dx: rect.width * 1.2, dy: 10)
@@ -518,6 +520,41 @@ final class GameScene: SKScene {
         worldNode.addChild(e)
         e.advanceSimulationTime(20)
         ambient = e
+    }
+
+    /// Every few seconds a firework bursts in the margins round the course (never over the green).
+    private func startFireworks(in rect: CGRect) {
+        let felt = CGRect(x: -80, y: -80, width: Course.width + 160, height: Course.height + 160)
+        let burst = SKAction.run { [weak self] in
+            guard let self, !self.model.paused else { return }
+            var p = CGPoint.zero
+            for _ in 0..<12 {
+                p = CGPoint(x: CGFloat.random(in: rect.minX...rect.maxX), y: CGFloat.random(in: rect.minY...rect.maxY))
+                if !felt.contains(p) { break }
+            }
+            guard !felt.contains(p) else { return }
+            let e = SKEmitterNode()
+            e.particleTexture = self.texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
+            e.position = p
+            e.zPosition = 49
+            e.particleBlendMode = .add
+            e.particleColor = [UIColor(hex: 0xFF5DA2), UIColor(hex: 0x5DE2FF), UIColor(hex: 0xFFE45D), UIColor(hex: 0xB08CFF)].randomElement()!
+            e.particleColorBlendFactor = 1
+            e.numParticlesToEmit = 46
+            e.particleBirthRate = 600
+            e.particleLifetime = 1.3
+            e.particleLifetimeRange = 0.4
+            e.particleSpeed = 70
+            e.particleSpeedRange = 25
+            e.emissionAngleRange = .pi * 2
+            e.yAcceleration = -30
+            e.particleScale = 0.8
+            e.particleScaleSpeed = -0.5
+            e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [1, 1, 0], times: [0, 0.5, 1])
+            self.worldNode.addChild(e)
+            e.run(.sequence([.wait(forDuration: 2.2), .removeFromParent()]))
+        }
+        run(.repeatForever(.sequence([.wait(forDuration: 2.6, withRange: 2.0), burst])), withKey: "fireworks")
     }
 
     private func buildBalls() {
