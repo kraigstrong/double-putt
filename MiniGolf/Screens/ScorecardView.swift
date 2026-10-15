@@ -9,7 +9,7 @@ struct ScorecardView: View {
     let close: () -> Void
 
     private var scores: [Int?] { game.round?.scores ?? [] }
-    private var nine: Nine { game.roundNine ?? .daybreak }
+    private var nine: Nine { game.roundNine ?? game.nines[0] }
     private var pairs: [Int] { Array(nine.pairs) }
 
     var body: some View {

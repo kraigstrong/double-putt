@@ -143,18 +143,42 @@ struct Level {
     }
 }
 
+/// A nine-pair course: played as a round, one cabinet on the trophy shelf, one section in Single Hole.
+struct Nine: Identifiable, Equatable {
+    let id: String
+    let name: String
+    /// Indices into `Levels.course`.
+    let pairs: Range<Int>
+}
+
 enum Levels {
-    /// The full course, in round order. Pairs 5, 7, 9 and 11–18 live in `Course/`.
-    static let course: [Level] = [
-        twins(), reflection(), bankShot(),           // Spring Meadow
-        backboard(), hedgerow(),                     // Walled Garden
-        moat(), drawbridge(),                        // Castle Moat
-        pinball(), dunes(),                          // Seaside Boardwalk
-        carom(), hollow(),                           // Autumn Grove
-        canyonPipe(), mesa(),                        // Desert Canyon
-        windmill(), sledRun(),                       // Winter Village
-        crossover(), lanterns(), midnight(),         // Night Garden
+    /// The courses, in order (each later one a little harder). To add one, write its nine pairs in
+    /// `Course/<Name>.swift` and add a line here; see Tools/levels/BRIEF.md.
+    private static let lineup: [(id: String, name: String, pairs: [Level])] = [
+        ("daybreak", "Daybreak", [
+            twins(), reflection(), bankShot(),       // Spring Meadow
+            backboard(), hedgerow(),                 // Walled Garden
+            moat(), drawbridge(),                    // Castle Moat
+            pinball(), dunes(),                      // Seaside Boardwalk
+        ]),
+        ("nightfall", "Nightfall", [
+            carom(), hollow(),                       // Autumn Grove
+            canyonPipe(), mesa(),                    // Desert Canyon
+            windmill(), sledRun(),                   // Winter Village
+            crossover(), lanterns(), midnight(),     // Night Garden
+        ]),
     ]
+
+    /// Every pair, in course order.
+    static let course: [Level] = lineup.flatMap(\.pairs)
+
+    static let nines: [Nine] = {
+        var start = 0
+        return lineup.map { c in
+            defer { start += c.pairs.count }
+            return Nine(id: c.id, name: c.name, pairs: start..<start + c.pairs.count)
+        }
+    }()
 
     static func twins() -> Level {
         var l = Level("Twins", par: [2, 2], hint: "One swing moves both balls. Same hole twice — warm up.")

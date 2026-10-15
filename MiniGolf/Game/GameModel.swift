@@ -41,19 +41,10 @@ enum Medal: Int, Comparable {
     static func < (a: Medal, b: Medal) -> Bool { a.rawValue < b.rawValue }
 }
 
-/// A nine-pair course, played as a round.
-struct Nine: Identifiable, Equatable {
-    let id: String
-    let name: String
-    /// Indices into the course's pairs.
-    let pairs: Range<Int>
-
-    static let daybreak = Nine(id: "daybreak", name: "Daybreak", pairs: 0..<9)
-    static let nightfall = Nine(id: "nightfall", name: "Nightfall", pairs: 9..<18)
-
+extension Nine {
     /// The nines that exist for these pairs (debug builds can swap in a short test course).
     static func all(levelCount: Int) -> [Nine] {
-        [daybreak, nightfall].compactMap { n in
+        Levels.nines.compactMap { n in
             let pairs = n.pairs.clamped(to: 0..<levelCount)
             return pairs.isEmpty ? nil : Nine(id: n.id, name: n.name, pairs: pairs)
         }
