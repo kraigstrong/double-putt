@@ -196,6 +196,11 @@ enum Levels {
             humanCannonball(), tightrope(), spinningPlates(),
             fireHoop(), clownCar(), showstopper(),
         ]),
+        ("fireworks", "Fireworks", [                 // Funfair: Fireworks
+            sparkler(), ferrisWheel(), hallOfMirrors(),
+            romanCandle(), ghostTrain(), catherineWheel(),
+            rocket(), starburst(), grandFinale(),
+        ]),
     ]
 
     /// Display names of the visual settings (`Level.setting`).
