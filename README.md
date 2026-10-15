@@ -13,15 +13,17 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 
 ## How to play
 
-- **Play Round** plays all 18 pairs in order with a running score vs par and a scorecard at the end
-  (best round saved; a round in progress survives relaunches). **Course Map** replays any single pair for medals.
+- Two nine-pair courses: **Daybreak** (pairs 1–9, par 40) and **Nightfall** (pairs 10–18, par 46). A round shows a
+  running score vs par and ends with a scorecard and a medal: bronze at par or better, silver 4 under, gold 8 under
+  (best round per course saved; a round in progress survives relaunches).
+- **Single Hole** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
+  **Trophy Shelf** (one per pair).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
 - **‹ ›** nudge the aim (hold to repeat). Drag the **power bar** or use its **+ / −**.
 - **Same / Mirror** picks how the swing maps onto hole B's ball. **Putt** fires — nothing fires by accident.
 - The guide shows each ball's direction and first bounce (or tunnel) only — never where it stops.
 - Any ball can drop in any cup (one ball per cup). Water = +1 and the ball goes back.
-- Per-hole scoring; each pair's par is the sum of its two holes (2 or 3 each). Medals: gold = double ace,
-  silver = under par, bronze = par.
+- Per-hole scoring; each pair's par is the sum of its two holes (2 or 3 each).
 
 Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tunnels** (color-coded mouths,
 optional exit direction), **slopes** and round **hills / bowls**, and **movers** (windmill rotors, sliding blocks)
@@ -40,7 +42,7 @@ Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to P
 | `MiniGolf/Core/` | Deterministic physics (fixed 1/480 s step) and level geometry. Shared with the solver. |
 | `MiniGolf/Art/` | Themes and procedural art: every course, tree, ball and the menu art is drawn in code. |
 | `MiniGolf/Game/` | SpriteKit scene (camera fit around the HUD, aim, guide, effects) and the SwiftUI HUD. |
-| `MiniGolf/Screens/` | Title, pair select, shared components. |
+| `MiniGolf/Screens/` | Title, Single Hole, Trophy Shelf, scorecard, shared components. |
 | `MiniGolf/Audio/Sound.swift` | Synthesized sound effects (no audio assets). |
 | `Tools/solver/` | Headless brute-force solver. |
 | `Tools/icon/make_icon.swift` | Generates the app icon. |
@@ -68,7 +70,8 @@ Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to P
 | 17 | Lanterns | Night Garden | 6 | Same | tunnels + sliders |
 | 18 | Midnight | Night Garden | 6 | Mirror | finale: tunnels, bowls, clock rotor |
 
-Course par 86. Pairs 1–4, 6, 8, 10 and 16 are in `Levels.swift`; the rest are in `MiniGolf/Core/Course/`.
+Pairs 1–9 are Daybreak (par 40) and 10–18 are Nightfall (par 46); in the app each course numbers its pairs 1–9.
+Pairs 1–4, 6, 8, 10 and 16 are in `Levels.swift`; the rest are in `MiniGolf/Core/Course/`.
 `Tools/levels/BRIEF.md` is the design brief used to make pairs 5, 7, 9 and 11–18.
 
 ## Solver

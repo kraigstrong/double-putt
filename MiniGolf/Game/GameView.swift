@@ -63,8 +63,8 @@ struct GameView: View {
                     ResultCard(app: app).transition(.opacity)
                 }
                 if game.showScorecard {
-                    ScorecardView(game: game, final: game.round.map { $0.current >= Levels.course.count } ?? true) {
-                        if game.round.map({ $0.current >= Levels.course.count }) ?? true {
+                    ScorecardView(game: game, final: game.round?.isFinished ?? true) {
+                        if game.round?.isFinished ?? true {
                             game.closeScorecard()
                             app.screen = .title
                         } else {
@@ -88,7 +88,7 @@ struct GameView: View {
     }
 
     private var subtitle: String {
-        var s = "PAIR \(game.levelIndex + 1) · PAR \(game.par)"
+        var s = "PAIR \(game.pairNumber(game.levelIndex)) · PAR \(game.par)"
         if game.inRound { s += " · " + (game.roundToPar.map { "ROUND \(GameModel.toPar($0))" } ?? "ROUND E") }
         return s
     }
@@ -487,7 +487,7 @@ private struct PauseMenu: View {
                         app.screen = .title
                     }
                 } else {
-                    PillButton(title: "Course Map", symbol: "map.fill", fill: .white.opacity(0.14), text: .white, height: 50) {
+                    PillButton(title: "Single Hole", symbol: "square.grid.3x3.fill", fill: .white.opacity(0.14), text: .white, height: 50) {
                         game.paused = false
                         app.screen = .levels
                     }
@@ -528,9 +528,24 @@ private struct ResultCard: View {
         ZStack {
             Color.black.opacity(0.45).ignoresSafeArea()
             VStack(spacing: 14) {
-                MedalView(medal: Medal(score: game.total, par: game.par), size: 88)
-                    .scaleEffect(shown ? 1 : 0.2)
-                    .rotationEffect(.degrees(shown ? 0 : -40))
+                // Pairs earn a trophy for a double ace (medals are for nine-pair rounds).
+                if game.strokes == [1, 1] {
+                    VStack(spacing: 8) {
+                        TrophyView(accent: Color(game.theme.accent), size: 92)
+                            .scaleEffect(shown ? 1 : 0.2)
+                            .rotationEffect(.degrees(shown ? 0 : -40))
+                        if game.newTrophy {
+                            Text("NEW TROPHY")
+                                .font(.rounded(12, .black)).tracking(1.2)
+                                .fixedSize()
+                                // Tracking also pads after the last letter; even it out so the text sits centered.
+                                .padding(.leading, 11).padding(.trailing, 10).padding(.vertical, 5)
+                                .background(Capsule().fill(Color.putt))
+                                .foregroundStyle(Color.ink)
+                                .opacity(shown ? 1 : 0)
+                        }
+                    }
+                }
                 Text(game.resultTitle)
                     .font(.rounded(36, .black))
                     .foregroundStyle(game.strokes == [1, 1] ? Color.putt : .white)
@@ -557,12 +572,12 @@ private struct ResultCard: View {
                         PillButton(title: "Card", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 52) {
                             game.showScorecard = true
                         }
-                        PillButton(title: game.isLastLevel ? "Finish" : "Next", symbol: game.isLastLevel ? "flag.checkered" : "arrow.right", fill: .putt, height: 52) {
+                        PillButton(title: game.isLastInRound ? "Finish" : "Next", symbol: game.isLastInRound ? "flag.checkered" : "arrow.right", fill: .putt, height: 52) {
                             game.nextInRound()
                         }
                     } else {
                         PillButton(title: "Retry", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
-                        PillButton(title: game.isLastLevel ? "Course" : "Next", symbol: game.isLastLevel ? "map.fill" : "arrow.right", fill: .putt, height: 52) {
+                        PillButton(title: game.isLastLevel ? "Pairs" : "Next", symbol: game.isLastLevel ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
                             if game.isLastLevel { app.screen = .levels } else { game.next() }
                         }
                     }

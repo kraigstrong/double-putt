@@ -2,13 +2,31 @@ import Foundation
 import Observation
 import UIKit
 
+/// A nine-pair round's medal. (Single pairs earn trophies instead, for a double ace.)
 enum Medal: Int, Comparable {
     case none, bronze, silver, gold
 
-    /// Gold = double ace, silver = under par, bronze = par.
-    init(score: Int?, par: Int) {
+    static let silverUnder = 4
+    static let goldUnder = 8
+
+    /// Bronze at par or better, silver 4 under, gold 8 under.
+    init(round score: Int?, par: Int) {
         guard let score else { self = .none; return }
-        if score <= 2 { self = .gold } else if score < par { self = .silver } else if score == par { self = .bronze } else { self = .none }
+        switch par - score {
+        case Self.goldUnder...: self = .gold
+        case Self.silverUnder...: self = .silver
+        case 0...: self = .bronze
+        default: self = .none
+        }
+    }
+
+    /// The most strokes that still earn this medal.
+    func threshold(par: Int) -> Int {
+        switch self {
+        case .gold: return par - Self.goldUnder
+        case .silver: return par - Self.silverUnder
+        case .bronze, .none: return par
+        }
     }
 
     var title: String {
@@ -23,10 +41,46 @@ enum Medal: Int, Comparable {
     static func < (a: Medal, b: Medal) -> Bool { a.rawValue < b.rawValue }
 }
 
-/// A round of the whole course, saved so it survives relaunches.
+/// A nine-pair course, played as a round.
+struct Nine: Identifiable, Equatable {
+    let id: String
+    let name: String
+    /// Indices into the course's pairs.
+    let pairs: Range<Int>
+
+    static let daybreak = Nine(id: "daybreak", name: "Daybreak", pairs: 0..<9)
+    static let nightfall = Nine(id: "nightfall", name: "Nightfall", pairs: 9..<18)
+
+    /// The nines that exist for these pairs (debug builds can swap in a short test course).
+    static func all(levelCount: Int) -> [Nine] {
+        [daybreak, nightfall].compactMap { n in
+            let pairs = n.pairs.clamped(to: 0..<levelCount)
+            return pairs.isEmpty ? nil : Nine(id: n.id, name: n.name, pairs: pairs)
+        }
+    }
+}
+
+/// A round of one nine, saved so it survives relaunches.
 struct RoundState: Codable, Equatable {
+    var nine: String
+    /// One per pair of the nine.
     var scores: [Int?]
+    /// Index within the nine of the pair being played.
     var current = 0
+
+    var isFinished: Bool { current >= scores.count }
+    var hasProgress: Bool { current > 0 || scores.contains { $0 != nil } }
+
+    static func load() -> RoundState? {
+        guard let data = UserDefaults.standard.data(forKey: "round") else { return nil }
+        if let r = try? JSONDecoder().decode(RoundState.self, from: data) { return r }
+        // Rounds used to be all 18 pairs: carry one in progress over to the nine it's on.
+        struct Legacy: Codable { var scores: [Int?]; var current: Int }
+        guard let old = try? JSONDecoder().decode(Legacy.self, from: data), old.current < old.scores.count,
+              let nine = Nine.all(levelCount: old.scores.count).first(where: { $0.pairs.contains(old.current) })
+        else { return nil }
+        return RoundState(nine: nine.id, scores: nine.pairs.map { old.scores[$0] }, current: old.current - nine.pairs.lowerBound)
+    }
 }
 
 enum TutorialStep: Int {
@@ -64,14 +118,16 @@ final class GameModel {
     /// Bumped when a pair is entered (not on retry), e.g. to flash the hint.
     private(set) var loadToken = 0
     private(set) var newBest = false
-    /// The current round (nil when playing single pairs from the course map).
-    private(set) var round: RoundState? = {
-        guard let data = UserDefaults.standard.data(forKey: "round") else { return nil }
-        return try? JSONDecoder().decode(RoundState.self, from: data)
-    }()
+    /// The last finish double-aced a pair for the first time.
+    private(set) var newTrophy = false
+    /// The round in progress, if any (it's kept while playing single pairs).
+    private(set) var round: RoundState? = RoundState.load()
     /// True while this session is playing the round (vs. a single pair).
     private(set) var inRound = false
-    private(set) var bestRound: Int? = UserDefaults.standard.object(forKey: "bestRound") as? Int
+    /// Best finished round per nine (by id).
+    private(set) var bestRounds: [String: Int] = UserDefaults.standard.dictionary(forKey: "bestRounds") as? [String: Int] ?? [:]
+    /// Pairs double-aced (by name), with when the trophy was won.
+    private(set) var trophies: [String: Date] = GameModel.loadTrophies()
     var showScorecard = false
     private(set) var newBestRound = false
     var fullPathGuide = false
@@ -104,12 +160,25 @@ final class GameModel {
 
     func best(for level: Level) -> Int? { bests[level.name] }
     func par(of level: Level) -> Int { level.par[0] + level.par[1] }
-    var coursePar: Int { Self.levels.reduce(0) { $0 + par(of: $1) } }
+    func hasTrophy(_ level: Level) -> Bool { trophies[level.name] != nil }
+
+    // MARK: Nines
+
+    var nines: [Nine] { Nine.all(levelCount: levelCount) }
+    func nine(containing index: Int) -> Nine? { nines.first { $0.pairs.contains(index) } }
+    func par(of nine: Nine) -> Int { nine.pairs.reduce(0) { $0 + par(of: Self.levels[$1]) } }
+    func bestRound(_ nine: Nine) -> Int? { bestRounds[nine.id] }
+    /// A pair's number within its nine (1–9).
+    func pairNumber(_ index: Int) -> Int { index - (nine(containing: index)?.pairs.lowerBound ?? 0) + 1 }
+    /// The nine the saved round is on.
+    var roundNine: Nine? { round.flatMap { r in nines.first { $0.id == r.nine } } }
+    /// The last pair of the round being played.
+    var isLastInRound: Bool { inRound && levelIndex == (roundNine?.pairs.upperBound ?? 0) - 1 }
 
     /// Round score relative to par over the pairs finished so far.
     var roundToPar: Int? {
-        guard let round else { return nil }
-        let done = zip(round.scores, Self.levels).compactMap { s, l in s.map { $0 - par(of: l) } }
+        guard let round, let nine = roundNine else { return nil }
+        let done = zip(round.scores, nine.pairs).compactMap { s, i in s.map { $0 - par(of: Self.levels[i]) } }
         return done.isEmpty ? nil : done.reduce(0, +)
     }
 
@@ -122,41 +191,42 @@ final class GameModel {
 
     // MARK: Round
 
-    func startRound() {
-        round = RoundState(scores: Array(repeating: nil, count: levelCount))
+    func startRound(_ nine: Nine) {
+        round = RoundState(nine: nine.id, scores: Array(repeating: nil, count: nine.pairs.count))
         saveRound()
         inRound = true
         showScorecard = false
-        start(level: 0)
+        start(level: nine.pairs.lowerBound)
     }
 
     func continueRound() {
-        guard let round else { return startRound() }
+        guard let round, let nine = roundNine else { return }
         inRound = true
-        start(level: min(round.current, levelCount - 1))
+        start(level: nine.pairs.lowerBound + min(round.current, nine.pairs.count - 1))
     }
 
     /// Leave the round in place (it can be continued later) and play single pairs.
     func leaveRound() { inRound = false }
 
     func nextInRound() {
-        guard var r = round else { return next() }
-        r.current = levelIndex + 1
+        guard var r = round, let nine = roundNine else { return next() }
+        r.current = levelIndex - nine.pairs.lowerBound + 1
         round = r
         saveRound()
-        if r.current >= levelCount {
+        if r.isFinished {
             finishRound()
         } else {
-            start(level: r.current)
+            start(level: nine.pairs.lowerBound + r.current)
         }
     }
 
     private func finishRound() {
-        guard let total = round?.scores.compactMap({ $0 }).reduce(0, +) else { return }
-        newBestRound = bestRound == nil || total < bestRound!
+        guard let nine = roundNine, let total = round?.scores.compactMap({ $0 }).reduce(0, +) else { return }
+        let best = bestRounds[nine.id]
+        newBestRound = best == nil || total < best!
         if newBestRound {
-            bestRound = total
-            UserDefaults.standard.set(total, forKey: "bestRound")
+            bestRounds[nine.id] = total
+            UserDefaults.standard.set(bestRounds, forKey: "bestRounds")
         }
         showResult = false
         showScorecard = true
@@ -165,7 +235,7 @@ final class GameModel {
     /// Close the finished round's scorecard.
     func closeScorecard() {
         showScorecard = false
-        if let round, round.current >= levelCount {
+        if let round, round.isFinished {
             self.round = nil
             UserDefaults.standard.removeObject(forKey: "round")
         }
@@ -320,24 +390,51 @@ final class GameModel {
         scene?.playDemo()
     }
 
-    func recordFinish() {
-        if inRound, var r = round, levelIndex < r.scores.count {
-            r.scores[levelIndex] = total
+    /// Score the finished pair. A dev-mode Show Ace still fills in the round, but earns no best or trophy.
+    func recordFinish(demo: Bool = false) {
+        if inRound, var r = round, let nine = roundNine, nine.pairs.contains(levelIndex) {
+            r.scores[levelIndex - nine.pairs.lowerBound] = total
             round = r
             saveRound()
         }
+        newBest = false
+        newTrophy = false
+        guard !demo else { return }
         newBest = best == nil || total < best!
         if newBest {
             bests[level.name] = total
             UserDefaults.standard.set(bests, forKey: "bests")
         }
+        if strokes == [1, 1] && trophies[level.name] == nil {
+            trophies[level.name] = Date()
+            newTrophy = true
+            saveTrophies()
+        }
+    }
+
+    private static func loadTrophies() -> [String: Date] {
+        let d = UserDefaults.standard
+        if let saved = d.dictionary(forKey: "trophies") as? [String: Double] {
+            return saved.mapValues { Date(timeIntervalSince1970: $0) }
+        }
+        // Before trophies, a best of 2 was a double ace: those pairs start with their trophy.
+        let bests = d.dictionary(forKey: "bests") as? [String: Int] ?? [:]
+        let earned = bests.filter { $0.value <= 2 }.mapValues { _ in Date() }
+        d.set(earned.mapValues { $0.timeIntervalSince1970 }, forKey: "trophies")
+        return earned
+    }
+
+    private func saveTrophies() {
+        UserDefaults.standard.set(trophies.mapValues { $0.timeIntervalSince1970 }, forKey: "trophies")
     }
 
     func resetProgress() {
         round = nil
-        bestRound = nil
+        bestRounds = [:]
+        trophies = [:]
         UserDefaults.standard.removeObject(forKey: "round")
-        UserDefaults.standard.removeObject(forKey: "bestRound")
+        UserDefaults.standard.removeObject(forKey: "bestRounds")
+        saveTrophies()
         bests = [:]
         UserDefaults.standard.removeObject(forKey: "bests")
         tutorialDone = false

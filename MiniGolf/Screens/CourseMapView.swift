@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// All pairs, grouped into their settings. Tapping one plays it on its own (outside the round).
+/// Single Hole: every pair, grouped by nine and then by setting. Tapping one plays it on its own (outside a round).
 struct CourseMapView: View {
     let app: AppState
     private var game: GameModel { app.game }
@@ -11,9 +11,11 @@ struct CourseMapView: View {
         let indices: [Int]
     }
 
-    private var sections: [Section] {
+    /// The nine's pairs in runs of the same setting.
+    private func sections(_ nine: Nine) -> [Section] {
         var out: [Section] = []
-        for (i, level) in Levels.course.enumerated() {
+        for i in nine.pairs {
+            let level = GameModel.levels[i]
             if let last = out.last, last.theme.id == level.setting {
                 out[out.count - 1] = Section(id: last.id, theme: last.theme, indices: last.indices + [i])
             } else {
@@ -29,7 +31,7 @@ struct CourseMapView: View {
                 GlassIconButton(symbol: "chevron.left", size: 42) { app.screen = .title }
                 Spacer()
                 VStack(spacing: 2) {
-                    Text("The Course").font(.rounded(24, .heavy))
+                    Text("Single Hole").font(.rounded(24, .heavy))
                     Text(subtitle).font(.rounded(12, .semibold)).foregroundStyle(.white.opacity(0.6))
                 }
                 Spacer()
@@ -38,19 +40,30 @@ struct CourseMapView: View {
             .padding(.horizontal, 16)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ForEach(sections) { section in
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 8) {
-                                Text(section.theme.setting.uppercased())
-                                    .font(.rounded(12, .black)).tracking(1.5)
-                                    .foregroundStyle(Color(section.theme.accent))
-                                Rectangle().fill(Color(section.theme.accent).opacity(0.35)).frame(height: 1)
+                VStack(alignment: .leading, spacing: 26) {
+                    ForEach(game.nines) { nine in
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack(alignment: .firstTextBaseline) {
+                                Text(nine.name).font(.rounded(22, .black))
+                                Spacer()
+                                Text(nineSummary(nine)).font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.6))
                             }
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
-                                ForEach(section.indices, id: \.self) { i in
-                                    PairCard(index: i, level: Levels.course[i], best: game.best(for: Levels.course[i])) {
-                                        app.play(level: i)
+                            ForEach(sections(nine)) { section in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack(spacing: 8) {
+                                        Text(section.theme.setting.uppercased())
+                                            .font(.rounded(12, .black)).tracking(1.5)
+                                            .foregroundStyle(Color(section.theme.accent))
+                                        Rectangle().fill(Color(section.theme.accent).opacity(0.35)).frame(height: 1)
+                                    }
+                                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
+                                        ForEach(section.indices, id: \.self) { i in
+                                            let level = GameModel.levels[i]
+                                            PairCard(number: game.pairNumber(i), level: level, best: game.best(for: level),
+                                                     trophy: game.hasTrophy(level)) {
+                                                app.play(level: i)
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -61,25 +74,30 @@ struct CourseMapView: View {
                 .padding(.bottom, 24)
             }
         }
+        .foregroundStyle(.white)
         .background(
             LinearGradient(colors: [Color(UIColor(hex: 0x1B3A28)), Color.ink], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
-        .onAppear { MenuArt.shared.prefetch(Levels.course) }
+        .onAppear { MenuArt.shared.prefetch(GameModel.levels) }
     }
 
     private var subtitle: String {
-        let golds = Levels.course.filter { Medal(score: game.best(for: $0), par: game.par(of: $0)) == .gold }.count
-        var s = "\(Levels.course.count) pairs · Par \(game.coursePar) · \(golds) double aces"
-        if let best = game.bestRound { s += " · Best \(best)" }
-        return s
+        let won = GameModel.levels.filter(game.hasTrophy).count
+        return "\(GameModel.levels.count) pairs · \(won) \(won == 1 ? "trophy" : "trophies")"
+    }
+
+    private func nineSummary(_ nine: Nine) -> String {
+        let won = nine.pairs.filter { game.hasTrophy(GameModel.levels[$0]) }.count
+        return "Par \(game.par(of: nine)) · \(won)/\(nine.pairs.count) 🏆"
     }
 }
 
 private struct PairCard: View {
-    let index: Int
+    let number: Int
     let level: Level
     let best: Int?
+    let trophy: Bool
     let action: () -> Void
 
     var body: some View {
@@ -93,14 +111,16 @@ private struct PairCard: View {
                 }
                 LinearGradient(colors: [.clear, .clear, Color.ink.opacity(0.85)], startPoint: .top, endPoint: .bottom)
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text("\(index + 1)")
+                    HStack(alignment: .top) {
+                        Text("\(number)")
                             .font(.rounded(12, .black))
                             .foregroundStyle(Color.ink)
                             .frame(width: 22, height: 22)
                             .background(Circle().fill(Color(theme.accent)))
                         Spacer()
-                        MedalView(medal: Medal(score: best, par: par), size: 24)
+                        TrophyView(earned: trophy, accent: Color(theme.accent), size: 22)
+                            .padding(5)
+                            .background(Circle().fill(Color.ink.opacity(0.5)))
                     }
                     Spacer()
                     Text(level.name).font(.rounded(13, .heavy)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.7)

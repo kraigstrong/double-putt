@@ -17,7 +17,7 @@ struct DoublePuttApp: App {
 @MainActor
 @Observable
 final class AppState {
-    enum Screen: Equatable { case title, levels, game }
+    enum Screen: Equatable { case title, levels, trophies, game }
 
     var screen: Screen = .title
     var soundOn = SoundFX.shared.isEnabled
@@ -67,8 +67,13 @@ final class AppState {
         screen = .game
     }
 
-    func playRound(new: Bool) {
-        if new { game.startRound() } else { game.continueRound() }
+    func playRound(_ nine: Nine) {
+        game.startRound(nine)
+        screen = .game
+    }
+
+    func continueRound() {
+        game.continueRound()
         screen = .game
     }
 
@@ -88,6 +93,7 @@ struct RootView: View {
             switch app.screen {
             case .title: TitleView(app: app).transition(.opacity)
             case .levels: CourseMapView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
+            case .trophies: TrophyShelfView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .game: GameView(app: app).transition(.opacity)
             }
         }
