@@ -22,6 +22,7 @@ enum CourseArt {
             p.tees(level, theme)
             p.cups(level, theme)
             p.tunnels(level, theme)
+            p.kickers(level, theme)
             p.shadow(dx: 2.6, dy: -3.6, blur: 4.5, alpha: 0.4) {
                 p.borderShape(fill: .black)
                 p.railShapes(level, fill: .black)
@@ -75,6 +76,7 @@ enum CourseArt {
             case .cactus: p.cactus(radius: r * 0.9, color: rng.pick(theme.canopies), &rng)
             case .pine: p.pine(radius: r, color: rng.pick(theme.canopies), &rng)
             case .round, .palm: p.canopy(radius: r, color: color, &rng, flowers: flowers)
+            case .tents: p.balloons(radius: r, theme, &rng)
             }
         }
         return Prop(image: img, size: rect.size)
@@ -444,7 +446,18 @@ struct Painter {
                     ring.addPath(pond)
                     fill(ring, .black, evenOdd: true)
                 }
-                for rect in water.parts { lilies(rect, &rng) }
+                for rect in water.parts {
+                    if t.ducks {
+                        let count = min(3, max(1, Int(rect.width * rect.height / 9000)))
+                        for _ in 0..<count {
+                            duck(at: CGPoint(x: rng.range(rect.minX + 8, max(rect.minX + 8, rect.maxX - 8)),
+                                             y: rng.range(rect.minY + 6, max(rect.minY + 6, rect.maxY - 6))),
+                                 facing: rng.unit() < 0.5 ? -1 : 1)
+                        }
+                    } else {
+                        lilies(rect, &rng)
+                    }
+                }
             }
             stroke(pond, UIColor.white.withAlphaComponent(0.45), 1.2)
             for rect in water.parts { reeds(rect, &rng) }
@@ -537,11 +550,13 @@ struct Painter {
     private func strip(_ r: CGRect, horizontal: Bool, _ t: Theme, _ rng: inout SeededRandom) {
         let length = horizontal ? r.width : r.height
         var pos: CGFloat = 0
+        var k = 0
         while pos < length - 0.5 {
             let len: CGFloat
             switch t.border {
             case .wood: len = min(rng.range(70, 130), length - pos)
             case .stone: len = min(rng.range(18, 34), length - pos)
+            case .painted: len = min(rng.range(60, 110), length - pos)
             }
             let piece = horizontal
                 ? CGRect(x: r.minX + pos, y: r.minY, width: len, height: r.height)
@@ -549,8 +564,10 @@ struct Painter {
             switch t.border {
             case .wood: plank(piece, horizontal: horizontal, t, &rng)
             case .stone: stone(piece, t, &rng)
+            case .painted: paintedPlank(piece, horizontal: horizontal, t, &rng)
             }
             pos += len
+            k += 1
         }
     }
 
@@ -616,6 +633,17 @@ struct Painter {
             var n = CGPoint(x: -d.y, y: d.x)
             if n.y - n.x < 0 { n = CGPoint(x: -n.x, y: -n.y) }   // toward the light (up-left)
             fill(shape, t.borderTop)
+            if t.border == .painted {
+                // Painted rails: the wall colour with a trim line down the middle.
+                clipped(shape) {
+                    linear(shape, [t.borderTop.lighter(0.15), t.borderTop, t.borderSide],
+                           from: CGPoint(x: a.x + n.x * w.radius, y: a.y + n.y * w.radius),
+                           to: CGPoint(x: a.x - n.x * w.radius, y: a.y - n.y * w.radius))
+                    stroke(CourseArt.line(a, b), t.trim.withAlphaComponent(0.9), 1.1)
+                }
+                stroke(shape, t.borderSide.darker(0.4), 0.8)
+                continue
+            }
             clipped(shape) {
                 linear(shape, [t.borderTop.lighter(0.12), t.borderTop, t.borderSide],
                        from: CGPoint(x: a.x + n.x * w.radius, y: a.y + n.y * w.radius),
@@ -667,6 +695,7 @@ struct Painter {
         case .dune: dune(r, square: square, t, &rng); return
         case .rocks: rockBed(r, square: square, t, &rng); return
         case .snowbank: snowbank(r, square: square, t, &rng); return
+        case .awning: awning(r, square: square, t, &rng); return
         case .flowers: break
         }
         let path = CourseArt.rounded(r, 2, square: square)
@@ -760,6 +789,7 @@ struct Painter {
         case .palm: palm(radius: r, color: color, &rng)
         case .cactus: cactus(radius: r * 0.6, color: color, &rng)
         case .pine: pine(radius: r, color: color, &rng)
+        case .tents: tent(radius: r * 0.9, color: color, t, &rng)
         }
     }
 

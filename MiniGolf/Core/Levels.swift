@@ -35,6 +35,7 @@ struct Level {
     var bumpers: [Bumper] = []
     var water: [Box] = []
     var tunnels: [Tunnel] = []
+    var kickers: [Kicker] = []
     var slopes: [Slope] = []
     var mounds: [Mound] = []
     var movers: [Mover] = []
@@ -112,6 +113,12 @@ struct Level {
         tunnels.append(Tunnel(a: Vec(ax + sa.offset, ay), b: Vec(bx + sb.offset, by), exitA: exitA, exitB: exitB))
     }
 
+    /// A springboard pad that launches a ball rolling onto it toward `toward` degrees at `speed` units/s
+    /// (1050 is a full-power putt).
+    mutating func kicker(_ s: Side, _ x: Double, _ y: Double, toward: Double, speed: Double) {
+        kickers.append(Kicker(center: Vec(x + s.offset, y), direction: toward, speed: speed))
+    }
+
     /// A tilted area. `downhill` in degrees (0 = right, 90 = up); strength in units/s², capped at 200 so balls can rest.
     mutating func slope(_ s: Side, _ minX: Double, _ minY: Double, _ maxX: Double, _ maxY: Double,
                         downhill: Double, strength: Double = 140) {
@@ -133,6 +140,12 @@ struct Level {
     mutating func rotor(_ s: Side, _ x: Double, _ y: Double, blades: Int = 2, length: Double, rpm: Double, phase: Double = 0) {
         movers.append(Mover(kind: .rotor(pivot: Vec(x + s.offset, y), blades: blades, length: length,
                                          omega: rpm * 2 * .pi / 60, phase: phase * .pi / 180)))
+    }
+
+    /// A spinning disk that drags balls on it along with its surface. rpm > 0 spins counter-clockwise.
+    mutating func carousel(_ s: Side, _ x: Double, _ y: Double, radius: Double, rpm: Double, phase: Double = 0) {
+        movers.append(Mover(kind: .carousel(center: Vec(x + s.offset, y), radius: radius,
+                                            omega: rpm * 2 * .pi / 60, phase: phase * .pi / 180)))
     }
 
     /// A block that slides by (dx, dy) and back every `period` seconds, starting from this rect when the pair loads.
@@ -173,12 +186,18 @@ enum Levels {
             plateau(), arroyo(),                     // Desert Canyon
             avalanche(), iceBridge(), thunderclap(), // Winter Village
         ]),
+        ("midway", "Midway", [                       // Funfair: Midway
+            ringToss(), springboard(), teacups(),
+            shootingGallery(), highStriker(), duckPond(),
+            merryGoRound(), bumperCars(), grandPrize(),
+        ]),
     ]
 
     /// Display names of the visual settings (`Level.setting`).
     static let settingNames = [
         "meadow": "Spring Meadow", "garden": "Walled Garden", "moat": "Castle Moat", "seaside": "Seaside Boardwalk",
         "autumn": "Autumn Grove", "desert": "Desert Canyon", "winter": "Winter Village", "night": "Night Garden",
+        "midway": "Midway", "bigtop": "Big Top", "fireworks": "Fireworks",
     ]
 
     /// Every pair, in course order.

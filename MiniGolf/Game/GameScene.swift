@@ -185,7 +185,7 @@ final class GameScene: SKScene {
             guard free(p, r, overlap: 0.75) else { continue }
             placed.append((p, r))
             let variant = k % 5
-            add(CourseArt.tree(theme, radius: 44, seed: seed &+ UInt64(variant), ppu: ppu), key: "tree\(variant)", at: p, sway: true)
+            add(CourseArt.tree(theme, radius: 44, seed: seed &+ UInt64(variant), ppu: ppu), key: "tree\(variant)", at: p, sway: theme.trees != .tents)
             propsNode.children.last?.setScale(r / 44)
         }
         for k in 0..<120 {
@@ -256,11 +256,20 @@ final class GameScene: SKScene {
                 body = SKSpriteNode(texture: SKTexture(image: make(false)))
                 shadow = SKSpriteNode(texture: SKTexture(image: make(true)))
                 body.size = CGSize(width: box.width + 2 * m.radius, height: box.height + 2 * m.radius)
+            case .carousel(_, let radius, _, _):
+                body = SKSpriteNode(texture: SKTexture(image: CourseArt.carousel(radius: radius, theme: self.theme, ppu: ppu)))
+                shadow = SKSpriteNode()
+                body.size = CGSize(width: (radius + 3) * 2, height: (radius + 3) * 2)
             }
             shadow.size = body.size
             shadow.alpha = 0.3
             body.zPosition = 17
             shadow.zPosition = 9
+            if case .carousel = m.kind {
+                // Flush with the green: under the guide and the balls, no cast shadow.
+                body.zPosition = 2
+                shadow.alpha = 0
+            }
             body.name = "mover\(k)"
             worldNode.addChild(shadow)
             worldNode.addChild(body)
@@ -274,7 +283,7 @@ final class GameScene: SKScene {
         for (k, m) in level.movers.enumerated() where k < moverNodes.count {
             let (body, shadow) = moverNodes[k]
             switch m.kind {
-            case .rotor(let pivot, _, _, _, _):
+            case .rotor(let pivot, _, _, _, _), .carousel(let pivot, _, _, _):
                 body.position = pivot.cg
                 body.zRotation = m.bladeAngle(0, at: t)
             case .slider(let box, _, _):
@@ -375,6 +384,8 @@ final class GameScene: SKScene {
     private func buildAmbient(in rect: CGRect) {
         ambient?.removeFromParent()
         ambient = nil
+        removeAction(forKey: "fireworks")
+        if theme.ambient == .sparks { startFireworks(in: rect) }
         let e = SKEmitterNode()
         e.position = CGPoint(x: rect.midX, y: rect.maxY + 10)
         e.particlePositionRange = CGVector(dx: rect.width * 1.2, dy: 10)
@@ -447,6 +458,46 @@ final class GameScene: SKScene {
             e.particleScale = 1.8
             e.particleScaleRange = 1
             e.particleAlpha = 0.45
+        case .confetti:
+            e.particleTexture = texture("confetti") { CourseArt.confetti(pixels: 24) }
+            e.particleColor = UIColor(white: 0.55, alpha: 1)
+            e.particleColorBlendFactor = 1
+            e.particleColorRedRange = 0.9
+            e.particleColorGreenRange = 0.9
+            e.particleColorBlueRange = 0.9
+            e.particleBirthRate = 1.6
+            e.particleLifetime = 24
+            e.particleSpeed = 26
+            e.particleSpeedRange = 10
+            e.emissionAngle = -.pi / 2
+            e.emissionAngleRange = 0.5
+            e.particleScale = 2.6
+            e.particleScaleRange = 1
+            e.particleRotationRange = .pi * 2
+            e.particleRotationSpeed = 2.4
+            e.particleAlpha = 0.95
+        case .sparks:
+            // Embers drifting down from fireworks overhead.
+            e.position = CGPoint(x: rect.midX, y: rect.midY)
+            e.particlePositionRange = CGVector(dx: rect.width, dy: rect.height)
+            e.particleTexture = texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
+            e.particleColor = UIColor(hex: 0xFFB0D8)
+            e.particleColorBlendFactor = 1
+            e.particleColorRedRange = 0.3
+            e.particleColorGreenRange = 0.6
+            e.particleColorBlueRange = 0.6
+            e.particleBlendMode = .add
+            e.particleBirthRate = 6
+            e.particleLifetime = 4
+            e.particleLifetimeRange = 2
+            e.particleSpeed = 14
+            e.particleSpeedRange = 8
+            e.emissionAngle = -.pi / 2
+            e.emissionAngleRange = 0.8
+            e.particleScale = 0.9
+            e.particleScaleRange = 0.5
+            e.particleScaleSpeed = -0.15
+            e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [0, 1, 0.6, 0], times: [0, 0.15, 0.6, 1])
         case .fireflies, .motes:
             e.position = CGPoint(x: rect.midX, y: rect.midY)
             e.particlePositionRange = CGVector(dx: rect.width, dy: rect.height)
@@ -469,6 +520,41 @@ final class GameScene: SKScene {
         worldNode.addChild(e)
         e.advanceSimulationTime(20)
         ambient = e
+    }
+
+    /// Every few seconds a firework bursts in the margins round the course (never over the green).
+    private func startFireworks(in rect: CGRect) {
+        let felt = CGRect(x: -80, y: -80, width: Course.width + 160, height: Course.height + 160)
+        let burst = SKAction.run { [weak self] in
+            guard let self, !self.model.paused else { return }
+            var p = CGPoint.zero
+            for _ in 0..<12 {
+                p = CGPoint(x: CGFloat.random(in: rect.minX...rect.maxX), y: CGFloat.random(in: rect.minY...rect.maxY))
+                if !felt.contains(p) { break }
+            }
+            guard !felt.contains(p) else { return }
+            let e = SKEmitterNode()
+            e.particleTexture = self.texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
+            e.position = p
+            e.zPosition = 49
+            e.particleBlendMode = .add
+            e.particleColor = [UIColor(hex: 0xFF5DA2), UIColor(hex: 0x5DE2FF), UIColor(hex: 0xFFE45D), UIColor(hex: 0xB08CFF)].randomElement()!
+            e.particleColorBlendFactor = 1
+            e.numParticlesToEmit = 46
+            e.particleBirthRate = 600
+            e.particleLifetime = 1.3
+            e.particleLifetimeRange = 0.4
+            e.particleSpeed = 70
+            e.particleSpeedRange = 25
+            e.emissionAngleRange = .pi * 2
+            e.yAcceleration = -30
+            e.particleScale = 0.8
+            e.particleScaleSpeed = -0.5
+            e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [1, 1, 0], times: [0, 0.5, 1])
+            self.worldNode.addChild(e)
+            e.run(.sequence([.wait(forDuration: 2.2), .removeFromParent()]))
+        }
+        run(.repeatForever(.sequence([.wait(forDuration: 2.6, withRange: 2.0), burst])), withKey: "fireworks")
     }
 
     private func buildBalls() {
@@ -653,6 +739,11 @@ final class GameScene: SKScene {
                 sink(ball: ball, cup: cup)
             case .splash(let ball, let at):
                 splash(ball: ball, at: at)
+            case .kick(let ball, let at):
+                SoundFX.shared.putt(power: 0.9)
+                medium.impactOccurred(intensity: 0.8)
+                puff(at: at, count: 10, color: UIColor(hex: 0xFFD54F))
+                ballNodes[ball].run(.sequence([.scale(to: 1.25, duration: 0.06), .scale(to: 1, duration: 0.14)]))
             case .tunnel(let ball, let from, let to):
                 let color = TunnelColors.color(level.tunnels.firstIndex { $0.a == from || $0.b == from } ?? 0)
                 puff(at: from, count: 8, color: color)

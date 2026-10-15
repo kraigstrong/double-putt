@@ -15,7 +15,7 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 
 ## How to play
 
-- **Courses** lists the nine-pair courses: Daybreak, Nightfall and Thunderhead so far, each harder than the last. A
+- **Courses** lists the nine-pair courses: Daybreak, Nightfall, Thunderhead and Midway so far, each harder than the last. A
   round shows a running score vs par and ends with a scorecard and a medal: bronze at par or better, silver 4 under,
   gold 8 under (best round per course saved; a round in progress survives relaunches). A medal unlocks the next course.
 - **Single Hole** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
@@ -28,9 +28,10 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 - Per-hole scoring; each pair's par is the sum of its two holes (2 or 3 each).
 
 Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tunnels** (color-coded mouths,
-optional exit direction), **slopes** and round **hills / bowls**, and **movers** (windmill rotors, sliding blocks)
-that never stop, so when you putt matters as much as how. A ball that stops in a mover's path slides to the nearest
-clear spot that's no nearer a cup.
+optional exit direction), **slopes** and round **hills / bowls**, **movers** (windmill rotors, sliding blocks) that
+never stop, so when you putt matters as much as how, and from Midway on, **kicker pads** (springboards that launch the
+ball a set way at a set speed) and **carousels** (spinning disks that drag the ball along with them). A ball that stops
+in a mover's path or on a carousel slides to the nearest clear spot that's no nearer a cup.
 
 Long-press the title logo to toggle **dev mode** (every course unlocked; pause menu gets a full-path guide toggle,
 Show Ace and Reset).
@@ -97,6 +98,20 @@ with a medal on the one before. In the app each course numbers its pairs 1–9. 
 | 7 | Avalanche | Winter Village | 6 | Mirror | water, sliders |
 | 8 | Ice Bridge | Winter Village | 6 | Same | water, tunnels, rotors |
 | 9 | Thunderclap | Winter Village | 6 | Mirror | water, bumpers, tunnels, bowls, rotors |
+
+### Midway (par 47)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Ring Toss | Midway | 5 | Mirror | water, bumpers |
+| 2 | Springboard | Midway | 5 | Mirror | water, kickers |
+| 3 | Teacups | Midway | 5 | Same | carousels |
+| 4 | Shooting Gallery | Midway | 5 | Mirror | bumpers, sliders |
+| 5 | High Striker | Midway | 5 | Same | slopes, kickers |
+| 6 | Duck Pond | Midway | 5 | Mirror | water, carousels |
+| 7 | Merry-Go-Round | Midway | 6 | Mirror | water, bumpers, carousels, kickers |
+| 8 | Bumper Cars | Midway | 5 | Mirror | water, bumpers, sliders |
+| 9 | Grand Prize | Midway | 6 | Same | water, tunnels, carousels, kickers |
 
 The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
 course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).

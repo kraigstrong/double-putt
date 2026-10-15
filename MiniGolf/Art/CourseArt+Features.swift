@@ -100,9 +100,28 @@ extension Painter {
         }
     }
 
+    /// Springboard pads: a red plate with a yellow rim and chevrons pointing where it launches the ball.
+    func kickers(_ level: Level, _ t: Theme) {
+        for k in level.kickers {
+            let c = CGPoint(x: k.center.x, y: k.center.y)
+            let r = CGFloat(Kicker.radius)
+            let a = CGFloat(k.direction * .pi / 180)
+            shadow(dx: 1, dy: -1.5, blur: 2, alpha: 0.4) { fill(circle(c, r + 2), UIColor(hex: 0x8A1F1F)) }
+            linear(circle(c, r + 2), [UIColor(hex: 0xFFE27A), UIColor(hex: 0xF2A900)],
+                   from: CGPoint(x: c.x - r, y: c.y + r), to: CGPoint(x: c.x + r, y: c.y - r))
+            radial(circle(c, r - 1), [UIColor(hex: 0xFF7A6B), UIColor(hex: 0xE23B32), UIColor(hex: 0xA8231D)],
+                   center: CGPoint(x: c.x - r * 0.3, y: c.y + r * 0.3), radius: r * 1.2)
+            for (i, d) in [-5.5, 0.0, 5.5].enumerated() {
+                let p = CGPoint(x: c.x + cos(a) * CGFloat(d), y: c.y + sin(a) * CGFloat(d))
+                chevron(at: p, angle: a, size: 4.2, color: UIColor.white.withAlphaComponent(0.55 + 0.2 * CGFloat(i)))
+            }
+            stroke(circle(c, r + 2), UIColor.black.withAlphaComponent(0.3), 0.8)
+        }
+    }
+
     /// Round posts: stone, buoys (seaside) or lantern posts (night).
     func posts(_ level: Level, _ t: Theme) {
-        for b in level.bumpers {
+        for (i, b) in level.bumpers.enumerated() {
             let c = CGPoint(x: b.center.x, y: b.center.y)
             let r = CGFloat(b.radius)
             shadow(dx: r * 0.18, dy: -r * 0.28, blur: r * 0.3, alpha: 0.45) { fill(circle(c, r), .black) }
@@ -118,6 +137,8 @@ extension Painter {
             case .stone:
                 radial(circle(c, r), [t.borderTop.lighter(0.25), t.borderTop, t.borderSide], center: CGPoint(x: c.x - r * 0.3, y: c.y + r * 0.3), radius: r * 1.3)
                 stroke(circle(c, r * 0.72), t.borderSide.withAlphaComponent(0.5), 1)
+            case .balloon:
+                balloonPost(c, radius: r, color: t.flowers[i % t.flowers.count])
             }
             stroke(circle(c, r), UIColor.black.withAlphaComponent(0.35), 0.8)
         }
@@ -466,6 +487,39 @@ extension CourseArt {
                          center: CGPoint(x: -2, y: 2), radius: CGFloat(Mover.hubRadius) * 1.3)
                 p.fill(p.circle(.zero, 1.8), UIColor(hex: 0x3A352E))
             }
+        }
+    }
+
+    /// A carousel disk, flat on the green: striped wedges, a rim of bulbs and a centre cap. The scene spins it.
+    static func carousel(radius: Double, theme t: Theme, ppu: CGFloat) -> UIImage {
+        let R = CGFloat(radius)
+        let ext = R + 3
+        return render(CGRect(x: -ext, y: -ext, width: ext * 2, height: ext * 2), ppu: ppu) { p in
+            let disk = p.circle(.zero, R)
+            p.shadow(dx: 1, dy: -1.5, blur: 2.5, alpha: 0.35) { p.fill(disk, .black) }
+            let wedges = 10
+            for k in 0..<wedges {
+                let a0 = CGFloat(k) / CGFloat(wedges) * .pi * 2, a1 = CGFloat(k + 1) / CGFloat(wedges) * .pi * 2
+                let wedge = CGMutablePath()
+                wedge.move(to: .zero)
+                wedge.addArc(center: .zero, radius: R, startAngle: a0, endAngle: a1, clockwise: false)
+                wedge.closeSubpath()
+                p.fill(wedge, t.stripes[k % t.stripes.count])
+            }
+            // Soft shading so it reads as a raised platform.
+            p.radial(disk, [UIColor.white.withAlphaComponent(0.18), UIColor.clear, UIColor.black.withAlphaComponent(0.18)],
+                     center: CGPoint(x: -R * 0.3, y: R * 0.3), radius: R * 1.3)
+            p.stroke(p.circle(.zero, R - 1.5), UIColor(hex: 0xC9A04A), 3)
+            for k in 0..<max(12, Int(R / 3.5)) {
+                let a = CGFloat(k) / CGFloat(max(12, Int(R / 3.5))) * .pi * 2
+                p.fill(p.circle(CGPoint(x: cos(a) * (R - 1.5), y: sin(a) * (R - 1.5)), 1.1), UIColor(hex: 0xFFF2B0))
+            }
+            let cap = p.circle(.zero, max(5, R * 0.16))
+            p.radial(cap, [UIColor(hex: 0xFFE9A0), UIColor(hex: 0xD9A23A), UIColor(hex: 0x9A6A1E)],
+                     center: CGPoint(x: -1.5, y: 1.5), radius: max(5, R * 0.16) * 1.3)
+            // A pointer on the rim, so the spin is visible even when the stripes blur.
+            p.fill(p.circle(CGPoint(x: R - 6, y: 0), 2.2), UIColor.white)
+            p.stroke(disk, UIColor.black.withAlphaComponent(0.35), 0.8)
         }
     }
 
