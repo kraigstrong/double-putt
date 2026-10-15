@@ -448,7 +448,7 @@ struct Painter {
                 }
                 for rect in water.parts {
                     if t.ducks {
-                        let count = max(1, Int(rect.width * rect.height / 2500))
+                        let count = min(3, max(1, Int(rect.width * rect.height / 9000)))
                         for _ in 0..<count {
                             duck(at: CGPoint(x: rng.range(rect.minX + 8, max(rect.minX + 8, rect.maxX - 8)),
                                              y: rng.range(rect.minY + 6, max(rect.minY + 6, rect.maxY - 6))),
