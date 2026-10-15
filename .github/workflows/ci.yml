@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch or PR replaces the run in progress.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Build for the iOS Simulator
+        run: |
+          xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath .build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO -quiet build
+
+  solver:
+    name: Solver
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check every pair's stored double ace
+        run: Tools/solve.sh --verify
