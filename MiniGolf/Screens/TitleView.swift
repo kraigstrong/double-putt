@@ -26,7 +26,7 @@ struct TitleView: View {
                 VStack(spacing: 0) {
                     HStack {
                         Spacer()
-                        GlassIconButton(symbol: app.soundOn ? "speaker.wave.2.fill" : "speaker.slash.fill", size: 42) { app.toggleSound() }
+                        GlassIconButton(symbol: "gearshape.fill", size: 42) { app.screen = .settings }
                     }
                     .padding(.horizontal, 20)
 
