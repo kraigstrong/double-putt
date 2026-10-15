@@ -89,20 +89,27 @@ Measure difficulty with `--report`: **Dbl ace** (share of all first swings that 
 and **Window** (the most forgiving ace's angle × power window). Each course ramps up across its nine pairs, and opens
 about where the previous course's middle sat. Shipped courses, measured:
 
-| Course | Double ace % by pair | Windows | Par | Mover timing |
-| --- | --- | --- | --- | --- |
-| 1 Daybreak | 0.59 0.60 0.06 0.05 0.12 0.14 0.08 0.17 0.10 | 1.5–2.75° × 7–13% | 40 | ~1 s |
-| 2 Nightfall | 0.06 0.07 0.09 0.07 0.12 0.06 0.04 0.06 0.06 | 1.25–3° × 6–17% | 46 | 300 ms–1 s |
+| Course | Double ace % by pair | Windows | Par | Mover timing | Playtest |
+| --- | --- | --- | --- | --- | --- |
+| 1 Daybreak | 0.59 0.60 0.06 0.05 0.12 0.14 0.08 0.17 0.10 | 1.5–2.75° × 7–13% | 40 | ~1 s | |
+| 2 Nightfall | 0.06 0.07 0.09 0.07 0.12 0.06 0.04 0.06 0.06 | 1.25–3° × 6–17% | 46 | 300 ms–1 s | |
+| 3 Thunderhead | 0.096 0.087 0.067 0.061 0.059 0.056 0.043 0.039 0.033 | 1.5–2.5° × 7–13% | 48 | 570–685 ms | "hard, in a good way" |
+| 4 Midway | 0.080 0.075 0.068 0.062 0.052 0.044 0.040 0.038 0.029 | 1.5–3.25° × 6–11% | 47 | 410–465 ms | fun, but played easier than Thunderhead |
+
+Midway measured a touch harder than Thunderhead yet played easier. Likely causes: wide windows (several ≥ 2.5°), and
+holes a player can ace almost at will (Springboard's A, High Striker's B and Teacups' B each ace 2.5–3% of all swings,
+so only the other hole is really a puzzle). Use both as levers: keep windows near the floor in later pairs, and keep
+each hole's own ace share (`--report` "Ace A/B %") under ~1.5% so both balls are a puzzle.
 
 Targets for the rest of the plan (guides, not rules; the window floor matters most, since a player must be able to
 find and repeat the shot):
 
-| Courses | Opens → ends (double ace %) | Window at least | Mover timing at least | Par |
-| --- | --- | --- | --- | --- |
-| 3 | ~0.10 → ~0.03 | 1.25° × 6% | 250 ms | 46–50 |
-| 4–6 | ~0.08 → ~0.02 | 1.0° × 5% | 200 ms | 48–52 |
-| 7–9 | ~0.05 → ~0.01 | 1.0° × 5% | 150 ms | 50–54 |
-| 10 | ~0.03 → ~0.005 | 0.75° × 4% | 150 ms | 52–54 |
+| Courses | Opens → ends (double ace %) | Window | Mover timing at least | Hole ace at most | Par |
+| --- | --- | --- | --- | --- | --- |
+| 5 Big Top | ~0.060 → ~0.025 | 1.0–2.0° × 5–9% | 200 ms | ~1.5% | 48–52 |
+| 6 Fireworks | ~0.050 → ~0.018 | 1.0–1.75° × 5–8% | 200 ms | ~1.5% | 50–54 |
+| 7–9 | ~0.04 → ~0.01 | 1.0–1.5° × 5–7% | 150 ms | ~1.2% | 50–54 |
+| 10 | ~0.03 → ~0.005 | 0.75–1.25° × 4–6% | 150 ms | ~1.0% | 52–54 |
 
 Harder isn't only a smaller double-ace share: more mechanics working together, more asymmetry between A and B, and
 more 3-par holes all count.
