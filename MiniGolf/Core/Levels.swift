@@ -226,7 +226,7 @@ enum Levels {
     }()
 
     static func twins() -> Level {
-        var l = Level("Twins", par: [2, 2], hint: "One swing moves both balls. Same hole twice — warm up.")
+        var l = Level("Twins", par: [2, 2], hint: "Same hole twice. Warm up.")
         l.setting = "meadow"
         l.frame()
         l.tee(.a, 100, 110); l.tee(.b, 100, 110)
@@ -236,7 +236,7 @@ enum Levels {
     }
 
     static func reflection() -> Level {
-        var l = Level("Reflection", par: [2, 2], hint: "These holes are mirror images. Try the Mirror swing.")
+        var l = Level("Reflection", par: [2, 2], hint: "Mirror-image holes. Try Mirror.")
         l.setting = "meadow"
         l.frame()
         l.tee(.a, 50, 110); l.tee(.b, 150, 110)
@@ -246,7 +246,7 @@ enum Levels {
     }
 
     static func backboard() -> Level {
-        var l = Level("Backboard", par: [2, 2], hint: "Hit it hard enough for the long one. The short one has a backboard.")
+        var l = Level("Backboard", par: [2, 2], hint: "Putt for the long one. The short one has a backboard.")
         l.setting = "garden"
         l.frame()
         l.block(.b, 0, 500, 200, 800)
@@ -257,7 +257,7 @@ enum Levels {
     }
 
     static func bankShot() -> Level {
-        var l = Level("Bank Shot", par: [2, 3], hint: "One hole wants it straight. The other wants a wall.")
+        var l = Level("Bank Shot", par: [2, 3], hint: "One goes straight. The other needs a wall.")
         l.setting = "meadow"
         l.frame()
         l.tee(.a, 30, 110); l.tee(.b, 110, 110)
@@ -268,7 +268,7 @@ enum Levels {
     }
 
     static func moat() -> Level {
-        var l = Level("Moat", par: [3, 3], hint: "Each moat has a dry crossing — on opposite sides.")
+        var l = Level("Moat", par: [3, 3], hint: "Each moat has a dry crossing, on opposite sides.")
         l.setting = "moat"
         l.frame()
         l.water(.a, 0, 330, 140, 420)
@@ -280,7 +280,7 @@ enum Levels {
     }
 
     static func pinball() -> Level {
-        var l = Level("Buoys", par: [2, 2], hint: "Buoys give back everything you put in.")
+        var l = Level("Buoys", par: [2, 2], hint: "Buoys bounce back as hard as you hit them.")
         l.setting = "seaside"
         l.frame()
         l.bumper(.a, 100, 380, r: 20)
@@ -292,7 +292,7 @@ enum Levels {
     }
 
     static func crossover() -> Level {
-        var l = Level("Crossover", par: [3, 2], hint: "A's lane is a dead end — both cups are in B's lane. Any ball, any cup.")
+        var l = Level("Crossover", par: [3, 2], hint: "Both cups share one lane. Any ball, any cup.")
         l.setting = "night"
         l.frame(gaps: [520...640])
         l.block(.a, 0, 660, 200, 800)
@@ -305,7 +305,7 @@ enum Levels {
     }
 
     static func carom() -> Level {
-        var l = Level("Carom", par: [2, 2], hint: "The holes share a green up top. Balls can hit each other.")
+        var l = Level("Carom", par: [2, 2], hint: "The holes share a green. Balls can hit each other.")
         l.setting = "autumn"
         l.frame()
         l.rails.removeLast()

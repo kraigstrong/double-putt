@@ -7,7 +7,7 @@ extension Levels {
     /// past A's cup, but the breakwater and the middle wall make a corner that hands it straight back: aim A at
     /// its cup, swing for B, and Mirror.
     static func breakwater() -> Level {
-        var l = Level("Breakwater", par: [2, 3], hint: "One putt is a chip, one is a haul. The breakwater helps.")
+        var l = Level("Breakwater", par: [2, 3], hint: "One short, one long. The breakwater helps.")
         l.setting = "seaside"
         l.frame()
         l.tee(.a, 80, 400)
@@ -69,7 +69,7 @@ extension Levels {
     /// with its cup dead ahead and a hill guarding the front-left. B could bank off either fence, but the hill
     /// spoils the left bank (Same), so it is the right bank, and Mirror, that matches A.
     static func topiary() -> Level {
-        var l = Level("Topiary", par: [3, 2], hint: "The hedges hide one cup. A hill guards the other.")
+        var l = Level("Topiary", par: [3, 2], hint: "Hedges hide one cup. A hill guards the other.")
         l.setting = "garden"
         l.frame()
         l.tee(.a, 120, 110)
@@ -86,7 +86,7 @@ extension Levels {
     /// it left, so A aims up the pass on the right, right of its cup; B's cup is just left of straight up, which
     /// makes it a Mirror swing. The rock behind B's hollow soaks up the extra pace.
     static func plateau() -> Level {
-        var l = Level("Plateau", par: [3, 2], hint: "The ramp carries the long putt, and it leans.")
+        var l = Level("Plateau", par: [3, 2], hint: "The ramp carries the long putt, but it leans.")
         l.setting = "desert"
         l.frame()
         // A: a long ramp that leans left; a ledge leaves one pass, on the right.
@@ -109,7 +109,7 @@ extension Levels {
     /// plays B's cup; B's ball has to get into A's cave, and the arroyo drains toward its mouth. The pipe and
     /// the arroyo both take banks, so Same and Mirror each have a line.
     static func arroyo() -> Level {
-        var l = Level("Arroyo", par: [2, 3], hint: "Each cup is walled in. Find the one way into each.")
+        var l = Level("Arroyo", par: [2, 3], hint: "Each cup has one way in. Find both.")
         l.setting = "desert"
         l.frame(gaps: [400...480])
         // A: the mesa fills the lane above the tee, but for a cave that opens onto B. A ball that comes back
@@ -135,7 +135,7 @@ extension Levels {
     /// banks it back to the cup. Only while the plough is low, though: miss it and the fence banks the ball too late,
     /// wide of the cup.
     static func avalanche() -> Level {
-        var l = Level("Avalanche", par: [3, 3], hint: "A's pond wants a bank shot. So does B, but B's bank keeps moving.")
+        var l = Level("Avalanche", par: [3, 3], hint: "Both holes need a bank. One bank keeps moving.")
         l.setting = "winter"
         l.frame()
         // A: an icy pond fills the right of the lane; the cup is beyond it.
@@ -157,7 +157,7 @@ extension Levels {
     /// river makes A short too: aim the same way (A's ball at the pipe, B's at the door) at B's soft pace, when the
     /// door is clear.
     static func iceBridge() -> Level {
-        var l = Level("Ice Bridge", par: [3, 3], hint: "Two ways over A's river. B's short hole only suits one of them.")
+        var l = Level("Ice Bridge", par: [3, 3], hint: "Two ways over the river. Only one suits both holes.")
         l.setting = "winter"
         l.frame()
         // A: a long hole. A narrow ice bridge crosses the river on the left; a pipe runs under it on the right.
@@ -182,7 +182,7 @@ extension Levels {
     /// sweeping its mouth. The gap leans right and the pipe left, so Mirror, at a pace both cups accept, between
     /// blades.
     static func thunderclap() -> Level {
-        var l = Level("Thunderclap", par: [3, 3], hint: "One gap in A's storm clouds. One pipe to B's island. One swing.")
+        var l = Level("Thunderclap", par: [3, 3], hint: "One gap in the clouds. One pipe to the island. One swing.")
         l.setting = "winter"
         l.frame()
         // A: a row of storm-cloud bumpers between the tee and the cup's hollow.

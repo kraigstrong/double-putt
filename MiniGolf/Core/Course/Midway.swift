@@ -8,7 +8,7 @@ extension Levels {
     /// putt; B's opens at the back, so B's ball goes up past its ring and drops in off the back fence. A goes up-right
     /// and B up-left: Mirror, at the pace of A's long putt.
     static func ringToss() -> Level {
-        var l = Level("Ring Toss", par: [2, 3], hint: "Each ring has one way in, and they face different ways.")
+        var l = Level("Ring Toss", par: [2, 3], hint: "Each ring has one way in. They face different ways.")
         l.setting = "midway"
         l.frame()
         // A: a long putt; the ring's opening faces back down toward the tee.
@@ -58,7 +58,7 @@ extension Levels {
     /// across the side turning its way, and the spin brings it round. A's awning hides its cup: bank off the middle
     /// wall. Both go up-right, so Same, firm enough for A's bank; the teacups soak up the extra for B.
     static func teacups() -> Level {
-        var l = Level("Teacups", par: [3, 2], hint: "Teacups bend a ball the way they spin. The awning needs a bank.")
+        var l = Level("Teacups", par: [3, 2], hint: "Teacups curl the ball as they spin. Bank past the awning.")
         l.setting = "midway"
         l.frame()
         // A: a bank shot round an awning.
@@ -79,7 +79,7 @@ extension Levels {
     /// once; that comes round twice every three seconds.
     static func shootingGallery() -> Level {
         var l = Level("Shooting Gallery", par: [2, 3],
-                      hint: "Two rows of ducks, one ball to thread. The balloons stay put.")
+                      hint: "Only one ball has to dodge the ducks.")
         l.setting = "midway"
         l.frame()
         // A: the gallery. Two rows of ducks glide across the lane in opposite directions.
@@ -122,7 +122,7 @@ extension Levels {
     /// short hop that pace would race past, but its carousel drags the pace off: Mirror sends B's ball up across the
     /// disk and it comes off slow enough to drop.
     static func duckPond() -> Level {
-        var l = Level("Duck Pond", par: [3, 2], hint: "A long way round the pond, a short hop over the carousel.")
+        var l = Level("Duck Pond", par: [3, 2], hint: "One long way round the pond, one short hop.")
         l.setting = "midway"
         l.frame()
         // A: the pond leaves a narrow way round by the left fence.
@@ -143,7 +143,7 @@ extension Levels {
     /// past the duck pond, gets there. Mirror, as firm as B needs and as gentle as A's ride allows.
     static func merryGoRound() -> Level {
         var l = Level("Merry-Go-Round", par: [3, 3],
-                      hint: "Ride the merry-go-round round its pole. The springboard is far off.")
+                      hint: "Let the ride curl the ball in. The springboard is far off.")
         l.setting = "midway"
         l.frame()
         // A: the merry-go-round fills the gap between two booths, and its pole hides the cup.
@@ -208,7 +208,7 @@ extension Levels {
     /// which fires it across B, through the gap and into A's prize booth. A's ball takes the pipe over to B, where the
     /// merry-go-round brakes it and curls it into B's cup. Same, at a pace the merry-go-round can tame.
     static func grandPrize() -> Level {
-        var l = Level("Grand Prize", par: [3, 3], hint: "Neither ball can win its own prize.")
+        var l = Level("Grand Prize", par: [3, 3], hint: "Neither ball can reach its own cup.")
         l.setting = "midway"
         l.frame(gaps: [610...700])
         // A: a turnstile leads to the pipe over to B; the prize booth opens only onto the gap.
