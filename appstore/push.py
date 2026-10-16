@@ -805,9 +805,17 @@ def testflight(app: str, build_number: str | None, submit: bool, invite: list[st
             if email.lower() in on_group:
                 print(f"  tester {email}: already in {external[0]}")
                 continue
-            print(f"  tester {email}: {'would be invited' if dry_run else 'invited'} to {external[0]}")
+            # Someone already testing another of the account's apps is added as they are; creating them again fails.
+            known = client.get(f"/v1/betaTesters?filter[email]={urllib.parse.quote(email)}&limit=1")
+            print(f"  tester {email}{' (an existing tester)' if known else ''}: "
+                  f"{'would be invited' if dry_run else 'invited'} to {external[0]}")
             changes += 1
-            if not dry_run:
+            if dry_run:
+                continue
+            if known:
+                client.call("POST", f"/v1/betaGroups/{group['id']}/relationships/betaTesters",
+                            {"data": [{"type": "betaTesters", "id": known[0]["id"]}]})
+            else:
                 client.call("POST", "/v1/betaTesters", {"data": {"type": "betaTesters", "attributes": {"email": email},
                             "relationships": {"betaGroups": {"data": [{"type": "betaGroups", "id": group["id"]}]}}}})
 
