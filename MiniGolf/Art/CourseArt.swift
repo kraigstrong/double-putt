@@ -14,8 +14,14 @@ enum CourseArt {
     static func course(_ level: Level, theme: Theme, ppu: CGFloat) -> UIImage {
         render(courseRect, ppu: ppu) { p in
             var rng = SeededRandom(seed: stableSeed(level.name))
-            p.courseShadow()
-            p.felt(theme)
+            // Shaped greens sit on open ground; everything else is framed felt.
+            let shaped = !level.greens.isEmpty
+            if shaped {
+                p.greens(level, theme)
+            } else {
+                p.courseShadow()
+                p.felt(theme)
+            }
             p.slopeGrid(level, theme)
             p.water(level, theme, &rng)
             p.tees(level, theme)
@@ -23,11 +29,11 @@ enum CourseArt {
             p.tunnels(level, theme)
             p.kickers(level, theme)
             p.shadow(dx: 2.6, dy: -3.6, blur: 4.5, alpha: 0.4) {
-                p.borderShape(fill: .black)
+                if shaped { p.greenEdgeShapes(level, fill: .black) } else { p.borderShape(fill: .black) }
                 p.railShapes(level, fill: .black)
                 p.blockShapes(level, fill: .black)
             }
-            p.border(theme, &rng)
+            if shaped { p.greenEdges(level, theme) } else { p.border(theme, &rng) }
             p.rails(level, theme, &rng)
             p.blocks(level, theme, &rng)
             if theme.snowCaps { p.snowCaps(level, theme) }

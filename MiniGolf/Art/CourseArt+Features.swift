@@ -18,7 +18,8 @@ extension Painter {
         parts += level.mounds.map { circle(CGPoint(x: $0.center.x, y: $0.center.y), CGFloat($0.radius)) }
         parts += level.terrain.features.map { CGPath(rect: rect($0.area), transform: nil) }
         guard let first = parts.first else { return }
-        let region = parts.dropFirst().reduce(first) { $0.union($1) }
+        var region = parts.dropFirst().reduce(first) { $0.union($1) }
+        if let greens = greensPath(level) { region = region.intersection(greens) }
         let r = Course.railRadius
         let felt = CGPath(rect: CGRect(x: r, y: r, width: Course.width - 2 * r, height: Course.height - 2 * r), transform: nil)
 
