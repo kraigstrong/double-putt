@@ -9,9 +9,9 @@ enum Surface: UInt8 {
     var rollDecel: Double {
         switch self {
         case .green, .water: return Tuning.rollDecel
-        case .fringe: return 420
-        case .rough: return 800
-        case .sand: return 2400
+        case .fringe: return 330
+        case .rough: return 520
+        case .sand: return 1500
         }
     }
 
@@ -19,9 +19,9 @@ enum Surface: UInt8 {
     var drag: Double {
         switch self {
         case .green, .water: return Tuning.drag
-        case .fringe: return 0.6
-        case .rough: return 1.0
-        case .sand: return 1.5
+        case .fringe: return 0.5
+        case .rough: return 0.75
+        case .sand: return 1.2
         }
     }
 
