@@ -47,17 +47,18 @@ python3 appstore/push.py media --app double-putt --screenshots DIR DIR --creativ
   feedback email, and the listing's privacy policy (and marketing) links.
 - **Beta App Review details**: the notes from `testflight/review_notes.txt`, the contact, and no sign-in needed.
 - **Groups**: creates **Internal** (App Store Connect users, every build) and **Friends** (external) if they're
-  missing.
+  missing, and turns on Friends' public link (printed on each run), so anyone with the link can join.
 - **`--build N`**: the newest upload with that build number gets its What to Test from
   `testflight/<locale>/what_to_test.txt`. With `--submit`, once the build has finished processing, it's added to
   Friends and submitted for Beta App Review (the first build of each version is reviewed; later ones usually go out
   right away).
 - **`--invite EMAIL`** (repeatable): invites a tester to Friends. Addresses come from the command line and are never
-  kept in the repo. A public link, turned on in App Store Connect, works too.
+  kept in the repo. The public link works without an invite.
 
 The feedback email and the review contact are personal and the repo is public, so they come from the 1Password
 Environment: `ASCC_BETA_FEEDBACK_EMAIL`, and `ASCC_REVIEW_FIRST_NAME`, `ASCC_REVIEW_LAST_NAME`, `ASCC_REVIEW_PHONE`,
 `ASCC_REVIEW_EMAIL`. Any that aren't set are left as they are, so filling them in on the website works too.
+Double Putt's were copied from Bigger Fish's TestFlight settings on 2026-10-15.
 
 Uploading builds isn't part of `push.py`; see [docs/testflight.md](../docs/testflight.md).
 

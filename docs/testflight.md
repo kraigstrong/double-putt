@@ -63,8 +63,8 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
    The first run also creates the Internal group (every build) and the Friends group.
 4. When it finishes processing, install from TestFlight as an internal tester and run the smoke check below.
 5. Send it to Friends: `--build 1 --submit` adds it to the group and submits it for Beta App Review (the first
-   build of each version is reviewed). Invite with `--invite EMAIL`, or turn on the group's public link in App
-   Store Connect.
+   build of each version is reviewed), and turns on Friends' public link, which it prints. Share the link, or
+   invite with `--invite EMAIL`. Anyone who opens the link before the build is approved is told to wait.
 6. Record it in the build log at the end of this file.
 
 ## Smoke check on the TestFlight build
