@@ -581,7 +581,7 @@ final class GameScene: SKScene {
         putters.forEach { $0.removeFromParent() }
         spinUniforms = []
         if ballSpin.count != world.balls.count {
-            ballSpin = world.balls.map { _ in simd_quatf(ix: 0, iy: 0, iz: 0, r: 1) }
+            ballSpin = world.balls.map { _ in Self.setDown }
         }
         let px = 14 * renderedPPU * 1.5
         ballNodes = world.balls.indices.map { i in
@@ -667,6 +667,9 @@ final class GameScene: SKScene {
         ballSpin[i] = simd_normalize(simd_quatf(angle: Float(dist / Tuning.ballRadius), axis: axis) * ballSpin[i])
     }
 
+    /// How a ball sits on its tee before any aiming: stripe over the top, pointing straight up the course.
+    private static let setDown = simd_quatf(angle: .pi / 2, axis: simd_float3(0, 0, 1))
+
     /// Sets ball `i` down for the putt the way a golfer would: stripe over the top, along the line. On a true roll it
     /// then holds steady while the spots and dimples turn, and it twists as the ball curls.
     private func lineUp(_ i: Int, to dir: Vec) {
@@ -688,7 +691,7 @@ final class GameScene: SKScene {
                 node.alpha = b.sunkIn == nil ? 1 : 0
                 node.setScale(1)
                 node.position = b.pos.cg
-                ballSpin[i] = simd_quatf(ix: 0, iy: 0, iz: 0, r: 1)
+                ballSpin[i] = Self.setDown
             } else if b.sunkIn == nil {
                 node.position = b.pos.cg
             }
