@@ -93,7 +93,8 @@ enum CourseArt {
 
     /// A ball is three layers so only the stripe turns: base (fixed), stripe (rotated to the
     /// ball's line, like a golfer's alignment line), gloss with dimples and lighting (fixed).
-    enum BallLayer { case base, stripe(UIColor), gloss }
+    /// The ball's fixed layers; its stripe, spots and dimples roll (GameScene's ball paint shader).
+    enum BallLayer { case base, gloss }
 
     static func ball(_ layer: BallLayer, pixels: CGFloat) -> UIImage {
         let r = Tuning.ballRadius
@@ -101,7 +102,6 @@ enum CourseArt {
         return render(rect, ppu: pixels / (r * 2)) { p in
             switch layer {
             case .base: p.ballBase(radius: r)
-            case .stripe(let color): p.ballStripe(radius: r, color: color)
             case .gloss: p.ballGloss(radius: r)
             }
         }
@@ -842,23 +842,9 @@ struct Painter {
                center: CGPoint(x: -r * 0.3, y: r * 0.3), radius: r * 1.35)
     }
 
-    /// Stripe along +x (the ball's line at zero rotation).
-    func ballStripe(radius r: CGFloat, color: UIColor) {
-        clipped(circle(.zero, r)) {
-            fill(CGRect(x: -r, y: -r * 0.32, width: r * 2, height: r * 0.64), color)
-            fill(CGRect(x: -r, y: r * 0.18, width: r * 2, height: r * 0.14), color.lighter(0.18))
-        }
-    }
-
     func ballGloss(radius r: CGFloat) {
         let shape = circle(.zero, r)
         clipped(shape) {
-            for row in -3...3 {
-                for col in -3...3 {
-                    let p = CGPoint(x: CGFloat(col) * r * 0.3 + (row % 2 == 0 ? 0 : r * 0.15), y: CGFloat(row) * r * 0.26)
-                    fill(circle(p, r * 0.06), UIColor.black.withAlphaComponent(0.05))
-                }
-            }
             radial(shape, [UIColor.clear, UIColor.clear, UIColor.black.withAlphaComponent(0.28)], locations: [0, 0.55, 1],
                    center: CGPoint(x: -r * 0.3, y: r * 0.3), radius: r * 1.4)
         }
