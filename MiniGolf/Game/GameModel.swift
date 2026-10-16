@@ -304,7 +304,8 @@ final class GameModel {
         if levelIndex == 0 && !tutorialDone {
             tutorial = .aim
         } else if level.name == "Reflection" && !UserDefaults.standard.bool(forKey: "mirrorTaught") {
-            tutorial = .mirror
+            // Opened straight from Free Play on a fresh install: teach aiming first; the Mirror tip follows the drag.
+            tutorial = tutorialDone ? .mirror : .aim
         } else {
             tutorial = nil
         }
