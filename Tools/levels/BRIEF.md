@@ -137,7 +137,9 @@ Keep each hole readable on its own: a player should see what it asks.
 6. **Readable layout:** don't clutter. Keep y < 95 empty (a hint banner sits there), cups at y ≤ 745 (flags draw ~40
    units upward), nothing overlapping tees or cups, tunnel mouths ≥ 20 units from walls and each other, tees outside
    every mover's sweep.
-7. **Hint:** one sentence ≤ 70 characters that sets up the idea without giving away the answer.
+7. **Hint:** one or two short, plain sentences (≤ 60 characters, so it fits the banner in two lines) that set up
+   the idea without giving away the answer. Never call the holes A and B: say "one hole" and "the other", or name
+   the feature.
 
 ## Shipping a course
 1. Move the nine pairs into `MiniGolf/Core/Course/<Name>.swift` (an `extension Levels` of pair functions).
