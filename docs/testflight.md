@@ -34,20 +34,37 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
   anonymous gameplay counts).
 
 ### In App Store Connect (you)
-- [ ] **App record.** Apps, + New App: iOS, name Double Putt (pick a fallback in case it's taken, e.g. "Double
-  Putt Mini Golf"), bundle ID `com.kraigstrong.doubleputt` (archiving once with automatic signing registers it),
-  SKU `doubleputt`, category Games > Puzzle (or Sports).
+- [x] **Bundle ID** `com.kraigstrong.doubleputt`, registered through the API (2026-10-15).
+- [ ] **App record.** Apps, + New App: iOS, name "Double Putt: Mini Golf", English (U.S.), bundle ID
+  `com.kraigstrong.doubleputt`, SKU `doubleputt`, Full Access. Then category Games > Puzzle (or Sports), and add
+  its Apple ID to the "App Store Connect" 1Password Environment as `ASCC_APP_ID_DOUBLE_PUTT` (`push.py check`
+  lists it).
 - [ ] **Privacy:** the policy URL above, and App Privacy: Product Interaction, used for Analytics, not linked to
   the user, not used for tracking.
 
 ## Uploading a build
 1. Check out `main` at the commit you want and tag it (`double-putt-v0.1-beta.1`).
-2. In Xcode, choose the MiniGolf scheme and Any iOS Device (arm64), then Product > Archive.
-3. In the Organizer: Distribute App > App Store Connect > Upload, with "Manage Version and Build Number" on.
-4. When it finishes processing, add yourself to an internal group, install from TestFlight, and run the smoke
-   check below.
-5. Create an external group (Friends), fill in Test Information (below), add the build and submit it for beta
-   review (the first build of a version is reviewed). Then invite by email or public link.
+2. Archive and upload: in Xcode, the MiniGolf scheme and Any iOS Device (arm64), Product > Archive, then in the
+   Organizer, Distribute App > App Store Connect > Upload. Or from the command line, with the Apple ID Xcode is
+   signed in with:
+   ```bash
+   xcodebuild archive -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
+     -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-0.1-1.xcarchive
+   xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-0.1-1.xcarchive \
+     -exportOptionsPlist .build/ExportOptions.plist -exportPath .build/export -allowProvisioningUpdates
+   ```
+   where `ExportOptions.plist` has `method` `app-store-connect`, `destination` `upload` and `teamID` `MKACSCQ588`.
+   Bump the build number (`CURRENT_PROJECT_VERSION`) for each upload.
+3. Set the test information and the build's What to Test from `appstore/double-putt/testflight/` (see
+   [appstore/README.md](../appstore/README.md)); dry-run first:
+   ```bash
+   python3 appstore/push.py testflight --app double-putt --build 1 --dry-run
+   ```
+   The first run also creates the Internal group (every build) and the Friends group.
+4. When it finishes processing, install from TestFlight as an internal tester and run the smoke check below.
+5. Send it to Friends: `--build 1 --submit` adds it to the group and submits it for Beta App Review (the first
+   build of each version is reviewed). Invite with `--invite EMAIL`, or turn on the group's public link in App
+   Store Connect.
 6. Record it in the build log at the end of this file.
 
 ## Smoke check on the TestFlight build
@@ -64,27 +81,13 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
 - Sound off in Settings and the pause menu is remembered; with the phone on silent there's no sound.
 - Settings shows the version, and Privacy Policy and Support open in Safari.
 
-## Test Information (paste into App Store Connect)
-
-**Beta App Description**
-
-> Double Putt is mini golf with a twist: every swing plays two holes at once. Line up one putt, and both balls
-> roll. Choose Same to send them the same way, or Mirror to flip the second ball's shot. Each pair of holes is a
-> little puzzle: find the one swing that drops both balls for a double ace. Six courses of nine pairs take you
-> from a spring meadow to a castle moat, a desert canyon, a winter village, and a funfair with springboards,
-> carousels and fireworks.
-
-**What to Test**
-
-> Thanks for playing! We'd love to hear which pairs felt too hard or too easy (and roughly how many tries they
-> took), whether any hint or mechanic was confusing, and any bugs, crashes or sound problems. To send feedback,
-> take a screenshot while playing and share it with TestFlight, or use Send Beta Feedback in the TestFlight app.
-> The beta sends anonymous gameplay counts, like which pairs were finished and in how many strokes, with no names
-> or device IDs.
-
-**Beta App Review notes:** No account or sign-in. Tap Courses, pick Daybreak, drag back to aim, then tap Putt.
+## Test Information
+The Beta App Description and What to Test are in `appstore/double-putt/testflight/en-US/`, and the Beta App Review
+notes in `appstore/double-putt/testflight/review_notes.txt`. Edit them there and push them with `push.py testflight`.
+The feedback email and the review contact are personal, so they come from the 1Password Environment, not the repo.
 
 ## Build log
 
 | Build | Date | Source commit | Notes |
 |---|---|---|---|
+| 0.1 (1) | 2026-10-15 | `d146919` | First upload: six courses, analytics. Uploaded with `xcodebuild -exportArchive`. |

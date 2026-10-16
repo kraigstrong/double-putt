@@ -1,0 +1,5 @@
+Thanks for playing! We'd love to hear which pairs felt too hard or too easy (and roughly how many tries they took), whether any hint or mechanic was confusing, and any bugs, crashes or sound problems. Sound follows the phone's silent switch, so turn that off to hear it.
+
+To send feedback, take a screenshot while playing and share it with TestFlight, or use Send Beta Feedback in the TestFlight app.
+
+The beta sends anonymous gameplay counts, like which pairs were finished and in how many strokes, with no names or device IDs.

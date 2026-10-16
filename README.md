@@ -55,6 +55,7 @@ Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to P
 | `MiniGolf/Audio/Sound.swift` | Synthesized sound effects (no audio assets). |
 | `Tools/solver/` | Headless brute-force solver. |
 | `Tools/icon/make_icon.swift` | Generates the app icon. |
+| `appstore/` | App Store listing and TestFlight text, and `push.py` to send them to App Store Connect. |
 
 ## The courses
 
