@@ -1,7 +1,7 @@
 #if DEBUG
 // Mechanic test pairs for checking visuals: launch with `-tests 1`.
 enum DebugLevels {
-    static let all: [Level] = [tunnelTest(), slopeTest(), contourTest(), rotorTest(), sliderTest(),
+    static let all: [Level] = [tunnelTest(), slopeTest(), contourTest(), greenTest(), sharedGreenTest(), rotorTest(), sliderTest(),
                                funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]
 
     /// Kicker, carousel, balloon bumpers, a booth awning, a rail and a duck pond in one of the funfair looks.
@@ -54,6 +54,34 @@ enum DebugLevels {
         l.tilt(.b, downhill: 200, strength: 70)
         l.tier(.b, 100, 380, downhill: 290, strength: 150, width: 50)
         l.cup(.a, 130, 660); l.cup(.b, 70, 690)
+        return l
+    }
+
+    /// Shaped greens: a curvy kidney on one hole, an angled dogleg on the other, both contoured.
+    static func greenTest() -> Level {
+        var l = Level("greenTest", par: [2, 2], hint: "")
+        l.setting = "meadow"
+        l.green(.a, [(100, 60), (170, 90), (185, 250), (140, 420), (175, 600), (160, 760), (90, 780), (25, 720),
+                     (30, 520), (70, 380), (20, 220), (35, 90)], smooth: true)
+        l.green(.b, [(40, 50), (150, 50), (150, 450), (190, 520), (190, 770), (60, 770), (60, 560), (40, 500)])
+        l.tee(.a, 100, 130); l.tee(.b, 95, 120)
+        l.tilt(.a, downhill: 180, strength: 40)
+        l.hollow(.a, 110, 690, radius: 60, strength: 120)
+        l.tier(.b, 120, 480, downhill: 270, strength: 150, width: 35)
+        l.cup(.a, 110, 690); l.cup(.b, 140, 700)
+        return l
+    }
+
+    /// One peanut-shaped green shared by both holes, with a hump in the waist.
+    static func sharedGreenTest() -> Level {
+        var l = Level("sharedGreenTest", par: [2, 2], hint: "")
+        l.setting = "meadow"
+        l.green([Vec(60, 80), Vec(340, 80), Vec(380, 250), Vec(300, 400), Vec(380, 560), Vec(340, 760), Vec(60, 760),
+                 Vec(20, 560), Vec(100, 400), Vec(20, 250)], smooth: true)
+        l.tee(.a, 120, 130); l.tee(.b, 80, 130)
+        l.hump(nil, 200, 400, radius: 90, strength: 110)
+        l.tilt(nil, downhill: 270, strength: 30)
+        l.cup(.a, 130, 680); l.cup(.b, 70, 680)
         return l
     }
 
