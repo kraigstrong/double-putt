@@ -126,6 +126,10 @@ func mechanics(_ l: Level) -> String {
     if l.mounds.contains(where: { $0.strength > 0 }) { m.append("hills") }
     if l.mounds.contains(where: { $0.strength < 0 }) { m.append("bowls") }
     if !l.terrain.isEmpty { m.append("contours") }
+    // Painted surfaces other than green, e.g. "fringe, sand".
+    for surface in [Surface.fringe, .rough, .sand, .water] where l.patches.contains(where: { $0.surface == surface }) {
+        m.append(surface == .water ? "ponds" : "\(surface)")
+    }
     if l.movers.contains(where: { if case .rotor = $0.kind { true } else { false } }) { m.append("rotors") }
     if l.movers.contains(where: { if case .slider = $0.kind { true } else { false } }) { m.append("sliders") }
     if l.movers.contains(where: { if case .carousel = $0.kind { true } else { false } }) { m.append("carousels") }
