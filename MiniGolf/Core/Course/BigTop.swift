@@ -35,7 +35,7 @@ extension Levels {
     /// clockwise: send the ball up its left side and it curls round over the top into the cup. Both go up-left: Same.
     static func juggler() -> Level {
         var l = Level("Juggler", par: [2, 3],
-                      hint: "Slip between the juggler's balloons; let the plate do the turning.")
+                      hint: "Slip past the balloons. Let the plate do the turning.")
         l.setting = "bigtop"
         l.frame()
         // A: three balloons round the cup, gaps facing the middle wall, the top and the lower left.
@@ -58,7 +58,7 @@ extension Levels {
     /// B's lane every three, the other way. A's long putt through the door goes up-right and B's, to the net behind its
     /// cup, up-left: Mirror. Then wait for a moment when both trapezes will be clear.
     static func trapeze() -> Level {
-        var l = Level("Trapeze", par: [3, 2], hint: "Two trapezes, two rhythms. Swing when both are clear.")
+        var l = Level("Trapeze", par: [3, 2], hint: "Two trapezes, two rhythms. Putt when both are clear.")
         l.setting = "bigtop"
         l.frame()
         // A: a long putt through the one door in a row of booths; a trapeze swings past the door. The duck pond
@@ -86,7 +86,7 @@ extension Levels {
     /// chip on an island into a bowl. Both aim up-right (Same): A at the cannon, not its cup.
     static func humanCannonball() -> Level {
         var l = Level("Human Cannonball", par: [2, 3],
-                      hint: "The cannon fires as hard as it's loaded. Mind the duck pond.")
+                      hint: "The cannon fires as hard as you putt. Mind the pond.")
         l.setting = "bigtop"
         l.frame()
         // A: the long hole. A booth closes the ring; the cannon fires the ball over it, across to the cup.
@@ -112,7 +112,7 @@ extension Levels {
     /// to corner, a hair right of straight. B's ring leans right and a hill stands in the way: go up its left flank and
     /// let the lean bring the ball back. Mirror, firm enough to cross A's pond.
     static func tightrope() -> Level {
-        var l = Level("Tightrope", par: [3, 2], hint: "One ball walks the tightrope. The other leans past a hill.")
+        var l = Level("Tightrope", par: [3, 2], hint: "One ball walks the tightrope. The other curls past a hill.")
         l.setting = "bigtop"
         l.frame()
         // A: a narrow causeway over the duck pond, off to the right of the tee.
@@ -133,7 +133,7 @@ extension Levels {
     /// which comes round every 1.25 s. B's cup sits just past the carousel, whose near side turns upward: it takes the
     /// pace off B's ball and turns it up into the cup. A goes up-right, B up-left: Mirror, struck as the plates open.
     static func spinningPlates() -> Level {
-        var l = Level("Spinning Plates", par: [3, 2], hint: "Time A's plates. B's carousel takes the pace off.")
+        var l = Level("Spinning Plates", par: [3, 2], hint: "Time the spinning plates. The carousel slows the other ball.")
         l.setting = "bigtop"
         l.frame()
         // A: a row of booths with one door guards the cup, and two plates spin in the doorway.
@@ -157,7 +157,7 @@ extension Levels {
     /// through the door while the hoop is clear and the springboard fires the ball to the cup. B's pond blocks the
     /// left, so B banks off the right fence. Both go up-right, so Same, firm enough for B's bank.
     static func fireHoop() -> Level {
-        var l = Level("Fire Hoop", par: [3, 3], hint: "Jump through the hoop while it's open. The pond wants a bank.")
+        var l = Level("Fire Hoop", par: [3, 3], hint: "Go through the hoop while it's clear. Bank round the pond.")
         l.setting = "bigtop"
         l.frame()
         // A: a row of booths with one door; the hoop slides across in front of it, and a springboard waits behind.
@@ -182,7 +182,7 @@ extension Levels {
     /// line, so aim through it at the cup, past the windmill. A goes up-right and B up-left: Mirror, at B's pace.
     static func clownCar() -> Level {
         var l = Level("Clown Car", par: [2, 3],
-                      hint: "One springboard hands off to the next. The pipe keeps your line.")
+                      hint: "Springboards pass it along. The pipe keeps your line.")
         l.setting = "bigtop"
         l.frame()
         // A: pad to pad. The first springboard sends the ball up-left through a gap in the booths to the second, which
@@ -209,7 +209,7 @@ extension Levels {
     /// through only at the right moment. B's springboard sits behind one door, past the moat. Mirror, firm, on time.
     static func showstopper() -> Level {
         var l = Level("Showstopper", par: [3, 3],
-                      hint: "The carousel bends it and the pipe keeps the bend. Mind the moat.")
+                      hint: "The pipe keeps the carousel's bend. Mind the moat.")
         l.setting = "bigtop"
         l.frame()
         // A: the carousel bends the ball into the pipe, which keeps its line up past the booths; a windmill guards the

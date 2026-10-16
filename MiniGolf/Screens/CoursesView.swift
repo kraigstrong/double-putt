@@ -44,7 +44,7 @@ struct CoursesView: View {
             Button("Cancel", role: .cancel) {}
         } message: { _ in
             if let nine = game.roundNine, let round = game.round {
-                Text("Your \(nine.name) round in progress (pair \(round.current + 1)) will end.")
+                Text("This ends your \(nine.name) round. You're on pair \(round.current + 1).")
             }
         }
     }
@@ -134,6 +134,9 @@ private struct CourseCard: View {
     private var settings: String {
         var seen: [String] = []
         for i in nine.pairs where !seen.contains(GameModel.levels[i].setting) { seen.append(GameModel.levels[i].setting) }
-        return seen.map(\.capitalized).joined(separator: " · ")
+        return seen.map { Self.shortNames[$0] ?? $0.capitalized }.joined(separator: " · ")
     }
+
+    /// Setting ids that don't read right capitalized.
+    private static let shortNames = ["bigtop": "Big Top"]
 }

@@ -19,7 +19,7 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
   Fireworks), each harder than the last. A round shows a running score vs par and ends with a scorecard and a medal:
   bronze at par or better, silver 4 under, gold 8 under (best round per course saved; a round in progress survives
   relaunches). A medal unlocks the next course.
-- **Single Hole** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
+- **Free Play** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
   **Trophy Shelf** (one per pair).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
 - **‹ ›** nudge the aim (hold to repeat). Drag the **power bar** or use its **+ / −**.
@@ -51,7 +51,7 @@ Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to P
 | `MiniGolf/Core/` | Deterministic physics (fixed 1/480 s step) and level geometry. Shared with the solver. |
 | `MiniGolf/Art/` | Themes and procedural art: every course, tree, ball and the menu art is drawn in code. |
 | `MiniGolf/Game/` | SpriteKit scene (camera fit around the HUD, aim, guide, effects) and the SwiftUI HUD. |
-| `MiniGolf/Screens/` | Title, Courses, Single Hole, Trophy Shelf, scorecard, shared components. |
+| `MiniGolf/Screens/` | Title, Courses, Free Play, Trophy Shelf, scorecard, shared components. |
 | `MiniGolf/Audio/Sound.swift` | Synthesized sound effects (no audio assets). |
 | `Tools/solver/` | Headless brute-force solver. |
 | `Tools/icon/make_icon.swift` | Generates the app icon. |

@@ -58,7 +58,7 @@ struct TitleView: View {
                             app.screen = .courses
                         }
                         HStack(spacing: 12) {
-                            PillButton(title: "Single Hole", symbol: "square.grid.3x3.fill", fill: .white.opacity(0.14), text: .white, height: 48) {
+                            PillButton(title: "Free Play", symbol: "square.grid.3x3.fill", fill: .white.opacity(0.14), text: .white, height: 48) {
                                 app.screen = .levels
                             }
                             PillButton(title: "Trophies", symbol: "trophy.fill", fill: .white.opacity(0.14), text: .white, height: 48) {

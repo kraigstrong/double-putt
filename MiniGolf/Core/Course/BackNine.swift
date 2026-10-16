@@ -25,7 +25,7 @@ extension Levels {
     /// But the icy slope just past A's tee throws A's ball left: aim both at B's cup with Same and the hill
     /// brings A home. B's sled then decides the power.
     static func sledRun() -> Level {
-        var l = Level("Sled Run", par: [3, 3], hint: "The icy slope past A's tee throws balls left. Mind B's sled.")
+        var l = Level("Sled Run", par: [3, 3], hint: "Ice by one tee pushes balls left. Mind the sled.")
         l.setting = "winter"
         l.frame()
         l.slope(.a, 0, 135, 200, 255, downhill: 180, strength: 200)
@@ -45,7 +45,7 @@ extension Levels {
     /// lantern on A's, so the balls swap holes; B's right lantern only hops B's own pond (Mirror's trap, as
     /// both balls would end up in B). A lamplighter's cart patrols each far bank.
     static func lanterns() -> Level {
-        var l = Level("Lanterns", par: [3, 3], hint: "Every lantern crosses the pond. Not every one crosses over.")
+        var l = Level("Lanterns", par: [3, 3], hint: "Not every lantern leads to the other hole.")
         l.setting = "night"
         l.frame()
         l.water(.a, 0, 380, 200, 450); l.water(.b, 0, 380, 200, 450)
@@ -65,7 +65,7 @@ extension Levels {
     /// the exit lines in hollows, so only a ball that is slow enough curls in. Two hands, not three, so both
     /// exit lines open at once (with three, one line was always closing as the other opened).
     static func midnight() -> Level {
-        var l = Level("Midnight", par: [3, 3], hint: "The lanterns swap the balls. The clock treats them differently.")
+        var l = Level("Midnight", par: [3, 3], hint: "The lanterns swap the balls. Mind the clock.")
         l.setting = "night"
         l.frame(gaps: [513...687])
         l.rotor(.a, 200, 600, blades: 2, length: 80, rpm: 17.5, phase: 30)

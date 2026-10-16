@@ -6,7 +6,7 @@ extension Levels {
     /// which makes it a Mirror swing even though the tees and cups don't mirror. B's hedge clips the top of
     /// A's bank window, so the angle has to thread both gaps. Angled hedges behind the cups catch firm putts.
     static func hedgerow() -> Level {
-        var l = Level("Hedgerow", par: [2, 2], hint: "Two hedges, two gaps. Find the one line through both.")
+        var l = Level("Hedgerow", par: [2, 2], hint: "Find one line through both hedge gaps.")
         l.setting = "garden"
         l.frame()
         l.tee(.a, 100, 110); l.tee(.b, 60, 110)
@@ -25,7 +25,7 @@ extension Levels {
     /// ball arrives as it closes. Too soft and A falls short; too firm (the "A has a backboard, just hit it"
     /// instinct) and B's ball beats the gate into the courtyard.
     static func drawbridge() -> Level {
-        var l = Level("Drawbridge", par: [3, 2], hint: "The castle gate never rests. Pick your moment, then your pace.")
+        var l = Level("Drawbridge", par: [3, 2], hint: "The gate never stops. Time it, then pick your pace.")
         l.setting = "moat"
         l.frame()
         l.tee(.a, 60, 110); l.cup(.a, 110, 610)
@@ -44,7 +44,7 @@ extension Levels {
     /// both, and let the dunes split the balls — A's carried further right, B's pulled back left. Softer
     /// putts curve more, so angle and pace have to agree.
     static func dunes() -> Level {
-        var l = Level("Dunes", par: [2, 2], hint: "Dunes bend the ball, and these two lean opposite ways.")
+        var l = Level("Dunes", par: [2, 2], hint: "The dunes lean opposite ways.")
         l.setting = "seaside"
         l.frame()
         l.tee(.a, 100, 110); l.tee(.b, 100, 110)

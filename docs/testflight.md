@@ -74,7 +74,7 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
   course has a medal. Long-pressing the logo does nothing (no dev mode).
 - Play a few pairs in a round: strokes show as numbers when balls drop; the result card shows the pair's verdict;
   finishing a round shows the scorecard and medal, and a medal on Nightfall unlocks Thunderhead.
-- Single Hole plays any open pair; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
+- Free Play plays any open pair; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
 - Progress survives force-quitting and reopening.
 - The screen doesn't dim while aiming; it sleeps normally on the title screen.
 - Background the app mid-pair: on return the pause menu is up and nothing moved while away.

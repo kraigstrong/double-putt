@@ -8,7 +8,7 @@ extension Levels {
     /// reach the pad: straight through the booth door, or off the left fence. B's booths leave one way round, off its
     /// right fence, and only A's fence line mirrors it: Mirror, firm enough for the pad and soft enough for B.
     static func sparkler() -> Level {
-        var l = Level("Sparkler", par: [2, 3], hint: "Any way onto the springboard will do. B has only one way round.")
+        var l = Level("Sparkler", par: [2, 3], hint: "Just reach the springboard. The other has one way round.")
         l.setting = "fireworks"
         l.frame()
         // A: a row of booths with one door; the springboard in it fires at the back fence, which drops the ball in.
@@ -30,7 +30,7 @@ extension Levels {
     /// off the left fence beside it just as a gap comes round. B is a short hop from the duck pond's bank, off the back
     /// fence past a balloon. Both go up and a little left: Same, timed for the wheel.
     static func ferrisWheel() -> Level {
-        var l = Level("Ferris Wheel", par: [3, 2], hint: "The wheel turns slowly. Slip past it between two spokes.")
+        var l = Level("Ferris Wheel", par: [3, 2], hint: "The wheel turns slowly. Slip between two spokes.")
         l.setting = "fireworks"
         l.frame()
         // A: the wheel fills the lane; its cars sweep the strip by each fence.
@@ -73,7 +73,7 @@ extension Levels {
     /// takes the pace off. A goes up-left and B up-right: Mirror.
     static func romanCandle() -> Level {
         var l = Level("Roman Candle", par: [3, 2],
-                      hint: "Find a way round to the candle. The carousel can take the pace.")
+                      hint: "Find a way to the candle. The carousel takes the pace off.")
         l.setting = "fireworks"
         l.frame()
         // A: a long haul. A booth hides the springboard at the foot of a lane between a booth and the duck pond; it
@@ -101,7 +101,7 @@ extension Levels {
     /// into the second pipe, which lets it out by the cup. B's cup is up-left too, through a door a ghost glides
     /// across: Same, struck so B's ball reaches the door while the ghost is away.
     static func ghostTrain() -> Level {
-        var l = Level("Ghost Train", par: [3, 3], hint: "The first ride keeps your heading. The ghost never stops.")
+        var l = Level("Ghost Train", par: [3, 3], hint: "The pipes keep your heading. The ghost never stops.")
         l.setting = "fireworks"
         l.frame()
         // A: the ride, three rooms split by two booths. Each pipe runs under a booth: the first keeps the ball's
@@ -128,7 +128,7 @@ extension Levels {
     /// touch left of straight up and fires the ball round to the cup: Mirror, timed for the blades.
     static func catherineWheel() -> Level {
         var l = Level("Catherine Wheel", par: [3, 3],
-                      hint: "The wheel bends every putt. The blades guard the way off.")
+                      hint: "The wheel bends every putt. Time the blades.")
         l.setting = "fireworks"
         l.frame()
         // A: the wheel fills the gap between two booths; a little rotor turns by the way off it to the cup.
@@ -219,7 +219,7 @@ extension Levels {
     /// bay, where the carousel swings it into the return pipe, which drops it on the pad that fires it into the cup, if
     /// the pace was right. B's ball runs straight up through the door the pinwheel sweeps. Mirror, between blades.
     static func grandFinale() -> Level {
-        var l = Level("Grand Finale", par: [3, 3], hint: "A takes the long way home. B waits for the pinwheel.")
+        var l = Level("Grand Finale", par: [3, 3], hint: "One ball goes the long way. The other times the pinwheel.")
         l.setting = "fireworks"
         l.frame()
         // A: a wall with one door; past it, the pipe over to B. The cup is sealed in the grandstand, where the return

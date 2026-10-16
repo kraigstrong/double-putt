@@ -79,8 +79,8 @@ enum TutorialStep: Int {
 
     var text: String {
         switch self {
-        case .aim: return "Drag anywhere and pull back to aim. Both balls get the shot."
-        case .mirror: return "Tap Mirror. The side you drag on aims exactly; the other ball flips."
+        case .aim: return "Pull back anywhere to aim. Both balls take the shot."
+        case .mirror: return "Tap Mirror. The other ball's shot flips."
         case .putt: return "Fine-tune with ‹ › or the power bar, then tap Putt."
         }
     }
@@ -304,7 +304,8 @@ final class GameModel {
         if levelIndex == 0 && !tutorialDone {
             tutorial = .aim
         } else if level.name == "Reflection" && !UserDefaults.standard.bool(forKey: "mirrorTaught") {
-            tutorial = .mirror
+            // Opened straight from Free Play on a fresh install: teach aiming first; the Mirror tip follows the drag.
+            tutorial = tutorialDone ? .mirror : .aim
         } else {
             tutorial = nil
         }
