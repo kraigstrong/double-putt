@@ -74,3 +74,52 @@ extension Painter {
         }
     }
 }
+
+extension Painter {
+    /// A gull from above, heading +x, wings across its path: `half` is each wing's reach, `sweep` how far back the
+    /// tips trail. Grey wings with black tips, white body and fanned tail.
+    func gull(half: CGFloat, sweep: CGFloat, color: UIColor? = nil) {
+        let white = color ?? UIColor(white: 0.97, alpha: 1), grey = color ?? UIColor(hex: 0xB9C2C9)
+        let tipColor = color ?? UIColor(hex: 0x2B2B2E)
+        for s: CGFloat in [-1, 1] {
+            // Crooked like a gull's: out and a little forward to the wrist, then swept back to a black tip.
+            let wrist = CGPoint(x: 2.2 - sweep * 0.2, y: s * half * 0.48)
+            let tip = CGPoint(x: -sweep, y: s * half)
+            let wing = CGMutablePath()
+            wing.move(to: CGPoint(x: 1.6, y: s * 0.8))
+            wing.addQuadCurve(to: wrist, control: CGPoint(x: 2.4, y: s * half * 0.25))
+            wing.addQuadCurve(to: tip, control: CGPoint(x: 1.0 - sweep * 0.3, y: s * half * 0.82))
+            wing.addQuadCurve(to: CGPoint(x: -0.6 - sweep * 0.4, y: s * half * 0.46), control: CGPoint(x: -sweep * 0.7, y: s * half * 0.7))
+            wing.addQuadCurve(to: CGPoint(x: -1.6, y: s * 0.8), control: CGPoint(x: -1.4, y: s * half * 0.2))
+            wing.closeSubpath()
+            fill(wing, grey)
+            clipped(wing) { fill(circle(tip, half * 0.22), tipColor) }
+        }
+        let tail = CGMutablePath()
+        tail.move(to: CGPoint(x: -2.5, y: 0.9))
+        tail.addLine(to: CGPoint(x: -5.6, y: 1.6))
+        tail.addLine(to: CGPoint(x: -5.6, y: -1.6))
+        tail.addLine(to: CGPoint(x: -2.5, y: -0.9))
+        tail.closeSubpath()
+        fill(tail, white)
+        fill(CGPath(ellipseIn: CGRect(x: -3.6, y: -1.2, width: 7.2, height: 2.4), transform: nil), white)
+        fill(circle(CGPoint(x: 3.9, y: 0), 1.3), white)
+        if color == nil {
+            let beak = CGMutablePath()
+            beak.move(to: CGPoint(x: 5, y: 0.4)); beak.addLine(to: CGPoint(x: 6.6, y: 0)); beak.addLine(to: CGPoint(x: 5, y: -0.4))
+            beak.closeSubpath()
+            fill(beak, UIColor(hex: 0xF2C230))
+        }
+    }
+}
+
+extension CourseArt {
+    /// Wingbeat frames for a gull (spread, mid, tucked, mid) and matching shadow frames; world units, heading +x.
+    static func gullFrames(ppu: CGFloat) -> (bird: [UIImage], shadow: [UIImage]) {
+        let rect = CGRect(x: -8, y: -11, width: 16, height: 22)
+        let poses: [(CGFloat, CGFloat)] = [(9.5, 2.4), (8, 3.2), (5.6, 3.8), (8, 3.2)]
+        let bird = poses.map { pose in render(rect, ppu: ppu) { p in p.gull(half: pose.0, sweep: pose.1) } }
+        let shadow = poses.map { pose in render(rect, ppu: ppu) { p in p.gull(half: pose.0, sweep: pose.1, color: .black) } }
+        return (bird, shadow)
+    }
+}

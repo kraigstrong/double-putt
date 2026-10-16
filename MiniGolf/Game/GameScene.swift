@@ -583,39 +583,42 @@ final class GameScene: SKScene {
         ambient = e
     }
 
-    /// Now and then a gull glides over the links, its shadow sliding across the ground below.
+    /// Now and then a gull flies over the links, head first, beating its wings a few times and then gliding, its
+    /// shadow flapping along the ground below.
     private func startGulls(in rect: CGRect) {
         let fly = SKAction.run { [weak self] in
             guard let self, !self.model.paused else { return }
-            let gull = SKNode()
-            gull.zPosition = 55
-            let wings = CGMutablePath()
-            wings.move(to: CGPoint(x: -8, y: -1))
-            wings.addQuadCurve(to: CGPoint(x: 0, y: 0), control: CGPoint(x: -4, y: 4))
-            wings.addQuadCurve(to: CGPoint(x: 8, y: -1), control: CGPoint(x: 4, y: 4))
-            let shadow = SKShapeNode(path: wings)
-            shadow.strokeColor = UIColor.black.withAlphaComponent(0.18)
-            shadow.lineWidth = 2
-            shadow.position = CGPoint(x: 14, y: -26)
-            let bird = SKShapeNode(path: wings)
-            bird.strokeColor = UIColor(white: 0.97, alpha: 1)
-            bird.lineWidth = 1.8
-            bird.lineCap = .round
-            for n in [shadow, bird] {
-                gull.addChild(n)
-                n.run(.repeatForever(.sequence([.scaleY(to: 0.45, duration: 0.22), .scaleY(to: 1, duration: 0.22),
-                                                .wait(forDuration: 0.5, withRange: 0.6)])))
-            }
+            let scale: CGFloat = 2.2
+            let frames = CourseArt.gullFrames(ppu: max(self.renderedPPU, 1) * 1.5 * scale)
+            let birdFrames = frames.bird.enumerated().map { k, img in self.texture("gull\(k)") { img } }
+            let shadowFrames = frames.shadow.enumerated().map { k, img in self.texture("gullShadow\(k)") { img } }
+            let size = CGSize(width: 16 * scale, height: 22 * scale)
+
             let fromLeft = Bool.random()
-            let y = CGFloat.random(in: rect.minY + 80...rect.maxY - 80)
-            gull.position = CGPoint(x: fromLeft ? rect.minX - 20 : rect.maxX + 20, y: y)
-            gull.xScale = fromLeft ? 1 : -1
+            let start = CGPoint(x: fromLeft ? rect.minX - 20 : rect.maxX + 20, y: .random(in: rect.minY + 80...rect.maxY - 80))
+            let end = CGPoint(x: fromLeft ? rect.maxX + 20 : rect.minX - 20, y: start.y + .random(in: -90...90))
+            let heading = atan2(end.y - start.y, end.x - start.x)
+
+            let gull = SKNode()
+            gull.position = start
+            gull.zPosition = 55
+            let shadow = SKSpriteNode(texture: shadowFrames[0], size: size)
+            shadow.alpha = 0.16
+            shadow.position = CGPoint(x: 22, y: -34)
+            let bird = SKSpriteNode(texture: birdFrames[0], size: size)
+            for (node, textures) in [(shadow, shadowFrames), (bird, birdFrames)] {
+                node.zRotation = heading
+                gull.addChild(node)
+                let beat = SKAction.animate(with: textures + [textures[0]], timePerFrame: 0.08)
+                node.run(.repeatForever(.sequence([.repeat(beat, count: 3), .wait(forDuration: 1.1, withRange: 0.8)])))
+            }
             self.worldNode.addChild(gull)
-            let dy = CGFloat.random(in: -60...60)
-            gull.run(.sequence([.move(to: CGPoint(x: fromLeft ? rect.maxX + 20 : rect.minX - 20, y: y + dy),
-                                      duration: .random(in: 6...9)), .removeFromParent()]))
+            let distance = hypot(end.x - start.x, end.y - start.y)
+            gull.run(.sequence([.move(to: end, duration: Double(distance) / .random(in: 60...80)), .removeFromParent()]))
         }
-        run(.repeatForever(.sequence([.wait(forDuration: 11, withRange: 8), fly])), withKey: "gulls")
+        // The first comes along soon after the pair loads, then every so often.
+        run(.sequence([.wait(forDuration: 3, withRange: 2), fly,
+                       .repeatForever(.sequence([.wait(forDuration: 11, withRange: 8), fly]))]), withKey: "gulls")
     }
 
     /// Every few seconds a firework bursts in the margins round the course (never over the green).
