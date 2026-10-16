@@ -51,7 +51,7 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
    xcodebuild archive -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
      -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-0.1-1.xcarchive
    xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-0.1-1.xcarchive \
-     -exportOptionsPlist .build/ExportOptions.plist -allowProvisioningUpdates
+     -exportOptionsPlist .build/ExportOptions.plist -exportPath .build/export -allowProvisioningUpdates
    ```
    where `ExportOptions.plist` has `method` `app-store-connect`, `destination` `upload` and `teamID` `MKACSCQ588`.
    Bump the build number (`CURRENT_PROJECT_VERSION`) for each upload.
