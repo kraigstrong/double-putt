@@ -12,7 +12,8 @@ played as a round. About ten courses are planned, each a little harder than the 
   green) is fine.
 - Scoring is per hole: every swing counts as a stroke on each hole whose ball is still out. Par per hole is 2 or 3.
   A **double ace** (both in on the first swing) is the jackpot and wins that pair's trophy.
-- The aim guide only shows each ball's direction and first bounce — never where it stops, and it ignores movers. So
+- The aim guide only shows each ball's direction and first bounce — never where it stops. It runs straight (slopes
+  and surfaces don't bend or slow it), ignores movers, and reaches further for a firmer putt. So
   the puzzle is reasoning about angles, banks, power, timing and mechanics.
 
 ## Read these first

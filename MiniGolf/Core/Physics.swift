@@ -580,20 +580,29 @@ struct World {
         mutating func add(_ p: Vec) { pieces[pieces.count - 1].points.append(p) }
     }
 
+    /// How far the short guide reaches for a putt at `power` (0...1): longer for a firmer putt, so a soft one doesn't
+    /// look like it will run the length of the course, but never the distance it will actually roll.
+    static func guideReach(power: Double) -> Double { 50 + 270 * min(max(power, 0), 1) }
+
     /// Trace each ball's path. With `fullPath` false, stops `afterContact` units after the ball's first contact
-    /// (or tunnel), or after `maxLength` units, whichever comes first. The full path predicts a swing struck
-    /// `lead` seconds from now on the movers' clock.
-    func guide(shot v: Vec, mirrored: Bool, fullPath: Bool, lead: Double = 0, afterContact: Double = 55, maxLength: Double = 320) -> [GuidePath] {
+    /// (or tunnel), or after the putt's reach (guideReach), whichever comes first. The full path predicts a swing
+    /// struck `lead` seconds from now on the movers' clock.
+    func guide(shot v: Vec, mirrored: Bool, fullPath: Bool, lead: Double = 0, afterContact: Double = 55) -> [GuidePath] {
         var w = self
+        let maxLength = Self.guideReach(power: v.length / Tuning.maxShotSpeed)
         if fullPath {
             w.time += lead
         } else {
-            // The short guide is an aim line, not a prediction: no friction, cups, water or movers, so it never
-            // shows where the ball stops, whether it drops, whether it reaches the water, or when to swing.
+            // The short guide is an aim line, not a prediction: straight and frictionless, with no slopes, surfaces,
+            // cups, water or movers, so it never shows the break, where the ball stops, whether it drops, whether
+            // it reaches the water, or when to swing. Reading the green is the player's job.
             w.frictionless = true
             w.cupTaken = w.cupTaken.map { _ in true }
             w.water = []
             w.surfaces = nil
+            w.slopes = []
+            w.mounds = []
+            w.terrain = Terrain()
             w.movers = []
         }
         w.shoot(v, mirrored: mirrored)
