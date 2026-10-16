@@ -25,7 +25,7 @@ extension Painter {
         // A faint edge round each sloped patch (a contoured hole's edge sits under its rails).
         clipped(felt) { stroke(region, UIColor.white.withAlphaComponent(0.2), 1) }
 
-        let gap = SlopeFlow.spacing, step = 4.0, buckets = 24
+        let gap = SlopeFlow.grid, step = 4.0, buckets = 24
         for side in [Side.a, .b] {
             let x0 = side.offset, x1 = side.offset + Course.half
             // Each hole spans the whole blue-to-red scale over its own sloped ground.

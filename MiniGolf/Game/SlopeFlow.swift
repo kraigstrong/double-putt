@@ -4,8 +4,10 @@ import Foundation
 /// faster where the ground is steeper and still where it's flat. They keep an even gap: where two flows meet in a
 /// dip the extra dots fade out, and where flows spread apart new ones fade in. A pure model; the scene draws it.
 struct SlopeFlow {
-    /// The grid square (six across a hole), and the gap the dots keep, in course units.
-    static let spacing = Course.half / 6
+    /// The grid square, five across a hole, in course units.
+    static let grid = Course.half / 5
+    /// The gap the dots keep along a line: wider than a square, so the grid carries the shape and the dots stay sparse.
+    static let dotGap = grid * 1.5
     /// Dot speed for each unit of pull along its line (units/s per units/s²).
     static let speedPerPull = 0.2
     /// Gentler pulls read as flat: the dots sit still.
@@ -40,7 +42,7 @@ struct SlopeFlow {
 
     init(level: Level) {
         guard level.hasGround else { return }
-        let gap = Self.spacing
+        let gap = Self.grid
         var x = gap
         while x < Course.width - 1 {
             if abs(x - Course.half) > 1 { addTracks(vertical: true, fixed: x, length: Course.height, level) }
@@ -69,8 +71,8 @@ struct SlopeFlow {
                         return abs(along) < Self.flatPull ? 0 : along * Self.speedPerPull
                     }
                     var t = Track(vertical: vertical, fixed: fixed, start: a, speeds: speeds)
-                    var d = a + Double.random(in: 0..<Self.spacing)
-                    while d <= t.end { t.dots.append(Dot(s: d, alpha: 1, phase: .steady)); d += Self.spacing }
+                    var d = a + Double.random(in: 0..<Self.dotGap)
+                    while d <= t.end { t.dots.append(Dot(s: d, alpha: 1, phase: .steady)); d += Self.dotGap }
                     tracks.append(t)
                 }
                 runStart = nil
@@ -101,7 +103,7 @@ struct SlopeFlow {
     }
 
     private static func step(_ t: inout Track, dt: Double) {
-        let gap = spacing
+        let gap = dotGap
         for k in t.dots.indices {
             t.dots[k].s += t.speed(at: t.dots[k].s) * dt
             switch t.dots[k].phase {
