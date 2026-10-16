@@ -186,6 +186,7 @@ final class GameScene: SKScene {
             guard hypot(dx, dy) > r * 0.9 else { return false }
             return !placed.contains { hypot($0.0.x - p.x, $0.0.y - p.y) < ($0.1 + r) * overlap }
         }
+        // Prop textures are cached by key across pairs, so keys carry the setting: each setting draws its own.
         func add(_ prop: CourseArt.Prop, key: String, at p: CGPoint, sway: Bool) {
             let node = SKSpriteNode(texture: texture(key) { prop.image }, size: prop.size)
             node.position = p
@@ -228,7 +229,7 @@ final class GameScene: SKScene {
             guard free(p, r, overlap: 0.75) else { continue }
             placed.append((p, r))
             let variant = k % 5
-            add(CourseArt.tree(theme, radius: 44, seed: seed &+ UInt64(variant), ppu: ppu), key: "tree\(variant)", at: p, sway: theme.trees != .tents)
+            add(CourseArt.tree(theme, radius: 44, seed: seed &+ UInt64(variant), ppu: ppu), key: "tree-\(theme.id)-\(variant)", at: p, sway: theme.trees != .tents)
             propsNode.children.last?.setScale(r / 44)
         }
         for k in 0..<120 {
@@ -240,10 +241,10 @@ final class GameScene: SKScene {
             let variant = k % 4
             if isRock {
                 let tone: UIColor? = theme.trees == .cactus ? theme.borderTop : theme.ground == .snow ? UIColor(hex: 0xAFC0CF) : nil
-                add(CourseArt.rock(radius: 8, seed: seed &+ 100 &+ UInt64(variant), ppu: ppu, tone: tone), key: "rock\(variant)", at: p, sway: false)
+                add(CourseArt.rock(radius: 8, seed: seed &+ 100 &+ UInt64(variant), ppu: ppu, tone: tone), key: "rock-\(theme.id)-\(variant)", at: p, sway: false)
                 propsNode.children.last?.setScale(r / 8)
             } else {
-                add(CourseArt.bush(theme, radius: 13, seed: seed &+ 200 &+ UInt64(variant), ppu: ppu), key: "bush\(variant)", at: p, sway: false)
+                add(CourseArt.bush(theme, radius: 13, seed: seed &+ 200 &+ UInt64(variant), ppu: ppu), key: "bush-\(theme.id)-\(variant)", at: p, sway: false)
                 propsNode.children.last?.setScale(r / 13)
             }
         }
