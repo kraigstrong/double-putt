@@ -57,13 +57,15 @@ enum DebugLevels {
         return l
     }
 
-    /// Painted surfaces: rough round a waisted green with a bunker on one hole; a green with a pond and a bunker on
-    /// the other.
+    /// Painted surfaces: rough round a waisted green with a bunker and a wide fringe apron on one hole; a green with a
+    /// pond and a bunker on the other. Only for looking at surfaces, not solved for a double ace.
     static func surfaceTest() -> Level {
         var l = Level("surfaceTest", par: [2, 2], hint: "")
         l.setting = "meadow"
         l.frame()
         l.ground(.rough, .a)
+        // A wide fringe apron off the upper lobe: painted first, it shows past the green's usual collar.
+        l.paint(.fringe, .a, [(12, 540), (70, 500), (75, 720), (12, 740)], smooth: true)
         l.green(.a, [(100, 90), (160, 110), (170, 300), (130, 450), (160, 640), (130, 760), (70, 760), (40, 640),
                      (70, 450), (30, 300), (40, 110)])
         l.paint(.sand, .a, [(140, 380), (185, 400), (185, 470), (150, 490), (125, 440)], smooth: true)
