@@ -77,6 +77,7 @@ enum CourseArt {
             case .pine: p.pine(radius: r, color: rng.pick(theme.canopies), &rng)
             case .round, .palm: p.canopy(radius: r, color: color, &rng, flowers: flowers)
             case .tents: p.balloons(radius: r, theme, &rng)
+            case .gorse: p.gorse(radius: r * 0.8, color: rng.pick(theme.canopies), theme, &rng)
             }
         }
         return Prop(image: img, size: rect.size)
@@ -746,6 +747,7 @@ struct Painter {
         switch t.ground {
         case .sand: sandGround(t, rect, &rng); return
         case .snow: snowGround(t, rect, &rng); return
+        case .links: linksGround(t, rect, &rng); return
         case .grass: break
         }
         let area = rect.width * rect.height
@@ -793,6 +795,7 @@ struct Painter {
         case .cactus: cactus(radius: r * 0.6, color: color, &rng)
         case .pine: pine(radius: r, color: color, &rng)
         case .tents: tent(radius: r * 0.9, color: color, t, &rng)
+        case .gorse: gorse(radius: r * 0.7, color: color, t, &rng)
         }
     }
 

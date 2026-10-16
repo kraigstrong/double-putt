@@ -3,9 +3,9 @@ import UIKit
 /// Visual setting for a hole pair. Everything is drawn in code from these values.
 struct Theme {
     enum Border { case wood, stone, painted }
-    enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust, confetti, sparks }
-    enum Ground { case grass, sand, snow }
-    enum Trees { case round, palm, cactus, pine, tents }
+    enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust, confetti, sparks, mist }
+    enum Ground { case grass, sand, snow, links }
+    enum Trees { case round, palm, cactus, pine, tents, gorse }
     enum Bed { case flowers, dune, rocks, snowbank, awning }
     enum Water { case pond, tidepool, ice }
     enum Post { case stone, buoy, lantern, balloon }
@@ -199,8 +199,25 @@ struct Theme {
         return t
     }()
 
+    // MARK: The Links (course 7): a windswept seaside links in the Bandon Dunes mould. Fescue and gorse, dry-stone
+    // walls, sea mist and gulls; greens shaped by fringe, rough, sand and water rather than walls.
+
+    static let links: Theme = {
+        var t = Theme()
+        t.id = "links"
+        t.rough = UIColor(hex: 0x8C9A5E); t.roughShade = UIColor(hex: 0x6E7E47); t.roughLight = UIColor(hex: 0xC2B57E)
+        t.feltLight = UIColor(hex: 0x58AD62); t.feltDark = UIColor(hex: 0x4D9F58)
+        t.border = .stone; t.borderTop = UIColor(hex: 0xB7B2A4); t.borderSide = UIColor(hex: 0x747068)
+        t.canopies = [UIColor(hex: 0x3D5C2E), UIColor(hex: 0x4A6A36), UIColor(hex: 0x34512A)]
+        t.flowers = [UIColor(hex: 0xF2C230), UIColor(hex: 0xFFE066), UIColor(hex: 0xB487C9)]
+        t.waterDeep = UIColor(hex: 0x2B5E78); t.waterShallow = UIColor(hex: 0x6CA6B5)
+        t.ground = .links; t.trees = .gorse; t.ambient = .mist
+        t.accent = UIColor(hex: 0xE2BE45)
+        return t
+    }()
+
     static let all: [String: Theme] = Dictionary(uniqueKeysWithValues:
-        [meadow, garden, moat, seaside, autumn, desert, winter, night, midway, bigtop, fireworks].map { ($0.id, $0) })
+        [meadow, garden, moat, seaside, autumn, desert, winter, night, midway, bigtop, fireworks, links].map { ($0.id, $0) })
 
     static func `for`(_ level: Level) -> Theme { all[level.setting] ?? .meadow }
 }

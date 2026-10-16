@@ -215,7 +215,7 @@ enum Levels {
     static let settingNames = [
         "meadow": "Spring Meadow", "garden": "Walled Garden", "moat": "Castle Moat", "seaside": "Seaside Boardwalk",
         "autumn": "Autumn Grove", "desert": "Desert Canyon", "winter": "Winter Village", "night": "Night Garden",
-        "midway": "Midway", "bigtop": "Big Top", "fireworks": "Fireworks",
+        "midway": "Midway", "bigtop": "Big Top", "fireworks": "Fireworks", "links": "Seaside Links",
     ]
 
     /// Every pair, in course order.

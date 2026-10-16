@@ -428,7 +428,9 @@ final class GameScene: SKScene {
             e.particleScaleRange = 1.2
             e.particleRotationRange = .pi * 2
             e.particleRotationSpeed = 0.6
+        removeAction(forKey: "gulls")
             e.particleAlpha = 0.9
+        if theme.ambient == .mist { startGulls(in: rect) }
         case .leaves:
             e.particleTexture = texture("leaf") { CourseArt.leaf(color: .white, pixels: 28) }
             e.particleColor = UIColor(hex: 0xE07B39)
@@ -534,13 +536,29 @@ final class GameScene: SKScene {
             e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [0, 0.8, 0.3, 0.8, 0], times: [0, 0.2, 0.5, 0.7, 1])
         }
         e.particleSize = CGSize(width: 2, height: 2)
-        if theme.ambient == .fireflies || theme.ambient == .motes { e.particleSize = CGSize(width: 40, height: 40) }
+        if theme.ambient == .fireflies || theme.ambient == .motes || theme.ambient == .mist { e.particleSize = CGSize(width: 40, height: 40) }
         e.targetNode = worldNode
         worldNode.addChild(e)
         e.advanceSimulationTime(20)
         ambient = e
     }
 
+        case .mist:
+            // Sea mist rolling in off the water from the left, faint enough to putt through.
+            e.position = CGPoint(x: rect.minX - 80, y: rect.midY)
+            e.particlePositionRange = CGVector(dx: 10, dy: rect.height)
+            e.particleTexture = texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
+            e.particleColor = .white
+            e.particleColorBlendFactor = 1
+            e.particleBirthRate = 0.45
+            e.particleLifetime = 48
+            e.particleSpeed = 14
+            e.particleSpeedRange = 5
+            e.emissionAngle = 0
+            e.emissionAngleRange = 0.15
+            e.particleScale = 4
+            e.particleScaleRange = 1.5
+            e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [0, 0.1, 0.1, 0], times: [0, 0.2, 0.8, 1])
     /// Every few seconds a firework bursts in the margins round the course (never over the green).
     private func startFireworks(in rect: CGRect) {
         let felt = CGRect(x: -80, y: -80, width: Course.width + 160, height: Course.height + 160)
@@ -565,6 +583,41 @@ final class GameScene: SKScene {
             e.particleLifetimeRange = 0.4
             e.particleSpeed = 70
             e.particleSpeedRange = 25
+    /// Now and then a gull glides over the links, its shadow sliding across the ground below.
+    private func startGulls(in rect: CGRect) {
+        let fly = SKAction.run { [weak self] in
+            guard let self, !self.model.paused else { return }
+            let gull = SKNode()
+            gull.zPosition = 55
+            let wings = CGMutablePath()
+            wings.move(to: CGPoint(x: -8, y: -1))
+            wings.addQuadCurve(to: CGPoint(x: 0, y: 0), control: CGPoint(x: -4, y: 4))
+            wings.addQuadCurve(to: CGPoint(x: 8, y: -1), control: CGPoint(x: 4, y: 4))
+            let shadow = SKShapeNode(path: wings)
+            shadow.strokeColor = UIColor.black.withAlphaComponent(0.18)
+            shadow.lineWidth = 2
+            shadow.position = CGPoint(x: 14, y: -26)
+            let bird = SKShapeNode(path: wings)
+            bird.strokeColor = UIColor(white: 0.97, alpha: 1)
+            bird.lineWidth = 1.8
+            bird.lineCap = .round
+            for n in [shadow, bird] {
+                gull.addChild(n)
+                n.run(.repeatForever(.sequence([.scaleY(to: 0.45, duration: 0.22), .scaleY(to: 1, duration: 0.22),
+                                                .wait(forDuration: 0.5, withRange: 0.6)])))
+            }
+            let fromLeft = Bool.random()
+            let y = CGFloat.random(in: rect.minY + 80...rect.maxY - 80)
+            gull.position = CGPoint(x: fromLeft ? rect.minX - 20 : rect.maxX + 20, y: y)
+            gull.xScale = fromLeft ? 1 : -1
+            self.worldNode.addChild(gull)
+            let dy = CGFloat.random(in: -60...60)
+            gull.run(.sequence([.move(to: CGPoint(x: fromLeft ? rect.maxX + 20 : rect.minX - 20, y: y + dy),
+                                      duration: .random(in: 6...9)), .removeFromParent()]))
+        }
+        run(.repeatForever(.sequence([.wait(forDuration: 11, withRange: 8), fly])), withKey: "gulls")
+    }
+
             e.emissionAngleRange = .pi * 2
             e.yAcceleration = -30
             e.particleScale = 0.8
