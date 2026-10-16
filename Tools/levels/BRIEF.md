@@ -24,7 +24,8 @@ played as a round. About ten courses are planned, each a little harder than the 
 ## Builder API (x/y are local to the side's hole: 0–200 wide; `.a` or `.b`)
 ```swift
 var l = Level("Name", par: [2, 3], hint: "One short teasing sentence.")
-l.setting = "desert"                 // meadow garden moat seaside autumn desert winter night
+l.setting = "links"                  // meadow garden moat seaside autumn desert winter night midway bigtop fireworks links
+l.bandon = true                      // Bandon the dachshund naps beside this pair (a few Links pairs)
 l.frame(gaps: [380...460])          // outer fence + middle wall; gaps = y-ranges where the middle wall is open
 l.tee(.a, x, y); l.cup(.a, x, y)    // and .b. Or l.cups = [Vec(..), Vec(..)] in global coords
 l.rail(.a, x1, y1, x2, y2)          // 8-unit-thick wall
