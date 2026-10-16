@@ -44,7 +44,7 @@ struct CoursesView: View {
             Button("Cancel", role: .cancel) {}
         } message: { _ in
             if let nine = game.roundNine, let round = game.round {
-                Text("Your \(nine.name) round in progress (pair \(round.current + 1)) will end.")
+                Text("This ends your \(nine.name) round. You're on pair \(round.current + 1).")
             }
         }
     }

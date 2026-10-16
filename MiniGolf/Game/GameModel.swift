@@ -79,8 +79,8 @@ enum TutorialStep: Int {
 
     var text: String {
         switch self {
-        case .aim: return "Drag anywhere and pull back to aim. Both balls get the shot."
-        case .mirror: return "Tap Mirror. The side you drag on aims exactly; the other ball flips."
+        case .aim: return "Pull back anywhere to aim. Both balls take the shot."
+        case .mirror: return "Tap Mirror. The other ball's shot flips."
         case .putt: return "Fine-tune with ‹ › or the power bar, then tap Putt."
         }
     }

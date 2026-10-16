@@ -26,7 +26,7 @@ struct ScorecardView: View {
                             Text(medal == .none ? "No medal this time" : "\(medal.title) medal")
                                 .font(.rounded(15, .heavy))
                                 .foregroundStyle(medal == .none ? .white.opacity(0.7) : Color.putt)
-                            Text([Medal.bronze, .silver, .gold].map { "\($0.title) ≤ \($0.threshold(par: par))" }.joined(separator: " · "))
+                            Text([Medal.bronze, .silver, .gold].map { "\($0.title) \($0.threshold(par: par))" }.joined(separator: " · "))
                                 .font(.rounded(11, .semibold))
                                 .foregroundStyle(.white.opacity(0.55))
                         }

@@ -608,7 +608,6 @@ private struct ResultCard: View {
         VStack(spacing: 4) {
             BallGlyph(index: i, size: 22)
             Text("\(game.strokes[i])").font(.rounded(34, .black).monospacedDigit())
-            Text(i == 0 ? "HOLE A" : "HOLE B").font(.rounded(10, .bold)).tracking(1).opacity(0.6)
         }
         .foregroundStyle(.white)
     }
