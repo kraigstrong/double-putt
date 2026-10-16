@@ -669,12 +669,10 @@ final class GameScene: SKScene {
         ballSpin[i] = simd_normalize(simd_quatf(angle: Float(dist / Tuning.ballRadius), axis: axis) * ballSpin[i])
     }
 
-    /// Turns ball `i` in place, about the vertical, so its stripe lies across the putt: it then tumbles end over end.
-    private func squareStripe(_ i: Int, to dir: Vec) {
-        let axis = ballSpin[i].act(simd_float3(0, 1, 0))
-        guard simd_length(simd_float2(axis.x, axis.y)) > 0.2 else { return }
-        let turn = (Float(atan2(dir.y, dir.x)) - atan2(axis.y, axis.x)).remainder(dividingBy: .pi)
-        ballSpin[i] = simd_normalize(simd_quatf(angle: turn, axis: simd_float3(0, 0, 1)) * ballSpin[i])
+    /// Sets ball `i` down for the putt the way a golfer would: stripe over the top, along the line. On a true roll it
+    /// then holds steady while the spots and dimples turn, and it twists as the ball curls.
+    private func lineUp(_ i: Int, to dir: Vec) {
+        ballSpin[i] = simd_quatf(angle: Float(atan2(dir.y, dir.x)), axis: simd_float3(0, 0, 1))
         showSpin(i)
     }
 
@@ -993,7 +991,7 @@ final class GameScene: SKScene {
                 continue
             }
             let dir = direction(aim, ball: i)
-            squareStripe(i, to: dir)
+            lineUp(i, to: dir)
             let back = Tuning.ballRadius + 3 + 26 * aim.power
             putter.removeAllActions()
             putter.alpha = 1
