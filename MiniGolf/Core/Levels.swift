@@ -38,6 +38,8 @@ struct Level {
     var kickers: [Kicker] = []
     var slopes: [Slope] = []
     var mounds: [Mound] = []
+    /// Smooth contoured ground (tilts, tiers, humps, hollows); see Terrain.swift.
+    var terrain = Terrain()
     var movers: [Mover] = []
     /// A known double ace, found by Tools/solver.
     var solution: Shot?

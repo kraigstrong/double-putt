@@ -125,6 +125,7 @@ func mechanics(_ l: Level) -> String {
     if !l.slopes.isEmpty { m.append("slopes") }
     if l.mounds.contains(where: { $0.strength > 0 }) { m.append("hills") }
     if l.mounds.contains(where: { $0.strength < 0 }) { m.append("bowls") }
+    if !l.terrain.isEmpty { m.append("contours") }
     if l.movers.contains(where: { if case .rotor = $0.kind { true } else { false } }) { m.append("rotors") }
     if l.movers.contains(where: { if case .slider = $0.kind { true } else { false } }) { m.append("sliders") }
     if l.movers.contains(where: { if case .carousel = $0.kind { true } else { false } }) { m.append("carousels") }

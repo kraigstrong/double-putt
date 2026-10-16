@@ -253,6 +253,7 @@ struct World {
     var kickers: [Kicker]
     var slopes: [Slope]
     var mounds: [Mound]
+    var terrain: Terrain
     var movers: [Mover]
     /// The movers' clock. It runs between swings too, so a swing starts wherever the movers are.
     var time = 0.0
@@ -272,6 +273,7 @@ struct World {
         kickers = level.kickers
         slopes = level.slopes
         mounds = level.mounds
+        terrain = level.terrain
         movers = level.movers
         moverCycle = level.moverCycle
     }
@@ -510,6 +512,7 @@ struct World {
                 let dist = d.length
                 if dist < m.radius && dist > 1 { b.vel += d * (m.strength * dt / dist) }
             }
+            if !terrain.isEmpty { b.vel += terrain.accel(at: b.pos) * dt }
 
             speed = b.vel.length
             let newSpeed = frictionless ? speed : (speed - Tuning.rollDecel * dt) * (1 - Tuning.drag * dt)
