@@ -35,6 +35,10 @@ l.tunnel(.a, x, y, .b, x, y, exitA: nil, exitB: 90)  // two-way pipe; exitX = de
 l.slope(.a, minX, minY, maxX, maxY, downhill: 0, strength: 140)  // constant push; strength ≤ 200
 l.hill(.b, x, y, radius: 50, strength: 140)   // pushes outward
 l.bowl(.b, x, y, radius: 50, strength: 140)   // pulls inward (great around a cup)
+l.tilt(.a, downhill: 0, strength: 60)        // contours (smooth, they add up): the whole hole leans
+l.tier(.a, x, y, downhill: 270, strength: 150, width: 40)  // a bank across the hole through (x, y), falling toward `downhill`°
+l.hump(.b, x, y, radius: 60, strength: 120)  // a rounded rise that sheds balls; flat again at `radius`
+l.hollow(.b, x, y, radius: 60, strength: 140) // a rounded dip that gathers them
 l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; blades at `phase` when the pair loads, then never stop
 l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
 l.kicker(.a, x, y, toward: 90, speed: 520)    // springboard pad (radius 13): launches a ball rolling onto it toward `toward`° at `speed`
@@ -57,6 +61,14 @@ Kickers and carousels (from course 4):
   the cup close beyond it. It turns at a steady rate, so its pull doesn't depend on when you swing (no timing
   window; `--report` leaves Timing blank), and the aim guide ignores it. A ball can't rest on a carousel; tees must
   be off the disk.
+
+Contours (from course 7):
+- **Tilt, tier, hump and hollow** add up into one smooth green per hole, unlike `slope` boxes, which switch on at their
+  edges. `strength` is each one's strongest pull in units/s²: a tier's is on its line (fading out `width` either
+  side), a hump's or hollow's a little over halfway out (flat again at `radius`). The total is capped at 200, so a
+  ball can always come to rest. Each hole's contours stay in that hole.
+- Players read them from the slope grid: blue is low, red is high, and the dots glide downhill, faster where it's
+  steeper. Keep a hole to two or three shapes so it reads at a glance.
 
 ## Your file
 Draft pairs in a scratch file under `Tools/levels/` (one per designer):

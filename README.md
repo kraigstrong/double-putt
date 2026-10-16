@@ -29,10 +29,12 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 - Per-hole scoring; each pair's par is the sum of its two holes (2 or 3 each).
 
 Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tunnels** (color-coded mouths,
-optional exit direction), **slopes** and round **hills / bowls**, **movers** (windmill rotors, sliding blocks) that
+optional exit direction), **slopes** and round **hills / bowls**, smooth **contours** (tilts, tiers, humps and
+hollows that blend into one green), **movers** (windmill rotors, sliding blocks) that
 never stop, so when you putt matters as much as how, and from Midway on, **kicker pads** (springboards that launch the
 ball a set way at a set speed) and **carousels** (spinning disks that drag the ball along with them). A ball that stops
-in a mover's path or on a carousel slides to the nearest clear spot that's no nearer a cup.
+in a mover's path or on a carousel slides to the nearest clear spot that's no nearer a cup. Sloped ground shows a grid
+tinted from blue (low) to red (high), with dots gliding along it downhill, faster where it's steeper.
 
 In Debug (Xcode) builds, long-press the title logo to toggle **dev mode** (every course unlocked; pause menu gets a
 full-path guide toggle, Show Ace and Reset). TestFlight and App Store builds don't have it.
