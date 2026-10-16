@@ -40,8 +40,9 @@ l.tier(.a, x, y, downhill: 270, strength: 150, width: 40)  // a bank across the 
 l.hump(.b, x, y, radius: 60, strength: 120)  // a rounded rise that sheds balls; flat again at `radius`
 l.hollow(.b, x, y, radius: 60, strength: 140) // a rounded dip that gathers them
 l.hump(nil, 200, 400, radius: 90, strength: 110) // nil instead of a hole: course coordinates, across both holes
-l.green(.a, [(100, 60), (170, 90), ...], smooth: true)  // a shaped green: walled edge, turf only inside (no frame())
-l.green([Vec(60, 80), Vec(340, 80), ...], smooth: true) // one green in course coordinates, e.g. shared by both holes
+l.ground(.rough, .a)                         // surfaces, painted in order (later covers earlier): a hole's base
+l.green(.a, [(100, 90), (160, 110), ...])    // a green in this shape (smooth by default) with a fringe collar
+l.paint(.sand, .a, [(140, 380), ...], smooth: true)  // any surface in any shape: .green .fringe .rough .sand .water
 l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; blades at `phase` when the pair loads, then never stop
 l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
 l.kicker(.a, x, y, toward: 90, speed: 520)    // springboard pad (radius 13): launches a ball rolling onto it toward `toward`° at `speed`
@@ -72,9 +73,11 @@ Contours (from course 7):
   ball can always come to rest. Each hole's contours stay in that hole.
 - Players read them from the slope grid: blue is low, red is high, and the dots glide downhill, faster where it's
   steeper. Keep a hole to two or three shapes so it reads at a glance.
-- **Shaped greens** replace `frame()`: each `green` is a closed outline with a wall round it, so balls bank off
-  the edge, and only its inside is turf. `smooth: true` runs a curve through the points (kidneys, peanuts);
-  otherwise the edges are straight (doglegs, diamonds). Keep tees and cups at least 20 units inside the edge.
+- **Surfaces** shape a green inside the usual `frame()`: paint a hole's base (`ground`, often rough), then greens,
+  bunkers and ponds as curvy (`smooth: true`) or angled shapes; later paint covers earlier and a green gets a
+  fringe collar. Balls roll across them: the same putt carries about 58% as far on fringe, 32% on rough and 13%
+  in sand (a firm putt crosses a few ball-lengths of bunker, a soft one dies in it), and painted water is a
+  hazard. The best pairs make one ball cross fringe or sand while the other stays on the green. Cups go on green.
 
 ## Your file
 Draft pairs in a scratch file under `Tools/levels/` (one per designer):

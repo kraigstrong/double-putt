@@ -30,8 +30,8 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 
 Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tunnels** (color-coded mouths,
 optional exit direction), **slopes** and round **hills / bowls**, smooth **contours** (tilts, tiers, humps and
-hollows that blend into one green), **shaped greens** (curvy or angled, walled all round, even one shared by
-both holes), **movers** (windmill rotors, sliding blocks) that
+hollows that blend into one green), **surfaces** (curvy or angled greens shaped by fringe, rough, sand and ponds,
+each slowing the ball differently), **movers** (windmill rotors, sliding blocks) that
 never stop, so when you putt matters as much as how, and from Midway on, **kicker pads** (springboards that launch the
 ball a set way at a set speed) and **carousels** (spinning disks that drag the ball along with them). A ball that stops
 in a mover's path or on a carousel slides to the nearest clear spot that's no nearer a cup. Sloped ground shows a grid
