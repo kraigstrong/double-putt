@@ -15,6 +15,8 @@ final class GameScene: SKScene {
     private var level: Level
     private var theme: Theme
     private var world: World
+    /// The dots gliding along the slope grid.
+    private var flow: SlopeFlow
     private var accumulator = 0.0
     private var lastUpdate: TimeInterval?
 
@@ -26,6 +28,8 @@ final class GameScene: SKScene {
     private let propsNode = SKNode()
     private let fxNode = SKNode()
     private let guideNode = SKNode()
+    private let flowNode = SKNode()
+    private var flowDots: [SKSpriteNode] = []
     private let dragNode = SKShapeNode()
     private var ballNodes: [SKNode] = []
     private var putters: [SKSpriteNode] = []
@@ -59,6 +63,7 @@ final class GameScene: SKScene {
         level = model.level
         theme = model.theme
         world = World(level: level)
+        flow = SlopeFlow(level: level)
         super.init(size: CGSize(width: 400, height: 800))
         scaleMode = .resizeFill
         backgroundColor = theme.rough
@@ -72,10 +77,11 @@ final class GameScene: SKScene {
         propsNode.zPosition = 30
         fxNode.zPosition = 12
         guideNode.zPosition = 8
+        flowNode.zPosition = 1
         dragNode.zPosition = 40
         dragNode.strokeColor = UIColor.white.withAlphaComponent(0.5)
         dragNode.lineCap = .round
-        for n in [groundNode, courseNode, propsNode, fxNode, guideNode, dragNode] as [SKNode] { worldNode.addChild(n) }
+        for n in [groundNode, courseNode, flowNode, propsNode, fxNode, guideNode, dragNode] as [SKNode] { worldNode.addChild(n) }
         loadLevel()
     }
 
@@ -647,10 +653,15 @@ final class GameScene: SKScene {
         removeAction(forKey: "demo")
         removeAction(forKey: "result")
         // Retrying a pair keeps the movers' clock, so they carry on instead of jumping back.
-        let clock = level.name == model.level.name ? world.time : 0
+        let same = level.name == model.level.name
+        let clock = same ? world.time : 0
         level = model.level
         theme = model.theme
         world = World(level: level)
+        if !same {
+            flow = SlopeFlow(level: level)
+            for dot in flowDots { dot.isHidden = true }
+        }
         world.time = clock
         accumulator = 0
         model.strokes = [0, 0]
@@ -703,6 +714,11 @@ final class GameScene: SKScene {
             syncMovers(at: world.time)
         }
 
+        if !model.paused && !flow.isEmpty {
+            flow.update(dt: dt)
+            drawFlow()
+        }
+
         let state = (aim: model.aim, canAim: model.canAim, full: model.fullPathGuide, side: model.aimSide)
         // The full-path guide (dev) depends on when you'd swing, so it follows the movers.
         let stale = state.full && !level.movers.isEmpty && currentTime - guideDrawnAt > 0.1
@@ -715,6 +731,25 @@ final class GameScene: SKScene {
     }
 
     private var ballsReleased = true
+
+    /// Draws the slope dots from a pool of sprites, growing it as needed.
+    private func drawFlow() {
+        var used = 0
+        flow.forEachDot { p, alpha in
+            if used == flowDots.count {
+                let dot = SKSpriteNode(texture: texture("flowDot") { CourseArt.softDot(pixels: 24, hardness: 0.7) },
+                                       size: CGSize(width: 4.4, height: 4.4))
+                flowNode.addChild(dot)
+                flowDots.append(dot)
+            }
+            let dot = flowDots[used]
+            dot.position = p.cg
+            dot.alpha = CGFloat(alpha) * 0.9
+            dot.isHidden = false
+            used += 1
+        }
+        for dot in flowDots[used...] where !dot.isHidden { dot.isHidden = true }
+    }
 
     private func handle(_ events: [PhysicsEvent], at time: TimeInterval) {
         for e in events {

@@ -9,52 +9,57 @@ enum TunnelColors {
 extension Painter {
     // MARK: Terrain
 
-    /// Tilted areas: shaded toward downhill with chevrons pointing the way the ball will drift.
-    func slopes(_ level: Level, _ t: Theme) {
-        for s in level.slopes {
-            let rect = CGRect(x: s.box.minX, y: s.box.minY, width: s.box.width, height: s.box.height)
-            let path = CourseArt.rounded(rect, 10, square: Corners(CourseArt.walledSides(s.box, level)))
-            let dir = s.accel.normalized
-            let c = CGPoint(x: rect.midX, y: rect.midY)
-            let reach = (abs(dir.x) * rect.width + abs(dir.y) * rect.height) / 2
-            linear(path, [UIColor.white.withAlphaComponent(0.16), UIColor.black.withAlphaComponent(0.16)],
-                   from: CGPoint(x: c.x - dir.x * reach, y: c.y - dir.y * reach),
-                   to: CGPoint(x: c.x + dir.x * reach, y: c.y + dir.y * reach))
-            clipped(path) {
-                let spacing: CGFloat = 34
-                let angle = atan2(dir.y, dir.x)
-                var y = rect.minY + spacing / 2
-                var row = 0
-                while y < rect.maxY {
-                    var x = rect.minX + spacing / 2 + (row % 2 == 0 ? 0 : spacing / 2)
-                    while x < rect.maxX {
-                        chevron(at: CGPoint(x: x, y: y), angle: angle, size: 6, color: UIColor.white.withAlphaComponent(0.32))
-                        x += spacing
-                    }
-                    y += spacing * 0.8
-                    row += 1
+    /// Sloped ground: a grid tinted by height, from blue at the low end of each hole to red at the high end. The
+    /// scene's dots (SlopeFlow) glide along its lines downhill, so the grid shows the shape and the dots the pull.
+    func slopeGrid(_ level: Level, _ t: Theme) {
+        guard level.hasGround else { return }
+        func rect(_ b: Box) -> CGRect { CGRect(x: b.minX, y: b.minY, width: b.width, height: b.height) }
+        var parts: [CGPath] = level.slopes.map { CourseArt.rounded(rect($0.box), 10, square: Corners(CourseArt.walledSides($0.box, level))) }
+        parts += level.mounds.map { circle(CGPoint(x: $0.center.x, y: $0.center.y), CGFloat($0.radius)) }
+        parts += level.terrain.features.map { CGPath(rect: rect($0.area), transform: nil) }
+        guard let first = parts.first else { return }
+        let region = parts.dropFirst().reduce(first) { $0.union($1) }
+        let r = Course.railRadius
+        let felt = CGPath(rect: CGRect(x: r, y: r, width: Course.width - 2 * r, height: Course.height - 2 * r), transform: nil)
+
+        // A faint edge round each sloped patch (a contoured hole's edge sits under its rails).
+        clipped(felt) { stroke(region, UIColor.white.withAlphaComponent(0.2), 1) }
+
+        let gap = SlopeFlow.spacing, step = 4.0, buckets = 24
+        for side in [Side.a, .b] {
+            let x0 = side.offset, x1 = side.offset + Course.half
+            // Each hole spans the whole blue-to-red scale over its own sloped ground.
+            var lo = Double.infinity, hi = -Double.infinity
+            for y in stride(from: 2.0, to: Course.height, by: step) {
+                for x in stride(from: x0 + 2, to: x1, by: step) where level.isSloped(at: Vec(x, y)) {
+                    let h = level.groundHeight(at: Vec(x, y))
+                    lo = min(lo, h); hi = max(hi, h)
                 }
             }
-            stroke(path, UIColor.white.withAlphaComponent(0.18), 1)
-        }
-    }
-
-    /// Hills (light center, arrows out) and bowls (dark center, arrows in), with contour rings.
-    func mounds(_ level: Level, _ t: Theme) {
-        for m in level.mounds {
-            let c = CGPoint(x: m.center.x, y: m.center.y)
-            let r = CGFloat(m.radius)
-            let hill = m.strength > 0
-            let disk = circle(c, r)
-            let inner = hill ? UIColor.white.withAlphaComponent(0.22) : UIColor.black.withAlphaComponent(0.26)
-            radial(disk, [inner, inner.withAlphaComponent(0)], center: CGPoint(x: c.x - (hill ? r * 0.15 : 0), y: c.y + (hill ? r * 0.15 : 0)), radius: r)
-            for k in 1...3 {
-                stroke(circle(c, r * CGFloat(k) / 3.4), (hill ? UIColor.white : UIColor.black).withAlphaComponent(0.13), 1)
+            guard lo <= hi else { continue }
+            // One path per colour band, so thousands of short segments stroke in a couple of dozen calls.
+            let paths = (0..<buckets).map { _ in CGMutablePath() }
+            func segment(_ a: Vec, _ b: Vec) {
+                let mid = Vec((a.x + b.x) / 2, (a.y + b.y) / 2)
+                guard level.isSloped(at: mid) else { return }
+                let f = hi - lo < 1e-3 ? 0.5 : (level.groundHeight(at: mid) - lo) / (hi - lo)
+                let k = max(0, min(buckets - 1, Int(f * Double(buckets))))
+                paths[k].move(to: CGPoint(x: a.x, y: a.y))
+                paths[k].addLine(to: CGPoint(x: b.x, y: b.y))
             }
-            for k in 0..<6 {
-                let a = CGFloat(k) / 6 * .pi * 2 + .pi / 6
-                let p = CGPoint(x: c.x + cos(a) * r * 0.66, y: c.y + sin(a) * r * 0.66)
-                chevron(at: p, angle: hill ? a : a + .pi, size: 5, color: UIColor.white.withAlphaComponent(0.35))
+            for x in stride(from: x0 + gap, to: x1 - 1, by: gap) {
+                for y in stride(from: 0, to: Course.height, by: step) { segment(Vec(x, y), Vec(x, y + step)) }
+            }
+            for y in stride(from: gap, to: Course.height - 1, by: gap) {
+                for x in stride(from: x0, to: x1, by: step) { segment(Vec(x, y), Vec(min(x + step, x1), y)) }
+            }
+            clipped(region) {
+                clipped(felt) {
+                    for k in 0..<buckets {
+                        let f = (CGFloat(k) + 0.5) / CGFloat(buckets)
+                        stroke(paths[k], UIColor(hue: (220 - 220 * f) / 360, saturation: 0.69, brightness: 0.94, alpha: 0.75), 1.3)
+                    }
+                }
             }
         }
     }
