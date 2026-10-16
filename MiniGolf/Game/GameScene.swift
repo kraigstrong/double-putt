@@ -41,9 +41,8 @@ final class GameScene: SKScene {
     private var flowDots: [SKSpriteNode] = []
     private let dragNode = SKShapeNode()
     private var ballNodes: [SKNode] = []
-    /// Each ball's orientation (ball → world) and where it was when last turned, so it rolls as it moves.
+    /// Each ball's orientation (ball → world), turned on every physics step so it rolls as it moves.
     private var ballSpin: [simd_quatf] = []
-    private var ballSpinAt: [Vec] = []
     /// Each ball's paint shader input: the world → ball rotation.
     private var spinUniforms: [SKUniform] = []
     private var putters: [SKSpriteNode] = []
@@ -583,7 +582,6 @@ final class GameScene: SKScene {
         spinUniforms = []
         if ballSpin.count != world.balls.count {
             ballSpin = world.balls.map { _ in simd_quatf(ix: 0, iy: 0, iz: 0, r: 1) }
-            ballSpinAt = world.balls.map(\.pos)
         }
         let px = 14 * renderedPPU * 1.5
         ballNodes = world.balls.indices.map { i in
@@ -660,11 +658,11 @@ final class GameScene: SKScene {
     }
     """
 
-    /// Rolls ball `i` along the ground by `d`: a turn of |d| / radius about the horizontal axis across its path.
+    /// Rolls ball `i` along the ground by one physics step's move `d`: a turn of |d| / radius about the horizontal
+    /// axis across its path. Per step, so a bounce mid-frame turns it the whole way round its path, not the chord.
     private func roll(_ i: Int, by d: Vec) {
         let dist = d.length
-        // Skip teleports (water, pipes), which aren't rolling.
-        guard dist > 0.001, dist < 40 else { return }
+        guard dist > 0.0001 else { return }
         let axis = simd_float3(Float(-d.y / dist), Float(d.x / dist), 0)
         ballSpin[i] = simd_normalize(simd_quatf(angle: Float(dist / Tuning.ballRadius), axis: axis) * ballSpin[i])
     }
@@ -693,9 +691,7 @@ final class GameScene: SKScene {
                 ballSpin[i] = simd_quatf(ix: 0, iy: 0, iz: 0, r: 1)
             } else if b.sunkIn == nil {
                 node.position = b.pos.cg
-                roll(i, by: b.pos - ballSpinAt[i])
             }
-            ballSpinAt[i] = b.pos
             showSpin(i)
             if let trail = node.childNode(withName: "trail") as? SKEmitterNode {
                 let speed = b.vel.length
@@ -752,8 +748,20 @@ final class GameScene: SKScene {
             accumulator += dt
             var events: [PhysicsEvent] = []
             while accumulator >= Tuning.dt {
+                let before = world.balls.map(\.pos), seen = events.count
                 world.step(&events)
                 accumulator -= Tuning.dt
+                // Pipes and water move a ball without rolling it.
+                var jumped: Set<Int> = []
+                for e in events[seen...] {
+                    switch e {
+                    case .tunnel(let b, _, _), .splash(let b, _): jumped.insert(b)
+                    default: break
+                    }
+                }
+                for i in world.balls.indices where !jumped.contains(i) && ballSpin.indices.contains(i) {
+                    roll(i, by: world.balls[i].pos - before[i])
+                }
             }
             handle(events, at: currentTime)
             syncBalls()
