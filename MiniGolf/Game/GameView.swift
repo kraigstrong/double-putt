@@ -497,7 +497,7 @@ private struct PauseMenu: View {
                         app.screen = .title
                     }
                 } else {
-                    PillButton(title: "Single Hole", symbol: "square.grid.3x3.fill", fill: .white.opacity(0.14), text: .white, height: 50) {
+                    PillButton(title: "Free Play", symbol: "square.grid.3x3.fill", fill: .white.opacity(0.14), text: .white, height: 50) {
                         game.paused = false
                         app.screen = .levels
                     }
@@ -587,7 +587,7 @@ private struct ResultCard: View {
                         }
                     } else {
                         PillButton(title: "Retry", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
-                        PillButton(title: game.isLastLevel ? "Pairs" : "Next", symbol: game.isLastLevel ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
+                        PillButton(title: game.isLastLevel ? "Free Play" : "Next", symbol: game.isLastLevel ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
                             if game.isLastLevel { app.screen = .levels } else { game.next() }
                         }
                     }

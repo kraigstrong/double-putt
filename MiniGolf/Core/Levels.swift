@@ -156,7 +156,7 @@ struct Level {
     }
 }
 
-/// A nine-pair course: played as a round, one cabinet on the trophy shelf, one section in Single Hole.
+/// A nine-pair course: played as a round, one cabinet on the trophy shelf, one section in Free Play.
 struct Nine: Identifiable, Equatable {
     let id: String
     let name: String

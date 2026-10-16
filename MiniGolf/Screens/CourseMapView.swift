@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Single Hole: every pair, grouped by nine and then by setting. Tapping one plays it on its own (outside a round).
+/// Free Play: every pair, grouped by nine and then by setting. Tapping one plays it on its own (outside a round).
 struct CourseMapView: View {
     let app: AppState
     private var game: GameModel { app.game }
@@ -31,7 +31,7 @@ struct CourseMapView: View {
                 GlassIconButton(symbol: "chevron.left", size: 42) { app.screen = .title }
                 Spacer()
                 VStack(spacing: 2) {
-                    Text("Single Hole").font(.rounded(24, .heavy))
+                    Text("Free Play").font(.rounded(24, .heavy))
                     Text(subtitle).font(.rounded(12, .semibold)).foregroundStyle(.white.opacity(0.6))
                 }
                 Spacer()

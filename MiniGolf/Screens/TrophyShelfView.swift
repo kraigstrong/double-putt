@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// One trophy per pair, won with a double ace (in a round or Single Hole). Each nine is a cabinet of three
+/// One trophy per pair, won with a double ace (in a round or Free Play). Each nine is a cabinet of three
 /// shelves; tapping a slot plays that pair.
 struct TrophyShelfView: View {
     let app: AppState

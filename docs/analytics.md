@@ -40,7 +40,7 @@ This file is the contract between the app (`MiniGolf/Game/Analytics.swift`) and 
   `fireworks`, and future ones). Not a fixed list on the server.
 - **Pair context** `{ course, pair, slug, revision }`: `pair` is its number in the course, integer 1–9; `slug` is
   its name in kebab case, `^[a-z][a-z0-9-]{0,47}$` (`twins`, `human-cannonball`).
-- **`mode`**: `round` (played in a course round) or `single` (Single Hole).
+- **`mode`**: `round` (played in a course round) or `single` (Free Play).
 
 ## Events
 
@@ -68,7 +68,7 @@ and leaving without swinging sends nothing and isn't numbered.
 ```
 | Field | Rule |
 |---|---|
-| `outcome` | `finished` (both balls in), `quit` (Restart Pair, leaving the round or Single Hole, or moving on), `abandoned` (the app was closed mid-pair; sent on the next launch) |
+| `outcome` | `finished` (both balls in), `quit` (Restart Pair, leaving the round or Free Play, or moving on), `abandoned` (the app was closed mid-pair; sent on the next launch) |
 | `replay` | `true` if this install had already finished the pair before this attempt |
 | `attempt` | integer 0–1000: `0` on a replay; otherwise this attempt's number among this install's attempts at the pair before its first finish (1 = first try); always `0` exactly when `replay` |
 | `strokes` | two integers 0–99, hole A then hole B (each includes water penalties); both ≥ 1 when `finished` |
