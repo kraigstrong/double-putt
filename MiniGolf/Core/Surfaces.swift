@@ -120,10 +120,44 @@ extension Level {
         paint(surface, s, [(0, 0), (w, 0), (w, Course.height), (0, Course.height)])
     }
 
-    /// A green in this shape, with a collar of fringe `fringe` wide round it.
-    mutating func green(_ s: Side?, _ points: [(Double, Double)], smooth: Bool = true, fringe: Double = 14) {
+    /// A green in this shape, with a collar of fringe `fringe` wide round it. `apron` widens the fringe at some of the
+    /// points (index → width), e.g. [3: 45]: the fringe swells out there and eases back to the collar either side.
+    mutating func green(_ s: Side?, _ points: [(Double, Double)], smooth: Bool = true, fringe: Double = 14,
+                        apron: [Int: Double] = [:]) {
         if fringe > 0 { paint(.fringe, s, points, smooth: smooth, pad: fringe) }
+        if !apron.isEmpty { paint(.fringe, s, Self.pushedOut(points) { apron[$0] ?? fringe }, smooth: smooth) }
         paint(.green, s, points, smooth: smooth)
+    }
+
+    /// Each point of a closed shape moved outward, along the bisector of its corner, by its own distance.
+    private static func pushedOut(_ points: [(Double, Double)], by distance: (Int) -> Double) -> [(Double, Double)] {
+        let p = points.map { Vec($0.0, $0.1) }, n = p.count
+        // Counter-clockwise (y up) puts the outside on each edge's right.
+        let area = p.indices.reduce(0.0) { $0 + p[$1].x * p[($1 + 1) % n].y - p[($1 + 1) % n].x * p[$1].y }
+        func outward(_ a: Vec, _ b: Vec) -> Vec {
+            let d = (b - a).normalized
+            return area > 0 ? Vec(d.y, -d.x) : Vec(-d.y, d.x)
+        }
+        return p.indices.map { i in
+            let out = (outward(p[(i - 1 + n) % n], p[i]) + outward(p[i], p[(i + 1) % n])).normalized
+            let q = p[i] + out * distance(i)
+            return (q.x, q.y)
+        }
+    }
+
+    /// Rough (or whatever's under it) should show between a green and the frame, so a green never looks cut off by a
+    /// rail: greens and their fringe keep at least this far from any wall's face. `--verify` checks it.
+    static let greenMargin = 12.0
+
+    /// How close any green or fringe comes to a wall's face (infinity with none).
+    var greenClearance: Double {
+        var closest = Double.infinity
+        for p in patches where p.surface == .green || p.surface == .fringe {
+            for v in p.outline {
+                for w in walls { closest = min(closest, (v - closestPoint(v, w.a, w.b)).length - w.radius - p.pad) }
+            }
+        }
+        return closest
     }
 
     /// The surface at `p`: the last patch painted there, or green.

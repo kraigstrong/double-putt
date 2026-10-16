@@ -183,10 +183,13 @@ if args.contains("--verify") {
         let ok = world.simulate(shot: shot.velocity, mirrored: shot.mirrored).world.allSunk
         // A tee in a mover's path would get relief before the first swing.
         let teesClear = !level.tees.contains { world.inMoverPath($0) }
-        failed = failed || !ok || !teesClear
+        // A green or its fringe run up to a rail looks cut off by the frame.
+        let roomy = level.greenClearance >= Level.greenMargin
+        failed = failed || !ok || !teesClear || !roomy
         let timing = level.hasTimedMovers ? String(format: " at %.2fs", level.solutionTime) : ""
         print("\(ok ? "✓" : "✗") \(level.name): \(shot.angle)° \(Int(shot.power * 100))%\(shot.mirrored ? " mirror" : "")\(timing)"
-              + (teesClear ? "" : "  ✗ a tee is in a mover's path"))
+              + (teesClear ? "" : "  ✗ a tee is in a mover's path")
+              + (roomy ? "" : String(format: "  ✗ a green comes within %.0f of a wall (needs %.0f)", level.greenClearance, Level.greenMargin)))
     }
     // Bests and trophies are saved by pair name, and a round is nine pairs.
     if shipped && filter == nil && courseFilter == nil {
