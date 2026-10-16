@@ -700,8 +700,9 @@ def purchase(app: str, screenshot: Path | None, dry_run: bool) -> int:
 # ASCC_REVIEW_FIRST_NAME, ASCC_REVIEW_LAST_NAME, ASCC_REVIEW_PHONE, ASCC_REVIEW_EMAIL. Missing ones are left as they are.
 TESTFLIGHT_LIMIT = 4000
 # Tester groups to have. An internal group (App Store Connect users) gets every build; an external one gets the builds
-# added to it, each version's first after Beta App Review.
-TESTFLIGHT_GROUPS = [{"name": "Internal", "internal": True}, {"name": "Friends", "internal": False}]
+# added to it, each version's first after Beta App Review. A public link lets anyone with it join, no invite needed.
+TESTFLIGHT_GROUPS = [{"name": "Internal", "internal": True},
+                     {"name": "Friends", "internal": False, "public_link": True}]
 
 
 def testflight_text(app: str) -> tuple[dict[str, dict[str, str]], str | None]:
@@ -840,10 +841,11 @@ def testflight(app: str, build_number: str | None, submit: bool, invite: list[st
         if submit:
             if state != "VALID":
                 raise SystemExit(f"build {build_number} is {state}: wait until it has finished processing")
-            on_build = {g["id"] for g in client.get(f"/v1/builds/{build['id']}/betaGroups?limit=50")}
             for name in external:
                 group = groups.get(name)
-                if group and group["id"] in on_build:
+                # A build's groups can't be listed, so look for the build among the group's.
+                if group and build["id"] in {b["id"] for b in
+                                             client.get_all(f"/v1/betaGroups/{group['id']}/builds?limit=200")}:
                     print(f"  build {build_number} -> group {name}: already added")
                     continue
                 print(f"  build {build_number} -> group {name}: {'would be added' if dry_run else 'added'}")
@@ -861,6 +863,22 @@ def testflight(app: str, build_number: str | None, submit: bool, invite: list[st
                     client.call("POST", "/v1/betaAppReviewSubmissions", {"data": {
                         "type": "betaAppReviewSubmissions",
                         "relationships": {"build": {"data": {"type": "builds", "id": build["id"]}}}}})
+
+    # Public links, after any build was added: testers who open one before a build is approved are told to wait.
+    for spec in TESTFLIGHT_GROUPS:
+        if not spec.get("public_link"):
+            continue
+        group = groups.get(spec["name"])
+        attrs = group["attributes"] if group else {}
+        if attrs.get("publicLinkEnabled"):
+            print(f"  group {spec['name']} public link: {attrs.get('publicLink')}")
+            continue
+        print(f"  group {spec['name']} public link: {'would be turned on' if dry_run else 'turned on'}")
+        changes += 1
+        if not dry_run:
+            updated = client.call("PATCH", f"/v1/betaGroups/{group['id']}", {"data": {
+                "type": "betaGroups", "id": group["id"], "attributes": {"publicLinkEnabled": True}}})
+            print(f"    {updated['data']['attributes'].get('publicLink')}")
     print(f"{changes} change{'' if changes == 1 else 's'} {'would be made' if dry_run else 'made'}.")
     return 0
 
