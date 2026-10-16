@@ -64,14 +64,14 @@ enum DebugLevels {
         l.setting = "meadow"
         l.frame()
         l.ground(.rough, .a)
-        // A wide fringe apron off the upper lobe: painted first, it shows past the green's usual collar.
-        l.paint(.fringe, .a, [(12, 540), (70, 500), (75, 720), (12, 740)], smooth: true)
-        l.green(.a, [(100, 90), (160, 110), (170, 300), (130, 450), (160, 640), (130, 760), (70, 760), (40, 640),
-                     (70, 450), (30, 300), (40, 110)])
+        // The fringe swells into a wide apron off the upper lobe's left side (point 7).
+        l.green(.a, [(100, 90), (150, 105), (160, 300), (128, 450), (156, 630), (132, 740), (76, 745), (52, 630),
+                     (72, 450), (40, 300), (50, 105)], apron: [7: 28])
         l.paint(.sand, .a, [(140, 380), (185, 400), (185, 470), (150, 490), (125, 440)], smooth: true)
         l.tilt(.a, downhill: 0, strength: 50)
         l.ground(.rough, .b)
-        l.green(.b, [(30, 60), (170, 60), (185, 400), (150, 760), (50, 760), (15, 400)])
+        l.green(.b, [(50, 85), (150, 85), (160, 300), (155, 560), (140, 700), (100, 735), (60, 700), (45, 560),
+                     (40, 300)])
         l.paint(.water, .b, [(60, 330), (140, 330), (150, 420), (100, 460), (50, 420)], smooth: true)
         l.paint(.sand, .b, [(120, 560), (180, 580), (175, 640), (130, 640)], smooth: true)
         l.tee(.a, 100, 130); l.tee(.b, 100, 120)

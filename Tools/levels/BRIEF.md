@@ -75,7 +75,9 @@ Contours (from course 7):
   steeper. Keep a hole to two or three shapes so it reads at a glance.
 - **Surfaces** shape a green inside the usual `frame()`: paint a hole's base (`ground`, often rough), then greens,
   bunkers and ponds as curvy (`smooth: true`) or angled shapes; later paint covers earlier and a green gets a
-  fringe collar (paint extra `.fringe` first for a wider apron in places). Balls roll across them: the same putt
+  fringe collar (`apron: [3: 30]` widens it at point 3, easing back to the collar either side). Leave rough showing
+  round every green: greens and fringe stay 12 units off every wall's face (`--verify` checks), and a smooth curve
+  bulges past its points, so add points where it should hug a line. Balls roll across them: the same putt
   carries about 72% as far on fringe, 46% on rough and 19% in sand (a firm putt crosses several ball-lengths of
   bunker, a soft one dies in it), and painted water is a hazard. The best pairs make one ball cross fringe or sand while the other stays on the green. Cups go on green.
 
