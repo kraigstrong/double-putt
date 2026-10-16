@@ -40,6 +40,8 @@ struct Level {
     var mounds: [Mound] = []
     /// Smooth contoured ground (tilts, tiers, humps, hollows); see Terrain.swift.
     var terrain = Terrain()
+    /// Painted surfaces (green, fringe, rough, sand, water) in order; none means green felt throughout. See Surfaces.swift.
+    var patches: [Patch] = []
     var movers: [Mover] = []
     /// A known double ace, found by Tools/solver.
     var solution: Shot?

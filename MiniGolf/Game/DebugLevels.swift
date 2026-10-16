@@ -1,7 +1,7 @@
 #if DEBUG
 // Mechanic test pairs for checking visuals: launch with `-tests 1`.
 enum DebugLevels {
-    static let all: [Level] = [tunnelTest(), slopeTest(), contourTest(), rotorTest(), sliderTest(),
+    static let all: [Level] = [tunnelTest(), slopeTest(), contourTest(), surfaceTest(), rotorTest(), sliderTest(),
                                funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]
 
     /// Kicker, carousel, balloon bumpers, a booth awning, a rail and a duck pond in one of the funfair looks.
@@ -54,6 +54,28 @@ enum DebugLevels {
         l.tilt(.b, downhill: 200, strength: 70)
         l.tier(.b, 100, 380, downhill: 290, strength: 150, width: 50)
         l.cup(.a, 130, 660); l.cup(.b, 70, 690)
+        return l
+    }
+
+    /// Painted surfaces: rough round a waisted green with a bunker and a wide fringe apron on one hole; a green with a
+    /// pond and a bunker on the other. Only for looking at surfaces, not solved for a double ace.
+    static func surfaceTest() -> Level {
+        var l = Level("surfaceTest", par: [2, 2], hint: "")
+        l.setting = "meadow"
+        l.frame()
+        l.ground(.rough, .a)
+        // The fringe swells into a wide apron off the upper lobe's left side (point 7).
+        l.green(.a, [(100, 90), (150, 105), (160, 300), (128, 450), (156, 630), (132, 740), (76, 745), (52, 630),
+                     (72, 450), (40, 300), (50, 105)], apron: [7: 28])
+        l.paint(.sand, .a, [(140, 380), (185, 400), (185, 470), (150, 490), (125, 440)], smooth: true)
+        l.tilt(.a, downhill: 0, strength: 50)
+        l.ground(.rough, .b)
+        l.green(.b, [(50, 85), (150, 85), (160, 300), (155, 560), (140, 700), (100, 735), (60, 700), (45, 560),
+                     (40, 300)])
+        l.paint(.water, .b, [(60, 330), (140, 330), (150, 420), (100, 460), (50, 420)], smooth: true)
+        l.paint(.sand, .b, [(120, 560), (180, 580), (175, 640), (130, 640)], smooth: true)
+        l.tee(.a, 100, 130); l.tee(.b, 100, 120)
+        l.cup(.a, 100, 690); l.cup(.b, 100, 700)
         return l
     }
 

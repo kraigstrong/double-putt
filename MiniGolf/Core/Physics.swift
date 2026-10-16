@@ -254,6 +254,8 @@ struct World {
     var slopes: [Slope]
     var mounds: [Mound]
     var terrain: Terrain
+    /// Painted surfaces, baked (nil: green felt throughout).
+    var surfaces: SurfaceMap?
     var movers: [Mover]
     /// The movers' clock. It runs between swings too, so a swing starts wherever the movers are.
     var time = 0.0
@@ -267,6 +269,7 @@ struct World {
         cups = level.cups
         cupTaken = level.cups.map { _ in false }
         walls = level.walls
+        surfaces = level.patches.isEmpty ? nil : SurfaceMap(level.patches)
         bumpers = level.bumpers
         water = level.water
         tunnels = level.tunnels
@@ -497,7 +500,8 @@ struct World {
                 if let k = b.onKicker, (b.pos - kickers[k].center).length > Kicker.radius + 2 { b.onKicker = nil }
             }
 
-            if water.contains(where: { $0.contains(b.pos) }) {
+            let ground = surfaces?.at(b.pos) ?? .green
+            if ground == .water || water.contains(where: { $0.contains(b.pos) }) {
                 events.append(.splash(ball: i, at: b.pos))
                 b.pos = b.restPos
                 b.vel = .zero
@@ -515,7 +519,7 @@ struct World {
             if !terrain.isEmpty { b.vel += terrain.accel(at: b.pos) * dt }
 
             speed = b.vel.length
-            let newSpeed = frictionless ? speed : (speed - Tuning.rollDecel * dt) * (1 - Tuning.drag * dt)
+            let newSpeed = frictionless ? speed : (speed - ground.rollDecel * dt) * (1 - ground.drag * dt)
             if newSpeed <= Tuning.stopSpeed && !overCup {
                 b.vel = .zero
             } else {
@@ -589,6 +593,7 @@ struct World {
             w.frictionless = true
             w.cupTaken = w.cupTaken.map { _ in true }
             w.water = []
+            w.surfaces = nil
             w.movers = []
         }
         w.shoot(v, mirrored: mirrored)
