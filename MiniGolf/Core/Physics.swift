@@ -242,46 +242,11 @@ enum Tuning {
     static let dt = 1.0 / 480.0
 }
 
-/// Walls bucketed by area, so a ball checks only the walls near it. Only busy layouts (shaped greens, whose curved
-/// edges are many short rails) use it; every other pair keeps the plain loop over all walls, unchanged.
-struct WallGrid {
-    static let threshold = 48
-    static let cell = 40.0
-    let cols: Int, rows: Int
-    /// Wall indices per cell, ascending, so walls near a ball resolve in the same order as the plain loop.
-    let cells: [[Int]]
-
-    init(walls: [Wall]) {
-        cols = Int((Course.width / Self.cell).rounded(.up))
-        rows = Int((Course.height / Self.cell).rounded(.up))
-        var cells = [[Int]](repeating: [], count: cols * rows)
-        for (k, w) in walls.enumerated() {
-            // Reach: anything a ball touching this wall could be, plus slack for pushes earlier in the same step.
-            let m = w.radius + Tuning.ballRadius + 8
-            let c0 = max(0, Int(((min(w.a.x, w.b.x) - m) / Self.cell).rounded(.down)))
-            let c1 = min(cols - 1, Int(((max(w.a.x, w.b.x) + m) / Self.cell).rounded(.down)))
-            let r0 = max(0, Int(((min(w.a.y, w.b.y) - m) / Self.cell).rounded(.down)))
-            let r1 = min(rows - 1, Int(((max(w.a.y, w.b.y) + m) / Self.cell).rounded(.down)))
-            guard c0 <= c1, r0 <= r1 else { continue }
-            for r in r0...r1 { for c in c0...c1 { cells[r * cols + c].append(k) } }
-        }
-        self.cells = cells
-    }
-
-    func near(_ p: Vec) -> [Int] {
-        let c = max(0, min(cols - 1, Int((p.x / Self.cell).rounded(.down))))
-        let r = max(0, min(rows - 1, Int((p.y / Self.cell).rounded(.down))))
-        return cells[r * cols + c]
-    }
-}
-
 struct World {
     var balls: [Ball]
     var cups: [Vec]
     var cupTaken: [Bool]
     var walls: [Wall]
-    /// Set for layouts with many walls (see WallGrid).
-    var wallGrid: WallGrid?
     var bumpers: [Bumper]
     var water: [Box]
     var tunnels: [Tunnel]
@@ -289,6 +254,8 @@ struct World {
     var slopes: [Slope]
     var mounds: [Mound]
     var terrain: Terrain
+    /// Painted surfaces, baked (nil: green felt throughout).
+    var surfaces: SurfaceMap?
     var movers: [Mover]
     /// The movers' clock. It runs between swings too, so a swing starts wherever the movers are.
     var time = 0.0
@@ -302,7 +269,7 @@ struct World {
         cups = level.cups
         cupTaken = level.cups.map { _ in false }
         walls = level.walls
-        wallGrid = walls.count > WallGrid.threshold ? WallGrid(walls: walls) : nil
+        surfaces = level.patches.isEmpty ? nil : SurfaceMap(level.patches)
         bumpers = level.bumpers
         water = level.water
         tunnels = level.tunnels
@@ -396,7 +363,7 @@ struct World {
             if wasMoving {
                 b.pos += b.vel * dt
 
-                func hit(_ w: Wall) {
+                for w in walls {
                     let q = closestPoint(b.pos, w.a, w.b)
                     let d = b.pos - q
                     let minDist = r + w.radius
@@ -410,11 +377,6 @@ struct World {
                             events.append(.wall(ball: i, speed: -vn))
                         }
                     }
-                }
-                if let grid = wallGrid {
-                    for k in grid.near(b.pos) { hit(walls[k]) }
-                } else {
-                    for w in walls { hit(w) }
                 }
 
                 for bp in bumpers {
@@ -538,7 +500,8 @@ struct World {
                 if let k = b.onKicker, (b.pos - kickers[k].center).length > Kicker.radius + 2 { b.onKicker = nil }
             }
 
-            if water.contains(where: { $0.contains(b.pos) }) {
+            let ground = surfaces?.at(b.pos) ?? .green
+            if ground == .water || water.contains(where: { $0.contains(b.pos) }) {
                 events.append(.splash(ball: i, at: b.pos))
                 b.pos = b.restPos
                 b.vel = .zero
@@ -556,7 +519,7 @@ struct World {
             if !terrain.isEmpty { b.vel += terrain.accel(at: b.pos) * dt }
 
             speed = b.vel.length
-            let newSpeed = frictionless ? speed : (speed - Tuning.rollDecel * dt) * (1 - Tuning.drag * dt)
+            let newSpeed = frictionless ? speed : (speed - ground.rollDecel * dt) * (1 - ground.drag * dt)
             if newSpeed <= Tuning.stopSpeed && !overCup {
                 b.vel = .zero
             } else {
@@ -630,6 +593,7 @@ struct World {
             w.frictionless = true
             w.cupTaken = w.cupTaken.map { _ in true }
             w.water = []
+            w.surfaces = nil
             w.movers = []
         }
         w.shoot(v, mirrored: mirrored)

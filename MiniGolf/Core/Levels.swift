@@ -40,8 +40,8 @@ struct Level {
     var mounds: [Mound] = []
     /// Smooth contoured ground (tilts, tiers, humps, hollows); see Terrain.swift.
     var terrain = Terrain()
-    /// Shaped greens (see Greens.swift); none means the usual rectangular frame.
-    var greens: [Green] = []
+    /// Painted surfaces (green, fringe, rough, sand, water) in order; none means green felt throughout. See Surfaces.swift.
+    var patches: [Patch] = []
     var movers: [Mover] = []
     /// A known double ace, found by Tools/solver.
     var solution: Shot?
@@ -69,7 +69,7 @@ struct Level {
         rails + blocks.flatMap { b -> [Wall] in
             let c = [Vec(b.minX, b.minY), Vec(b.maxX, b.minY), Vec(b.maxX, b.maxY), Vec(b.minX, b.maxY)]
             return (0..<4).map { Wall(a: c[$0], b: c[($0 + 1) % 4], radius: Course.blockRadius) }
-        } + greens.flatMap(\.edges)
+        }
     }
 
     // MARK: Builders (x/y are local to the side's hole)
