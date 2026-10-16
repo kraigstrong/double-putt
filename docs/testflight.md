@@ -90,3 +90,4 @@ The feedback email and the review contact are personal, so they come from the 1P
 
 | Build | Date | Source commit | Notes |
 |---|---|---|---|
+| 0.1 (1) | 2026-10-15 | `d146919` | First upload: six courses, analytics. Uploaded with `xcodebuild -exportArchive`. |
