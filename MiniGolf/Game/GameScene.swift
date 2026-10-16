@@ -1,8 +1,17 @@
 import SpriteKit
 import UIKit
+import simd
 
 extension Vec {
     var cg: CGPoint { CGPoint(x: x, y: y) }
+}
+
+extension UIColor {
+    var simd: simd_float4 {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        getRed(&r, green: &g, blue: &b, alpha: &a)
+        return simd_float4(Float(r), Float(g), Float(b), Float(a))
+    }
 }
 
 final class GameScene: SKScene {
@@ -32,6 +41,11 @@ final class GameScene: SKScene {
     private var flowDots: [SKSpriteNode] = []
     private let dragNode = SKShapeNode()
     private var ballNodes: [SKNode] = []
+    /// Each ball's orientation (ball → world) and where it was when last turned, so it rolls as it moves.
+    private var ballSpin: [simd_quatf] = []
+    private var ballSpinAt: [Vec] = []
+    /// Each ball's paint shader input: the world → ball rotation.
+    private var spinUniforms: [SKUniform] = []
     private var putters: [SKSpriteNode] = []
     /// One (sprite, shadow) per mover, in level order.
     private var moverNodes: [(body: SKSpriteNode, shadow: SKSpriteNode)] = []
@@ -566,6 +580,11 @@ final class GameScene: SKScene {
     private func buildBalls() {
         ballNodes.forEach { $0.removeFromParent() }
         putters.forEach { $0.removeFromParent() }
+        spinUniforms = []
+        if ballSpin.count != world.balls.count {
+            ballSpin = world.balls.map { _ in simd_quatf(ix: 0, iy: 0, iz: 0, r: 1) }
+            ballSpinAt = world.balls.map(\.pos)
+        }
         let px = 14 * renderedPPU * 1.5
         ballNodes = world.balls.indices.map { i in
             let node = SKNode()
@@ -578,9 +597,14 @@ final class GameScene: SKScene {
             node.addChild(shadow)
             let d = CGSize(width: Tuning.ballRadius * 2, height: Tuning.ballRadius * 2)
             let base = SKSpriteNode(texture: texture("ballBase") { CourseArt.ball(.base, pixels: px) }, size: d)
-            let stripe = SKSpriteNode(texture: texture("ballStripe\(i)") { CourseArt.ball(.stripe(Palette.hole(i)), pixels: px) }, size: d)
-            stripe.name = "stripe"
-            stripe.zRotation = .pi / 2
+            // The stripe, cap spots and dimples are painted on a turning sphere (see ballPaint), so they roll.
+            let stripe = SKSpriteNode(texture: texture("white") { CourseArt.softDot(pixels: 4, hardness: 1) }, size: d)
+            let spin = SKUniform(name: "u_rot", matrixFloat3x3: matrix_identity_float3x3)
+            let color = Palette.hole(i), sheen = color.lighter(0.18)
+            stripe.shader = SKShader(source: Self.ballPaint, uniforms: [
+                spin, SKUniform(name: "u_color", vectorFloat4: color.simd), SKUniform(name: "u_sheen", vectorFloat4: sheen.simd),
+            ])
+            spinUniforms.append(spin)
             let gloss = SKSpriteNode(texture: texture("ballGloss") { CourseArt.ball(.gloss, pixels: px) }, size: d)
             for (k, layer) in [base, stripe, gloss].enumerated() {
                 layer.zPosition = CGFloat(k) * 0.01
@@ -615,12 +639,48 @@ final class GameScene: SKScene {
         syncBalls(reset: true)
     }
 
-    /// Point a ball's stripe along a line (the stripe is symmetric, so take the nearer end).
-    private func turnStripe(_ i: Int, to angle: CGFloat, rate: CGFloat = 1) {
-        guard let stripe = ballNodes[i].childNode(withName: "stripe") else { return }
-        var d = (angle - stripe.zRotation).truncatingRemainder(dividingBy: .pi)
-        if d > .pi / 2 { d -= .pi } else if d < -.pi / 2 { d += .pi }
-        stripe.zRotation += d * rate
+    /// Paints a ball's stripe, two cap spots and its dimples on a sphere turned by `u_rot` (world → ball), so they
+    /// roll with it. The shading and shine layers above and below stay put: the light doesn't roll.
+    private static let ballPaint = """
+    void main() {
+        vec2 p = v_tex_coord * 2.0 - 1.0;
+        float r = length(p);
+        vec3 b = u_rot * vec3(p, sqrt(max(0.0, 1.0 - r * r)));
+        float aa = 0.06;
+        float band = 1.0 - smoothstep(0.32 - aa, 0.32 + aa, abs(b.y));
+        float sheen = smoothstep(0.18 - aa, 0.18 + aa, b.y) * band;
+        vec3 spot = normalize(vec3(0.55, 0.62, 0.56));
+        float spots = 1.0 - smoothstep(0.2 - aa, 0.2 + aa, min(distance(b, spot), distance(b, -spot)));
+        float paint = max(band, spots);
+        vec3 color = mix(u_color.rgb, u_sheen.rgb, sheen);
+        float dimple = 0.09 * (1.0 - smoothstep(0.14, 0.24, length(fract(b * 3.5) - 0.5)));
+        // No early return outside the disc: SpriteKit's Metal translation needs the one exit.
+        float edge = 1.0 - smoothstep(0.94, 1.0, r);
+        gl_FragColor = vec4(color * paint * (1.0 - dimple), paint + dimple * (1.0 - paint)) * edge;
+    }
+    """
+
+    /// Rolls ball `i` along the ground by `d`: a turn of |d| / radius about the horizontal axis across its path.
+    private func roll(_ i: Int, by d: Vec) {
+        let dist = d.length
+        // Skip teleports (water, pipes), which aren't rolling.
+        guard dist > 0.001, dist < 40 else { return }
+        let axis = simd_float3(Float(-d.y / dist), Float(d.x / dist), 0)
+        ballSpin[i] = simd_normalize(simd_quatf(angle: Float(dist / Tuning.ballRadius), axis: axis) * ballSpin[i])
+    }
+
+    /// Turns ball `i` in place, about the vertical, so its stripe lies across the putt: it then tumbles end over end.
+    private func squareStripe(_ i: Int, to dir: Vec) {
+        let axis = ballSpin[i].act(simd_float3(0, 1, 0))
+        guard simd_length(simd_float2(axis.x, axis.y)) > 0.2 else { return }
+        let turn = (Float(atan2(dir.y, dir.x)) - atan2(axis.y, axis.x)).remainder(dividingBy: .pi)
+        ballSpin[i] = simd_normalize(simd_quatf(angle: turn, axis: simd_float3(0, 0, 1)) * ballSpin[i])
+        showSpin(i)
+    }
+
+    private func showSpin(_ i: Int) {
+        guard spinUniforms.indices.contains(i) else { return }
+        spinUniforms[i].matrixFloat3x3Value = simd_float3x3(ballSpin[i].inverse)
     }
 
     private func syncBalls(reset: Bool = false) {
@@ -632,12 +692,13 @@ final class GameScene: SKScene {
                 node.alpha = b.sunkIn == nil ? 1 : 0
                 node.setScale(1)
                 node.position = b.pos.cg
+                ballSpin[i] = simd_quatf(ix: 0, iy: 0, iz: 0, r: 1)
             } else if b.sunkIn == nil {
                 node.position = b.pos.cg
+                roll(i, by: b.pos - ballSpinAt[i])
             }
-            if b.sunkIn == nil, b.vel.lengthSquared > 30 * 30 {
-                turnStripe(i, to: atan2(b.vel.y, b.vel.x), rate: 0.35)
-            }
+            ballSpinAt[i] = b.pos
+            showSpin(i)
             if let trail = node.childNode(withName: "trail") as? SKEmitterNode {
                 let speed = b.vel.length
                 trail.particleBirthRate = b.sunkIn == nil && speed > 120 ? CGFloat(min(speed / 8, 90)) : 0
@@ -932,7 +993,7 @@ final class GameScene: SKScene {
                 continue
             }
             let dir = direction(aim, ball: i)
-            turnStripe(i, to: atan2(dir.y, dir.x))
+            squareStripe(i, to: dir)
             let back = Tuning.ballRadius + 3 + 26 * aim.power
             putter.removeAllActions()
             putter.alpha = 1
