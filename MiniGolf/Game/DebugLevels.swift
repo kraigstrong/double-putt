@@ -61,7 +61,8 @@ enum DebugLevels {
     /// pond and a bunker on the other. Only for looking at surfaces, not solved for a double ace.
     static func surfaceTest() -> Level {
         var l = Level("surfaceTest", par: [2, 2], hint: "")
-        l.setting = "meadow"
+        l.setting = "links"
+        l.bandon = true
         l.frame()
         l.ground(.rough, .a)
         // The fringe swells into a wide apron off the upper lobe's left side (point 7).

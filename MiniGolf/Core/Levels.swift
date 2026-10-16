@@ -42,6 +42,8 @@ struct Level {
     var terrain = Terrain()
     /// Painted surfaces (green, fringe, rough, sand, water) in order; none means green felt throughout. See Surfaces.swift.
     var patches: [Patch] = []
+    /// Bandon, a cream long-haired dachshund, naps beside this pair (outside the play area, on a few Links holes).
+    var bandon = false
     var movers: [Mover] = []
     /// A known double ace, found by Tools/solver.
     var solution: Shot?

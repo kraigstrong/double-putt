@@ -198,6 +198,30 @@ final class GameScene: SKScene {
             }
             propsNode.addChild(node)
         }
+        if level.bandon {
+            // Bandon naps on the ground just right of the course, near the top: clear of the power meter and the
+            // buttons on a phone. His spot is kept clear of trees.
+            var spot = SeededRandom(seed: seed &+ 77)
+            let p = CGPoint(x: Course.width + CourseArt.borderOut + 26, y: Course.height - spot.range(50, 100))
+            let art = CourseArt.bandon(ppu: ppu)
+            let dog = SKNode()
+            dog.position = p
+            dog.zRotation = spot.unit() < 0.5 ? 0.12 : .pi - 0.12
+            let body = SKSpriteNode(texture: texture("bandon") { art.body.image }, size: art.body.size)
+            body.anchorPoint = CGPoint(x: 0.5, y: 20 / art.body.size.height)
+            let tail = SKSpriteNode(texture: texture("bandonTail") { art.tail.image }, size: art.tail.size)
+            tail.anchorPoint = CGPoint(x: 0.5, y: 16 / art.tail.size.height)
+            tail.position = CGPoint(x: 0, y: -16)
+            tail.zPosition = -0.1
+            dog.addChild(tail)
+            dog.addChild(body)
+            let wag = SKAction.sequence([.rotate(toAngle: 0.3, duration: 0.12), .rotate(toAngle: -0.3, duration: 0.12)])
+            tail.run(.repeatForever(.sequence([.repeat(wag, count: 4), .rotate(toAngle: 0, duration: 0.1),
+                                               .wait(forDuration: 3.5, withRange: 3)])))
+            body.run(.repeatForever(.sequence([.scaleX(to: 1.04, duration: 1.5), .scaleX(to: 1, duration: 1.5)])))
+            propsNode.addChild(dog)
+            placed.append((p, 32))
+        }
         for k in 0..<160 {
             let p = CGPoint(x: rng.range(rect.minX, rect.maxX), y: rng.range(rect.minY, rect.maxY))
             let r = rng.range(30, 52)
@@ -404,7 +428,9 @@ final class GameScene: SKScene {
         ambient?.removeFromParent()
         ambient = nil
         removeAction(forKey: "fireworks")
+        removeAction(forKey: "gulls")
         if theme.ambient == .sparks { startFireworks(in: rect) }
+        if theme.ambient == .mist { startGulls(in: rect) }
         let e = SKEmitterNode()
         e.position = CGPoint(x: rect.midX, y: rect.maxY + 10)
         e.particlePositionRange = CGVector(dx: rect.width * 1.2, dy: 10)
@@ -428,9 +454,7 @@ final class GameScene: SKScene {
             e.particleScaleRange = 1.2
             e.particleRotationRange = .pi * 2
             e.particleRotationSpeed = 0.6
-        removeAction(forKey: "gulls")
             e.particleAlpha = 0.9
-        if theme.ambient == .mist { startGulls(in: rect) }
         case .leaves:
             e.particleTexture = texture("leaf") { CourseArt.leaf(color: .white, pixels: 28) }
             e.particleColor = UIColor(hex: 0xE07B39)
@@ -519,6 +543,22 @@ final class GameScene: SKScene {
             e.particleScaleRange = 0.5
             e.particleScaleSpeed = -0.15
             e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [0, 1, 0.6, 0], times: [0, 0.15, 0.6, 1])
+        case .mist:
+            // Sea mist rolling in off the water from the left, faint enough to putt through.
+            e.position = CGPoint(x: rect.minX - 80, y: rect.midY)
+            e.particlePositionRange = CGVector(dx: 10, dy: rect.height)
+            e.particleTexture = texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
+            e.particleColor = .white
+            e.particleColorBlendFactor = 1
+            e.particleBirthRate = 0.45
+            e.particleLifetime = 48
+            e.particleSpeed = 14
+            e.particleSpeedRange = 5
+            e.emissionAngle = 0
+            e.emissionAngleRange = 0.15
+            e.particleScale = 4
+            e.particleScaleRange = 1.5
+            e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [0, 0.1, 0.1, 0], times: [0, 0.2, 0.8, 1])
         case .fireflies, .motes:
             e.position = CGPoint(x: rect.midX, y: rect.midY)
             e.particlePositionRange = CGVector(dx: rect.width, dy: rect.height)
@@ -543,46 +583,6 @@ final class GameScene: SKScene {
         ambient = e
     }
 
-        case .mist:
-            // Sea mist rolling in off the water from the left, faint enough to putt through.
-            e.position = CGPoint(x: rect.minX - 80, y: rect.midY)
-            e.particlePositionRange = CGVector(dx: 10, dy: rect.height)
-            e.particleTexture = texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
-            e.particleColor = .white
-            e.particleColorBlendFactor = 1
-            e.particleBirthRate = 0.45
-            e.particleLifetime = 48
-            e.particleSpeed = 14
-            e.particleSpeedRange = 5
-            e.emissionAngle = 0
-            e.emissionAngleRange = 0.15
-            e.particleScale = 4
-            e.particleScaleRange = 1.5
-            e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [0, 0.1, 0.1, 0], times: [0, 0.2, 0.8, 1])
-    /// Every few seconds a firework bursts in the margins round the course (never over the green).
-    private func startFireworks(in rect: CGRect) {
-        let felt = CGRect(x: -80, y: -80, width: Course.width + 160, height: Course.height + 160)
-        let burst = SKAction.run { [weak self] in
-            guard let self, !self.model.paused else { return }
-            var p = CGPoint.zero
-            for _ in 0..<12 {
-                p = CGPoint(x: CGFloat.random(in: rect.minX...rect.maxX), y: CGFloat.random(in: rect.minY...rect.maxY))
-                if !felt.contains(p) { break }
-            }
-            guard !felt.contains(p) else { return }
-            let e = SKEmitterNode()
-            e.particleTexture = self.texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
-            e.position = p
-            e.zPosition = 49
-            e.particleBlendMode = .add
-            e.particleColor = [UIColor(hex: 0xFF5DA2), UIColor(hex: 0x5DE2FF), UIColor(hex: 0xFFE45D), UIColor(hex: 0xB08CFF)].randomElement()!
-            e.particleColorBlendFactor = 1
-            e.numParticlesToEmit = 46
-            e.particleBirthRate = 600
-            e.particleLifetime = 1.3
-            e.particleLifetimeRange = 0.4
-            e.particleSpeed = 70
-            e.particleSpeedRange = 25
     /// Now and then a gull glides over the links, its shadow sliding across the ground below.
     private func startGulls(in rect: CGRect) {
         let fly = SKAction.run { [weak self] in
@@ -618,6 +618,30 @@ final class GameScene: SKScene {
         run(.repeatForever(.sequence([.wait(forDuration: 11, withRange: 8), fly])), withKey: "gulls")
     }
 
+    /// Every few seconds a firework bursts in the margins round the course (never over the green).
+    private func startFireworks(in rect: CGRect) {
+        let felt = CGRect(x: -80, y: -80, width: Course.width + 160, height: Course.height + 160)
+        let burst = SKAction.run { [weak self] in
+            guard let self, !self.model.paused else { return }
+            var p = CGPoint.zero
+            for _ in 0..<12 {
+                p = CGPoint(x: CGFloat.random(in: rect.minX...rect.maxX), y: CGFloat.random(in: rect.minY...rect.maxY))
+                if !felt.contains(p) { break }
+            }
+            guard !felt.contains(p) else { return }
+            let e = SKEmitterNode()
+            e.particleTexture = self.texture("mote") { CourseArt.softDot(pixels: 24, hardness: 0.15) }
+            e.position = p
+            e.zPosition = 49
+            e.particleBlendMode = .add
+            e.particleColor = [UIColor(hex: 0xFF5DA2), UIColor(hex: 0x5DE2FF), UIColor(hex: 0xFFE45D), UIColor(hex: 0xB08CFF)].randomElement()!
+            e.particleColorBlendFactor = 1
+            e.numParticlesToEmit = 46
+            e.particleBirthRate = 600
+            e.particleLifetime = 1.3
+            e.particleLifetimeRange = 0.4
+            e.particleSpeed = 70
+            e.particleSpeedRange = 25
             e.emissionAngleRange = .pi * 2
             e.yAcceleration = -30
             e.particleScale = 0.8
