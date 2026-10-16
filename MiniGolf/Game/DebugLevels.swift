@@ -1,7 +1,7 @@
 #if DEBUG
 // Mechanic test pairs for checking visuals: launch with `-tests 1`.
 enum DebugLevels {
-    static let all: [Level] = [tunnelTest(), slopeTest(), rotorTest(), sliderTest(),
+    static let all: [Level] = [tunnelTest(), slopeTest(), contourTest(), rotorTest(), sliderTest(),
                                funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]
 
     /// Kicker, carousel, balloon bumpers, a booth awning, a rail and a duck pond in one of the funfair looks.
@@ -38,6 +38,22 @@ enum DebugLevels {
         l.slope(.a, 0, 300, 200, 500, downhill: 0, strength: 160)
         l.bowl(.b, 100, 650, radius: 60)
         l.cup(.a, 150, 680); l.cup(.b, 100, 650)
+        return l
+    }
+
+    /// Smooth terrain: a lean, a tier, a hump and a hollow round the cup on one side; a lean and a tier on the other.
+    static func contourTest() -> Level {
+        var l = Level("contourTest", par: [2, 2], hint: "")
+        l.setting = "meadow"
+        l.frame()
+        l.tee(.a, 100, 110); l.tee(.b, 100, 110)
+        l.tilt(.a, downhill: 0, strength: 50)
+        l.tier(.a, 100, 450, downhill: 260, strength: 160, width: 35)
+        l.hump(.a, 60, 260, radius: 55, strength: 120)
+        l.hollow(.a, 130, 660, radius: 60, strength: 140)
+        l.tilt(.b, downhill: 200, strength: 70)
+        l.tier(.b, 100, 380, downhill: 290, strength: 150, width: 50)
+        l.cup(.a, 130, 660); l.cup(.b, 70, 690)
         return l
     }
 
