@@ -40,18 +40,18 @@ extension Painter {
         }
     }
 
-    /// Rough: long, darker grass in tufts.
+    /// Rough: long grass in the setting's rough colours (fescue on the links), in tufts leaning with the wind.
     private func rough(_ path: CGPath, _ t: Theme, _ rng: inout SeededRandom) {
         let b = path.boundingBox
-        let base = t.feltDark.darker(0.3)
+        let base = t.feltDark.mixed(with: t.roughShade, 0.55).darker(0.12)
         clipped(path) {
             fill(b, base)
             let tufts = Int(b.width * b.height / 30)
             for _ in 0..<tufts {
                 let p = CGPoint(x: rng.range(b.minX, b.maxX), y: rng.range(b.minY, b.maxY))
-                let a = rng.range(-0.5, 0.5) + .pi / 2, len = rng.range(3, 6)
+                let a = rng.range(0.95, 1.45), len = rng.range(3, 6)
                 let blade = CourseArt.line(p, CGPoint(x: p.x + cos(a) * len, y: p.y + sin(a) * len))
-                stroke(blade, (rng.unit() < 0.5 ? base.darker(0.2) : base.lighter(0.16)).withAlphaComponent(0.8), 1)
+                stroke(blade, (rng.unit() < 0.5 ? base.darker(0.2) : t.roughLight.mixed(with: base, 0.4)).withAlphaComponent(0.8), 1)
             }
             noise(alpha: 0.2)
         }
