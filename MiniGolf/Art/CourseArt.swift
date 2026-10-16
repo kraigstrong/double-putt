@@ -14,14 +14,9 @@ enum CourseArt {
     static func course(_ level: Level, theme: Theme, ppu: CGFloat) -> UIImage {
         render(courseRect, ppu: ppu) { p in
             var rng = SeededRandom(seed: stableSeed(level.name))
-            // Shaped greens sit on open ground; everything else is framed felt.
-            let shaped = !level.greens.isEmpty
-            if shaped {
-                p.greens(level, theme)
-            } else {
-                p.courseShadow()
-                p.felt(theme)
-            }
+            p.courseShadow()
+            p.felt(theme)
+            p.surfaces(level, theme, &rng)
             p.slopeGrid(level, theme)
             p.water(level, theme, &rng)
             p.tees(level, theme)
@@ -29,11 +24,11 @@ enum CourseArt {
             p.tunnels(level, theme)
             p.kickers(level, theme)
             p.shadow(dx: 2.6, dy: -3.6, blur: 4.5, alpha: 0.4) {
-                if shaped { p.greenEdgeShapes(level, fill: .black) } else { p.borderShape(fill: .black) }
+                p.borderShape(fill: .black)
                 p.railShapes(level, fill: .black)
                 p.blockShapes(level, fill: .black)
             }
-            if shaped { p.greenEdges(level, theme) } else { p.border(theme, &rng) }
+            p.border(theme, &rng)
             p.rails(level, theme, &rng)
             p.blocks(level, theme, &rng)
             if theme.snowCaps { p.snowCaps(level, theme) }
@@ -432,41 +427,44 @@ struct Painter {
     }
 
     func water(_ level: Level, _ t: Theme, _ rng: inout SeededRandom) {
-        for water in CourseArt.ponds(level) {
-            switch t.water {
-            case .tidepool: tidepool(water, t, &rng); continue
-            case .ice: ice(water, t, &rng); continue
-            case .pond: break
-            }
-            let pond = water.path, bounds = water.bounds
-            // Sandy bank: a band hugging the water's edge (the inner half is covered by the water).
-            stroke(pond, UIColor(hex: 0xE3D3A6).withAlphaComponent(0.9), 5)
-            radial(pond, [t.waterDeep, t.waterDeep.mixed(with: t.waterShallow, 0.5), t.waterShallow],
-                   locations: [0, 0.55, 1], center: CGPoint(x: bounds.midX, y: bounds.midY), radius: max(bounds.width, bounds.height) * 0.62)
-            clipped(pond) {
-                // Bank shadow on the near edges.
-                shadow(dx: 3, dy: -4, blur: 6, alpha: 0.55) {
-                    let ring = CGMutablePath()
-                    ring.addRect(bounds.insetBy(dx: -30, dy: -30))
-                    ring.addPath(pond)
-                    fill(ring, .black, evenOdd: true)
-                }
-                for rect in water.parts {
-                    if t.ducks {
-                        let count = min(3, max(1, Int(rect.width * rect.height / 9000)))
-                        for _ in 0..<count {
-                            duck(at: CGPoint(x: rng.range(rect.minX + 8, max(rect.minX + 8, rect.maxX - 8)),
-                                             y: rng.range(rect.minY + 6, max(rect.minY + 6, rect.maxY - 6))),
-                                 facing: rng.unit() < 0.5 ? -1 : 1)
-                        }
-                    } else {
-                        lilies(rect, &rng)
-                    }
-                }
-            }
-            stroke(pond, UIColor.white.withAlphaComponent(0.45), 1.2)
-            for rect in water.parts { reeds(rect, &rng) }
+        for water in CourseArt.ponds(level) { pond(water, t, &rng) }
+    }
+
+    /// One pond in the setting's water style (painted ponds call this too).
+    func pond(_ water: CourseArt.Pond, _ t: Theme, _ rng: inout SeededRandom) {
+        switch t.water {
+        case .tidepool: tidepool(water, t, &rng); return
+        case .ice: ice(water, t, &rng); return
+        case .pond: break
         }
+        let pond = water.path, bounds = water.bounds
+        // Sandy bank: a band hugging the water's edge (the inner half is covered by the water).
+        stroke(pond, UIColor(hex: 0xE3D3A6).withAlphaComponent(0.9), 5)
+        radial(pond, [t.waterDeep, t.waterDeep.mixed(with: t.waterShallow, 0.5), t.waterShallow],
+               locations: [0, 0.55, 1], center: CGPoint(x: bounds.midX, y: bounds.midY), radius: max(bounds.width, bounds.height) * 0.62)
+        clipped(pond) {
+            // Bank shadow on the near edges.
+            shadow(dx: 3, dy: -4, blur: 6, alpha: 0.55) {
+                let ring = CGMutablePath()
+                ring.addRect(bounds.insetBy(dx: -30, dy: -30))
+                ring.addPath(pond)
+                fill(ring, .black, evenOdd: true)
+            }
+            for rect in water.parts {
+                if t.ducks {
+                    let count = min(3, max(1, Int(rect.width * rect.height / 9000)))
+                    for _ in 0..<count {
+                        duck(at: CGPoint(x: rng.range(rect.minX + 8, max(rect.minX + 8, rect.maxX - 8)),
+                                         y: rng.range(rect.minY + 6, max(rect.minY + 6, rect.maxY - 6))),
+                             facing: rng.unit() < 0.5 ? -1 : 1)
+                    }
+                } else {
+                    lilies(rect, &rng)
+                }
+            }
+        }
+        stroke(pond, UIColor.white.withAlphaComponent(0.45), 1.2)
+        for rect in water.parts { reeds(rect, &rng) }
     }
 
     /// Ripples and lily pads on one box of a pond (called inside the pond's clip).

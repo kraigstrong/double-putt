@@ -19,7 +19,8 @@ extension Painter {
         parts += level.terrain.features.map { CGPath(rect: rect($0.area), transform: nil) }
         guard let first = parts.first else { return }
         var region = parts.dropFirst().reduce(first) { $0.union($1) }
-        if let greens = greensPath(level) { region = region.intersection(greens) }
+        // No grid on sand or water.
+        for p in level.patches where !p.surface.isTurf { region = region.subtracting(patchPath(p)) }
         let r = Course.railRadius
         let felt = CGPath(rect: CGRect(x: r, y: r, width: Course.width - 2 * r, height: Course.height - 2 * r), transform: nil)
 
