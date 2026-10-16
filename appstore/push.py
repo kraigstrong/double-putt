@@ -6,10 +6,14 @@
     python3 appstore/push.py push --app double-putt --dry-run   # what would change, field by field
     python3 appstore/push.py push --app double-putt             # push it (only the fields that differ)
     python3 appstore/push.py push --app double-putt --only promotional_text,description
+    python3 appstore/push.py testflight --app double-putt --dry-run    # TestFlight's test information and groups
+    python3 appstore/push.py testflight --app double-putt --build 1 --dry-run           # and build 1's What to Test
+    python3 appstore/push.py testflight --app double-putt --build 1 --submit --dry-run  # to Friends, beta review
+    python3 appstore/push.py testflight --app double-putt --invite EMAIL --dry-run      # a tester, to Friends
     python3 appstore/push.py media --app double-putt --screenshots DIR [DIR ...] --creative FILE --dry-run
 
-The text lives in appstore/<app>/app/<locale>/<field>.txt, and any in-app purchase's display name and description in
-appstore/<app>/iap/<folder>/<locale>/. A push writes to the version that's still editable (Prepare for Submission and
+The text lives in appstore/<app>/app/<locale>/<field>.txt, TestFlight's in appstore/<app>/testflight/, and any in-app
+purchase's display name and description in appstore/<app>/iap/<folder>/<locale>/. A push writes to the version that's still editable (Prepare for Submission and
 the like), so nothing goes public until that version is submitted and released.
 
 Credentials come from the 1Password Environment "App Store Connect", mounted at ~/.appstoreconnect/.env (another path
@@ -17,7 +21,7 @@ with ASCC_ENV_FILE), or from the process environment: ASCC_KEY_ID, ASCC_ISSUER_I
 .p8), and ASCC_APP_ID_<APP> (each app's numeric Apple ID). Nothing secret is written to disk or printed. Talking to the
 API needs the cryptography package (python3 -m pip install --user cryptography); validate needs nothing.
 
-Copied from Bigger Fish's appstore/push.py (adapted from a friend's App Store listing kit).
+Copied from Bigger Fish's appstore/push.py (adapted from a friend's App Store listing kit), with `testflight` added.
 """
 from __future__ import annotations
 
@@ -142,6 +146,16 @@ def validate(apps: list[str]) -> int:
             found = problems(app, locale)
             sizes = ", ".join(f"{name} {measure(name, value)}/{FIELDS[name][2]}" for name, value in listing(app, locale).items())
             print(f"{app} {locale}: {'ok' if not found else 'NOT OK'} ({sizes})")
+            for problem in found:
+                print(f"  - {problem}")
+            bad += len(found)
+        per_locale, notes = testflight_text(app)
+        if per_locale or notes is not None:
+            found = testflight_problems(app)
+            sizes = ", ".join([f"{loc} {n} {len(t)}/{TESTFLIGHT_LIMIT}" for loc, f in per_locale.items()
+                               for n, t in f.items()] + ([f"review_notes {len(notes)}/{TESTFLIGHT_LIMIT}"]
+                                                         if notes is not None else []))
+            print(f"{app} testflight: {'ok' if not found else 'NOT OK'} ({sizes})")
             for problem in found:
                 print(f"  - {problem}")
             bad += len(found)
@@ -677,6 +691,172 @@ def purchase(app: str, screenshot: Path | None, dry_run: bool) -> int:
     return 0
 
 
+# --------------------------------------------------------------------------------------------------------------------
+# TestFlight: the test information testers and Beta App Review see, and the tester groups
+
+# Text from appstore/<app>/testflight/: <locale>/description.txt (the beta app description), <locale>/what_to_test.txt
+# (a build's What to Test) and review_notes.txt (notes for Beta App Review). The feedback email and the review contact
+# are personal, so they come from the 1Password Environment, not the repo: ASCC_BETA_FEEDBACK_EMAIL, and
+# ASCC_REVIEW_FIRST_NAME, ASCC_REVIEW_LAST_NAME, ASCC_REVIEW_PHONE, ASCC_REVIEW_EMAIL. Missing ones are left as they are.
+TESTFLIGHT_LIMIT = 4000
+# Tester groups to have. An internal group (App Store Connect users) gets every build; an external one gets the builds
+# added to it, each version's first after Beta App Review.
+TESTFLIGHT_GROUPS = [{"name": "Internal", "internal": True}, {"name": "Friends", "internal": False}]
+
+
+def testflight_text(app: str) -> tuple[dict[str, dict[str, str]], str | None]:
+    base = HERE / app / "testflight"
+    per_locale = {}
+    if base.exists():
+        for folder in sorted(p for p in base.iterdir() if p.is_dir()):
+            fields = {n: t for n in ("description", "what_to_test") if (t := read(folder / f"{n}.txt")) is not None}
+            if fields:
+                per_locale[folder.name] = fields
+    return per_locale, read(base / "review_notes.txt")
+
+
+def testflight_problems(app: str) -> list[str]:
+    per_locale, notes = testflight_text(app)
+    texts = [(f"{loc} {n}", t) for loc, f in per_locale.items() for n, t in f.items()]
+    if notes is not None:
+        texts.append(("review_notes", notes))
+    return [f"{name} is {len(text)} characters (limit {TESTFLIGHT_LIMIT})" if text.strip() else f"{name} is empty"
+            for name, text in texts if len(text) > TESTFLIGHT_LIMIT or not text.strip()]
+
+
+def testflight(app: str, build_number: str | None, submit: bool, invite: list[str], dry_run: bool) -> int:
+    if found := testflight_problems(app):
+        raise SystemExit("Fix the TestFlight text first:\n  - " + "\n  - ".join(found))
+    per_locale, notes = testflight_text(app)
+    load_credentials()
+    app_id = os.environ.get(APPS[app]["app_id_env"])
+    if not app_id:
+        raise SystemExit(f"missing {APPS[app]['app_id_env']} (the app's numeric Apple ID) in the 1Password Environment")
+    client = Client()
+    print(f"{app}: TestFlight" + (" — dry run, nothing is written" if dry_run else ""))
+    changes = 0
+
+    # Test information, per locale: description, feedback email, and the listing's privacy policy and marketing links.
+    locs = {l["attributes"]["locale"]: l for l in client.get(f"/v1/apps/{app_id}/betaAppLocalizations?limit=50")}
+    for locale, fields in per_locale.items():
+        print(f"[{locale}]")
+        attrs = {}
+        if "description" in fields:
+            attrs["description"] = fields["description"]
+        if os.environ.get("ASCC_BETA_FEEDBACK_EMAIL"):
+            attrs["feedbackEmail"] = os.environ["ASCC_BETA_FEEDBACK_EMAIL"]
+        else:
+            print("  feedback email: ASCC_BETA_FEEDBACK_EMAIL isn't set, left as it is")
+        text = listing(app, locale)
+        for name, attribute in (("privacy_policy_url", "privacyPolicyUrl"), ("marketing_url", "marketingUrl")):
+            if name in text:
+                attrs[attribute] = text[name]
+        changes += upsert(client, "betaAppLocalizations", locs.get(locale), attrs, ("app", "apps", app_id),
+                          locale, dry_run, "test information")
+
+    # Beta App Review: the notes, the contact, and no sign-in needed.
+    detail = client.get_one(f"/v1/apps/{app_id}/betaAppReviewDetail")
+    if detail:
+        wanted = {"demoAccountRequired": False}
+        if notes is not None:
+            wanted["notes"] = notes
+        contact = {"contactFirstName": "ASCC_REVIEW_FIRST_NAME", "contactLastName": "ASCC_REVIEW_LAST_NAME",
+                   "contactPhone": "ASCC_REVIEW_PHONE", "contactEmail": "ASCC_REVIEW_EMAIL"}
+        for attribute, env in contact.items():
+            if os.environ.get(env):
+                wanted[attribute] = os.environ[env]
+        missing = [env for env in contact.values() if not os.environ.get(env)]
+        if missing:
+            print(f"  review contact: {', '.join(missing)} not set, left as they are")
+        current = detail.get("attributes", {})
+        changed = {k: v for k, v in wanted.items() if current.get(k) != v}
+        for k in wanted:
+            print(f"  review.{k}: {'changes' if k in changed else 'same'}")
+        if changed and not dry_run:
+            client.call("PATCH", f"/v1/betaAppReviewDetails/{detail['id']}",
+                        {"data": {"type": "betaAppReviewDetails", "id": detail["id"], "attributes": changed}})
+        changes += bool(changed)
+
+    # Tester groups.
+    groups = {g["attributes"]["name"]: g for g in client.get(f"/v1/apps/{app_id}/betaGroups?limit=50")}
+    for spec in TESTFLIGHT_GROUPS:
+        if spec["name"] in groups:
+            print(f"  group {spec['name']}: exists")
+            continue
+        print(f"  group {spec['name']}: {'would be created' if dry_run else 'created'}"
+              f" ({'internal, every build' if spec['internal'] else 'external'})")
+        changes += 1
+        if not dry_run:
+            attrs = {"name": spec["name"], "isInternalGroup": spec["internal"]}
+            if spec["internal"]:
+                attrs["hasAccessToAllBuilds"] = True
+            created = client.call("POST", "/v1/betaGroups", {"data": {"type": "betaGroups", "attributes": attrs,
+                                  "relationships": {"app": {"data": {"type": "apps", "id": app_id}}}}})
+            groups[spec["name"]] = created["data"]
+
+    external = [spec["name"] for spec in TESTFLIGHT_GROUPS if not spec["internal"]]
+
+    # Testers: invited by email to the external group. Their addresses come from the command line, never the repo.
+    if invite:
+        group = groups.get(external[0])
+        on_group = {t["attributes"].get("email", "").lower()
+                    for t in client.get_all(f"/v1/betaGroups/{group['id']}/betaTesters?limit=200")} if group else set()
+        for email in invite:
+            if email.lower() in on_group:
+                print(f"  tester {email}: already in {external[0]}")
+                continue
+            print(f"  tester {email}: {'would be invited' if dry_run else 'invited'} to {external[0]}")
+            changes += 1
+            if not dry_run:
+                client.call("POST", "/v1/betaTesters", {"data": {"type": "betaTesters", "attributes": {"email": email},
+                            "relationships": {"betaGroups": {"data": [{"type": "betaGroups", "id": group["id"]}]}}}})
+
+    # A build: its What to Test, and with --submit, the external group and Beta App Review. Build numbers can repeat
+    # across versions, so this takes the newest upload with that number.
+    if build_number:
+        builds = client.get(f"/v1/builds?filter[app]={app_id}&filter[version]={build_number}&sort=-uploadedDate"
+                            "&limit=1&include=preReleaseVersion")
+        if not builds:
+            print(f"  build {build_number}: not in App Store Connect yet (still uploading or processing?)")
+            return 1
+        build = builds[0]
+        state = build["attributes"].get("processingState")
+        print(f"  build {build_number}: {state}, uploaded {build['attributes'].get('uploadedDate', '?')[:10]}")
+        build_locs = {l["attributes"]["locale"]: l
+                      for l in client.get(f"/v1/builds/{build['id']}/betaBuildLocalizations?limit=50")}
+        for locale, fields in per_locale.items():
+            if "what_to_test" in fields:
+                changes += upsert(client, "betaBuildLocalizations", build_locs.get(locale),
+                                  {"whatsNew": fields["what_to_test"]}, ("build", "builds", build["id"]),
+                                  locale, dry_run, f"build {build_number} [{locale}]")
+        if submit:
+            if state != "VALID":
+                raise SystemExit(f"build {build_number} is {state}: wait until it has finished processing")
+            on_build = {g["id"] for g in client.get(f"/v1/builds/{build['id']}/betaGroups?limit=50")}
+            for name in external:
+                group = groups.get(name)
+                if group and group["id"] in on_build:
+                    print(f"  build {build_number} -> group {name}: already added")
+                    continue
+                print(f"  build {build_number} -> group {name}: {'would be added' if dry_run else 'added'}")
+                changes += 1
+                if not dry_run:
+                    client.call("POST", f"/v1/betaGroups/{group['id']}/relationships/builds",
+                                {"data": [{"type": "builds", "id": build["id"]}]})
+            review = client.get_one(f"/v1/builds/{build['id']}/betaAppReviewSubmission")
+            if review:
+                print(f"  beta review: already submitted ({review['attributes'].get('betaReviewState')})")
+            else:
+                print(f"  beta review: {'would be submitted' if dry_run else 'submitted'}")
+                changes += 1
+                if not dry_run:
+                    client.call("POST", "/v1/betaAppReviewSubmissions", {"data": {
+                        "type": "betaAppReviewSubmissions",
+                        "relationships": {"build": {"data": {"type": "builds", "id": build["id"]}}}}})
+    print(f"{changes} change{'' if changes == 1 else 's'} {'would be made' if dry_run else 'made'}.")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -702,9 +882,25 @@ def main() -> int:
     buy.add_argument("--app", choices=APPS, required=True)
     buy.add_argument("--screenshot", type=Path, help="a PNG or JPEG of the purchase screen, for App Review")
     buy.add_argument("--dry-run", action="store_true", help="show what would change; write nothing")
+    beta = sub.add_parser("testflight", help="TestFlight's test information, groups, and a build's What to Test")
+    beta.add_argument("--app", choices=APPS, required=True)
+    beta.add_argument("--build", help="a build number (CFBundleVersion): set its What to Test")
+    beta.add_argument("--submit", action="store_true",
+                      help="with --build: add it to the external group and submit it for Beta App Review")
+    beta.add_argument("--invite", action="append", default=[], metavar="EMAIL",
+                      help="invite a tester to the external group (repeatable)")
+    beta.add_argument("--dry-run", action="store_true", help="show what would change; write nothing")
     args = parser.parse_args()
     if args.command == "check":
         return check()
+    if args.command == "testflight":
+        if args.submit and not args.build:
+            raise SystemExit("--submit needs --build")
+        try:
+            return testflight(args.app, args.build, args.submit, args.invite, args.dry_run)
+        except RuntimeError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 2
     if args.command == "media":
         creatives = {kind: path for kind, path in ((HEADER, args.header or args.creative),
                                                    (SEARCH, args.search or args.creative)) if path}
