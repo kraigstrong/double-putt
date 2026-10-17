@@ -1,4 +1,9 @@
-Thanks for playing! We'd love to hear which pairs felt too hard or too easy (and roughly how many tries they took), whether any hint or mechanic was confusing, and any bugs, crashes or sound problems. Sound follows the phone's silent switch, so turn that off to hear it.
+Thanks for playing! New in this build:
+- The Links: a seaside putting course of slopes, fringe and sand.
+- Every course is open for the beta, so explore anything without earning medals first.
+- Rounds play it as it lies: no restarting a pair mid-round. Free Play still has Retry.
+
+We'd love to hear which pairs felt too hard or too easy (and roughly how many tries they took), whether any hint or mechanic was confusing, and any bugs, crashes or sound problems. Sound follows the phone's silent switch, so turn that off to hear it.
 
 To send feedback, take a screenshot while playing and share it with TestFlight, or use Send Beta Feedback in the TestFlight app.
 
