@@ -71,10 +71,16 @@ Kickers and carousels (from course 4):
 Contours (from course 7):
 - **Tilt, tier, hump and hollow** add up into one smooth green per hole, unlike `slope` boxes, which switch on at their
   edges. `strength` is each one's strongest pull in units/s²: a tier's is on its line (fading out `width` either
-  side), a hump's or hollow's a little over halfway out (flat again at `radius`). The total is capped at 200, so a
-  ball can always come to rest. Each hole's contours stay in that hole.
-- Players read them from the slope grid: blue is low, red is high, and the dots glide downhill, faster where it's
-  steeper. Keep a hole to two or three shapes so it reads at a glance.
+  side), a hump's or hollow's a little over halfway out (flat again at `radius`). The total is capped at 400. Above
+  what a surface can hold (green 240, fringe 330; rough holds up to 520) a stalled ball rolls back down: a false
+  front. Keep tees and cups on ground that holds a ball (`--verify` checks tees). Each hole's contours stay in that
+  hole unless the side is nil.
+- Players read them from the slope grid on the green and fringe: blue is low, red is high, and the dots glide
+  downhill, faster where it's steeper. Keep a hole to two or three shapes so it reads at a glance.
+- **Make the break matter.** The aim guide runs straight and cups take any ball under 330 units/s, so gentle leans
+  (under ~100) barely bend a firm putt and the answer is "aim at the cup". `--report`'s Aim off column shows how far
+  each ball's stored double ace aims off the straight line to its cup: on a putting course, aim for at least 6° on
+  one ball early on, rising to 15° or more by the end.
 - **Surfaces** shape a green inside the usual `frame()`: paint a hole's base (`ground`, often rough), then greens,
   bunkers and ponds as curvy (`smooth: true`) or angled shapes; later paint covers earlier and a green gets a
   fringe collar (`apron: [3: 30]` widens it at point 3, easing back to the collar either side). Leave rough showing
