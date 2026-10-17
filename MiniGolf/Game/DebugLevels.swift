@@ -1,8 +1,27 @@
 #if DEBUG
 // Mechanic test pairs for checking visuals: launch with `-tests 1`.
 enum DebugLevels {
-    static let all: [Level] = [tunnelTest(), slopeTest(), contourTest(), surfaceTest(), rotorTest(), sliderTest(),
-                               funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]
+    static let all: [Level] = [muniTest(), tunnelTest(), slopeTest(), contourTest(), surfaceTest(), rotorTest(),
+                               sliderTest(), funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]
+
+    /// City Muni: greens in rough with a cart path winding between them, a bunker, contours.
+    static func muniTest() -> Level {
+        var l = Level("muniTest", par: [2, 2], hint: "")
+        l.setting = "muni"
+        l.frame()
+        l.ground(.rough, nil)
+        l.cartPath(nil, [(150, 95), (130, 300), (260, 480), (240, 700), (300, 760)], width: 22)
+        l.green(.a, [(40, 110), (150, 120), (160, 330), (90, 360), (30, 250)])
+        l.green(.a, [(50, 520), (160, 540), (150, 720), (60, 730)])
+        l.green(.b, [(70, 110), (170, 120), (170, 360), (60, 330)])
+        l.green(.b, [(80, 560), (180, 560), (170, 740), (60, 720)])
+        l.paint(.sand, .b, [(20, 420), (70, 400), (90, 450), (40, 480)], smooth: true)
+        l.tilt(.a, downhill: 0, strength: 140)
+        l.hollow(.b, 120, 650, radius: 50, strength: 200)
+        l.tee(.a, 90, 160); l.tee(.b, 120, 160)
+        l.cup(.a, 100, 640); l.cup(.b, 120, 650)
+        return l
+    }
 
     /// Kicker, carousel, balloon bumpers, a booth awning, a rail and a duck pond in one of the funfair looks.
     static func funfairTest(_ setting: String) -> Level {

@@ -223,6 +223,12 @@ final class GameScene: SKScene {
             propsNode.addChild(dog)
             placed.append((p, 32))
         }
+        if theme.ground == .muni {
+            // The city's water tower stands just right of the course, near the top: the strip above the power meter.
+            let p = CGPoint(x: Course.width + CourseArt.borderOut + 30, y: Course.height - 70)
+            add(CourseArt.waterTower(radius: 28, ppu: ppu), key: "waterTower", at: p, sway: false)
+            placed.append((p, 40))
+        }
         for k in 0..<160 {
             let p = CGPoint(x: rng.range(rect.minX, rect.maxX), y: rng.range(rect.minY, rect.maxY))
             let r = rng.range(30, 52)
