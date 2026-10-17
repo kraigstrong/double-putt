@@ -25,7 +25,7 @@ played as a round. About ten courses are planned, each a little harder than the 
 ## Builder API (x/y are local to the side's hole: 0–200 wide; `.a` or `.b`)
 ```swift
 var l = Level("Name", par: [2, 3], hint: "One short teasing sentence.")
-l.setting = "links"                  // meadow garden moat seaside autumn desert winter night midway bigtop fireworks links
+l.setting = "links"                  // meadow garden moat seaside autumn desert winter night midway bigtop fireworks links muni
 l.bandon = true                      // Bandon the dachshund naps beside this pair (a few Links pairs)
 l.frame(gaps: [380...460])          // outer fence + middle wall; gaps = y-ranges where the middle wall is open
 l.tee(.a, x, y); l.cup(.a, x, y)    // and .b. Or l.cups = [Vec(..), Vec(..)] in global coords
@@ -45,6 +45,7 @@ l.hump(nil, 200, 400, radius: 90, strength: 110) // nil instead of a hole: cours
 l.ground(.rough, .a)                         // surfaces, painted in order (later covers earlier): a hole's base
 l.green(.a, [(100, 90), (160, 110), ...])    // a green in this shape (smooth by default) with a fringe collar
 l.paint(.sand, .a, [(140, 380), ...], smooth: true)  // any surface in any shape: .green .fringe .rough .sand .water
+l.cartPath(.a, [(60, 90), (40, 400), (90, 760)], width: 22)  // a concrete cart path along a curve (City Muni): runs fast
 l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; blades at `phase` when the pair loads, then never stop
 l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
 l.kicker(.a, x, y, toward: 90, speed: 520)    // springboard pad (radius 13): launches a ball rolling onto it toward `toward`° at `speed`
@@ -89,6 +90,15 @@ Contours (from course 7):
   carries about 72% as far on fringe, 46% on rough and 19% in sand (a firm putt crosses several ball-lengths of
   bunker, a soft one dies in it), and painted water is a hazard. The best pairs make one ball cross fringe or sand while the other stays on the green. Cups go on green.
 
+Cart paths (from course 8):
+- A **cart path** (City Muni's feature) is a concrete strip laid along a smooth curve through the points, open at
+  both ends. A putt runs 1.3–1.5 times as far along it as on the green (rolling resistance 130 against the green's
+  240, less drag), and on any slope stronger than 130 it keeps rolling downhill until it reaches ground that holds
+  it, so a path down a bank carries a ball a long way. It isn't turf, so no slope grid shows on it: keep contours
+  under a path gentle, or make the run obvious from the green either side. Paint it after the ground it crosses
+  and before any green that should cover it. Make the path matter: one ball needs its extra run to reach a far cup,
+  or it carries one ball round a corner while the other stays on the green.
+
 ## Your file
 Draft pairs in a scratch file under `Tools/levels/` (one per designer):
 ```swift
@@ -114,6 +124,9 @@ Tools/solve.sh --report --course nightfall                               # compa
 It brute-forces every first swing (1440 angles × 100 powers × Same/Mirror) with the real physics: double-ace %,
 A-only / B-only %, water %, ball-hit / tunnel aces, per-hole ace % with a suggested par, double-ace regions, and the
 most robust double ace (`level.solution = ...`). A few seconds per pair (`--report` ~5 s; `--timing` longer).
+Several designers share one laptop, so cap each run's threads and lower its priority:
+`SOLVER_THREADS=2 nice -n 10 Tools/solve.sh ...` (the solver uses every core otherwise). Run one heavy search at a
+time.
 
 ## Difficulty
 Measure difficulty with `--report`: **Dbl ace** (share of all first swings that double-ace, better of Same/Mirror)
@@ -142,11 +155,16 @@ find and repeat the shot):
 | --- | --- | --- | --- | --- | --- |
 | 5 Big Top | ~0.060 → ~0.025 | 1.0–2.0° × 5–9% | 200 ms | ~1.5% | 48–52 |
 | 6 Fireworks | ~0.050 → ~0.018 | 1.0–1.75° × 5–8% | 200 ms | ~1.5% | 50–54 |
-| 7–9 | ~0.04 → ~0.01 | 1.0–1.5° × 5–7% | 150 ms | ~1.2% | 50–54 |
+| 7 The Links | ~0.04 → ~0.01 | 1.0–1.5° × 5–7% | — | ~1.2% | 50–54 |
+| 8 City Muni | ~0.030 → ~0.009 | 1.0–1.5° × 5–7% | — | ~1.2% | the solver's |
 | 10 | ~0.03 → ~0.005 | 0.75–1.25° × 4–6% | 150 ms | ~1.0% | 52–54 |
 
 Harder isn't only a smaller double-ace share: more mechanics working together, more asymmetry between A and B, and
 more 3-par holes all count.
+
+The putting courses (7–9) have no movers. After The Links' first playtest (slopes too gentle, routes obvious), make
+the slopes steep enough that the aim off grows from at least 6° early to 15° or more late, use a false front or two
+per course, never tighten a cup, and mix Same and Mirror (about four of each per course).
 
 ## Asymmetry (from course 3 on)
 The early courses lean on near-mirror layouts. Later ones should make the shared swing far from obvious:
