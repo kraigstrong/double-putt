@@ -42,6 +42,16 @@ let powerCount = Int((1 / powerStep).rounded())
 
 struct Best { var ai: Int; var pi: Int; var score: Int; var mirrored: Bool; var angleWindow: Double; var powerWindow: Double }
 
+/// Runs `body` for 0..<n on at most SOLVER_THREADS threads (every core by default), so several solver runs at once
+/// can share a machine without swamping it.
+func parallel(_ n: Int, _ body: (Int) -> Void) {
+    let cap = Int(ProcessInfo.processInfo.environment["SOLVER_THREADS"] ?? "") ?? ProcessInfo.processInfo.activeProcessorCount
+    let threads = max(1, min(n, cap))
+    DispatchQueue.concurrentPerform(iterations: threads) { t in
+        for i in stride(from: t, to: n, by: threads) { body(i) }
+    }
+}
+
 /// Grid of results, bit 0 = A sank, bit 1 = B sank, bit 2 = balls touched, bit 3 = a ball used the other hole's cup.
 /// Also returns how many shots found water.
 func solve(_ level: Level, mirrored: Bool) -> (grid: [UInt8], splashes: Int) {
@@ -52,7 +62,7 @@ func solve(_ level: Level, mirrored: Bool) -> (grid: [UInt8], splashes: Int) {
         let cellsPtr = cells
         splashCount.withUnsafeMutableBufferPointer { splashes in
             let splashPtr = splashes
-            DispatchQueue.concurrentPerform(iterations: angleCount) { ai in
+            parallel(angleCount) { ai in
                 var s = 0
                 for pi in 0..<powerCount {
                     let shot = Shot(angle: Double(ai) * angleStep, power: Double(pi + 1) * powerStep, mirrored: mirrored)
@@ -268,7 +278,7 @@ if args.contains("--timing") {
             var found: [Shot] = []
             let lock = NSLock()
             for mirrored in [false, true] {
-                DispatchQueue.concurrentPerform(iterations: aCount) { ai in
+                parallel(aCount) { ai in
                     for pi in 0..<pCount {
                         let shot = Shot(angle: Double(ai) * aStep, power: Double(pi + 1) * pStep, mirrored: mirrored)
                         if world.simulate(shot: shot.velocity, mirrored: mirrored).world.allSunk {
