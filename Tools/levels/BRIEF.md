@@ -71,10 +71,16 @@ Kickers and carousels (from course 4):
 Contours (from course 7):
 - **Tilt, tier, hump and hollow** add up into one smooth green per hole, unlike `slope` boxes, which switch on at their
   edges. `strength` is each one's strongest pull in units/s²: a tier's is on its line (fading out `width` either
-  side), a hump's or hollow's a little over halfway out (flat again at `radius`). The total is capped at 200, so a
-  ball can always come to rest. Each hole's contours stay in that hole.
-- Players read them from the slope grid: blue is low, red is high, and the dots glide downhill, faster where it's
-  steeper. Keep a hole to two or three shapes so it reads at a glance.
+  side), a hump's or hollow's a little over halfway out (flat again at `radius`). The total is capped at 400. Above
+  what a surface can hold (green 240, fringe 330; rough holds up to 520) a stalled ball rolls back down: a false
+  front. Keep tees and cups on ground that holds a ball (`--verify` checks tees). Each hole's contours stay in that
+  hole unless the side is nil.
+- Players read them from the slope grid on the green and fringe: blue is low, red is high, and the dots glide
+  downhill, faster where it's steeper. Keep a hole to two or three shapes so it reads at a glance.
+- **Make the break matter.** The aim guide runs straight and cups take any ball under 330 units/s, so gentle leans
+  (under ~100) barely bend a firm putt and the answer is "aim at the cup". `--report`'s Aim off column shows how far
+  each ball's stored double ace aims off the straight line to its cup: on a putting course, aim for at least 6° on
+  one ball early on, rising to 15° or more by the end.
 - **Surfaces** shape a green inside the usual `frame()`: paint a hole's base (`ground`, often rough), then greens,
   bunkers and ponds as curvy (`smooth: true`) or angled shapes; later paint covers earlier and a green gets a
   fringe collar (`apron: [3: 30]` widens it at point 3, easing back to the collar either side). Leave rough showing
@@ -122,6 +128,7 @@ about where the previous course's middle sat. Shipped courses, measured:
 | 4 Midway | 0.080 0.075 0.068 0.062 0.052 0.044 0.040 0.038 0.029 | 1.5–3.25° × 6–11% | 47 | 410–465 ms | fun, but played easier than Thunderhead |
 | 5 Big Top | 0.065 0.051 0.049 0.047 0.042 0.037 0.033 0.029 0.024 | 1.0–1.75° × 5–10% | 47 | 245–400 ms | not yet playtested |
 | 6 Fireworks | 0.043 0.042 0.037 0.033 0.031 0.028 0.026 0.021 0.018 | 1.25–1.75° × 5–8% | 50 | 230–595 ms | not yet playtested |
+| 7 The Links | 0.041 0.035 0.028 0.025 0.022 0.021 0.018 0.013 0.010 | 1.0–1.5° × 2–7% | 40 | — (no movers) | first cut: slopes too gentle, routes obvious; retuned steeper |
 
 Midway measured a touch harder than Thunderhead yet played easier. Likely causes: wide windows (several ≥ 2.5°), and
 holes a player can ace almost at will (Springboard's A, High Striker's B and Teacups' B each ace 2.5–3% of all swings,

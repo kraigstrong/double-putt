@@ -16,7 +16,7 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 ## How to play
 
 - **Courses** lists the nine-pair courses: Daybreak, Nightfall, Thunderhead, then the Funfair set (Midway, Big Top,
-  Fireworks), each harder than the last. A round shows a running score vs par and ends with a scorecard and a medal:
+  Fireworks), then The Links (a putting course of slopes and surfaces), each harder than the last. A round shows a running score vs par and ends with a scorecard and a medal:
   bronze at par or better, silver 4 under, gold 8 under (best round per course saved; a round in progress survives
   relaunches). A medal unlocks the next course; for now, in the beta, every course is open.
 - **Free Play** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
@@ -151,6 +151,20 @@ with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse
 | 7 | Rocket | Fireworks | 6 | Same | water, sliders, kickers |
 | 8 | Starburst | Fireworks | 6 | Mirror | water, bumpers, tunnels, bowls |
 | 9 | Grand Finale | Fireworks | 6 | Mirror | water, tunnels, rotors, carousels, kickers |
+
+### The Links (par 40)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Fescue | Seaside Links | 4 | Same | contours, fringe, rough |
+| 2 | Pot Bunker | Seaside Links | 4 | Same | contours, fringe, rough, sand |
+| 3 | Punchbowl | Seaside Links | 6 | Same | contours, fringe, rough, ponds |
+| 4 | Gorse Line | Seaside Links | 4 | Same | contours, fringe, rough |
+| 5 | Two Tiers | Seaside Links | 4 | Mirror | contours, fringe, rough |
+| 6 | Sea Wall | Seaside Links | 5 | Same | contours, fringe, rough, sand, ponds |
+| 7 | Fog Bank | Seaside Links | 4 | Same | contours, fringe, rough |
+| 8 | Saddle | Seaside Links | 4 | Same | contours, fringe, rough, sand, ponds |
+| 9 | Lighthouse | Seaside Links | 5 | Mirror | contours, fringe, rough, sand, ponds |
 
 The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
 course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).
