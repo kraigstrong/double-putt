@@ -127,7 +127,7 @@ final class GameModel {
     private(set) var newlyUnlocked: Nine?
     var fullPathGuide = false
     /// Every course open, Show Ace, the full-path guide and Reset. Xcode builds only: TestFlight and App Store builds
-    /// play the real unlocks.
+    /// don't have it.
     #if DEBUG
     private(set) var devMode = UserDefaults.standard.bool(forKey: "devMode")
     #else
@@ -174,6 +174,9 @@ final class GameModel {
 
     /// How many courses are open from the start; each later one unlocks with a medal on the one before.
     static let openCourses = 2
+    /// The beta opens every course, so testers can explore without earning medals first. Turn it off for the App
+    /// Store release to bring the unlocks back.
+    static let betaOpensEveryCourse = true
 
     /// The course that has to be medalled to open this one (nil if it's open from the start).
     func prerequisite(of nine: Nine) -> Nine? {
@@ -184,8 +187,8 @@ final class GameModel {
     /// Earned by a medal on the course before (or open from the start).
     func hasEarnedUnlock(_ nine: Nine) -> Bool { prerequisite(of: nine).map { medal($0) != .none } ?? true }
 
-    /// Dev mode opens everything.
-    func isUnlocked(_ nine: Nine) -> Bool { devMode || hasEarnedUnlock(nine) }
+    /// Dev mode and the beta open everything.
+    func isUnlocked(_ nine: Nine) -> Bool { devMode || Self.betaOpensEveryCourse || hasEarnedUnlock(nine) }
     /// A pair's number within its nine (1–9).
     func pairNumber(_ index: Int) -> Int { index - (nine(containing: index)?.pairs.lowerBound ?? 0) + 1 }
     /// The nine the saved round is on.
@@ -258,10 +261,12 @@ final class GameModel {
             bestRounds[nine.id] = total
             UserDefaults.standard.set(bestRounds, forKey: "bestRounds")
         }
-        newlyUnlocked = wasLocked && next.map(hasEarnedUnlock) == true ? next : nil
+        let earned = wasLocked && next.map(hasEarnedUnlock) == true ? next : nil
+        // In the beta the next course is open already, so there's nothing to announce; the count still records it.
+        newlyUnlocked = Self.betaOpensEveryCourse ? nil : earned
         analytics.roundFinished(course: nine.id, strokes: total, par: par(of: nine),
                                 medal: Medal(round: total, par: par(of: nine)), best: newBestRound)
-        if let newlyUnlocked { analytics.courseUnlocked(newlyUnlocked.id) }
+        if let earned { analytics.courseUnlocked(earned.id) }
         showResult = false
         showScorecard = true
     }
