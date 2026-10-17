@@ -24,6 +24,7 @@ extension Painter {
             case .water:
                 let b = path.boundingBox
                 pond(CourseArt.Pond(parts: [b.insetBy(dx: b.width * 0.3, dy: b.height * 0.3)], path: path), t, &rng)
+            case .path: cartPath(p, path, &rng)
             }
         }
     }
@@ -55,6 +56,27 @@ extension Painter {
             }
             noise(alpha: 0.2)
         }
+    }
+
+    /// A cart path: pale concrete with a darker kerb along each side and expansion joints across it.
+    private func cartPath(_ p: Patch, _ path: CGPath, _ rng: inout SeededRandom) {
+        let b = path.boundingBox
+        let light = UIColor(hex: 0xD9D6CF), dark = UIColor(hex: 0xB9B5AC)
+        linear(path, [light, dark], from: CGPoint(x: b.minX, y: b.maxY), to: CGPoint(x: b.maxX, y: b.minY))
+        clipped(path) {
+            for _ in 0..<Int(b.width * b.height / 18) {
+                let q = CGPoint(x: rng.range(b.minX, b.maxX), y: rng.range(b.minY, b.maxY))
+                fill(circle(q, 0.5), (rng.unit() < 0.5 ? dark.darker(0.15) : UIColor.white).withAlphaComponent(0.45))
+            }
+            // Expansion joints: the outline runs up one side and back down the other, so point i faces point n-1-i.
+            let n = p.outline.count
+            for i in stride(from: 4, to: n / 2 - 2, by: 5) {
+                stroke(CourseArt.line(CGPoint(x: p.outline[i].x, y: p.outline[i].y),
+                                      CGPoint(x: p.outline[n - 1 - i].x, y: p.outline[n - 1 - i].y)), dark.darker(0.2).withAlphaComponent(0.5), 1)
+            }
+            noise(alpha: 0.12)
+        }
+        stroke(path, dark.darker(0.3).withAlphaComponent(0.8), 1.5)
     }
 
     /// Sand: a raked bunker, lit from the top left, with a shaded lip where it drops below the turf.
