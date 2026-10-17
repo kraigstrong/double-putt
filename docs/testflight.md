@@ -14,8 +14,10 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
   Store Connect record exists. A phone that ran the old `com.kraig.minigolf` builds gets this as a separate app,
   so its local progress doesn't carry over.
 - [x] **Debug tools in Debug builds only**: dev mode (long-press the logo: every course open, Show Ace, full-path
-  guide, Reset), the debug launch arguments and the mechanic test pairs. TestFlight and App Store builds play the
-  real unlock flow.
+  guide, Reset), the debug launch arguments and the mechanic test pairs. TestFlight and App Store builds don't
+  have them.
+- **Every course open in the beta** (`GameModel.betaOpensEveryCourse`), so testers can explore without earning
+  medals first. Turn it off before the App Store release to bring the unlocks back.
 - [x] **The screen stays awake while playing** (aiming can take longer than auto-lock), and sleeps normally on
   the menus.
 - [x] **Coming back to the app shows the pause menu** if a pair was in play.
@@ -70,10 +72,10 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 ## Smoke check on the TestFlight build
 On a physical iPhone, with a fresh install (and later, as an update over the previous build):
 - The title shows; How to Play runs on Twins for a first-time player.
-- Courses lists six courses; Daybreak and Nightfall are open, Thunderhead to Fireworks locked until the previous
-  course has a medal. Long-pressing the logo does nothing (no dev mode).
+- Courses lists every course, all open while the beta switch is on. With it off, Daybreak and Nightfall are open
+  and the rest locked until the previous course has a medal. Long-pressing the logo does nothing (no dev mode).
 - Play a few pairs in a round: strokes show as numbers when balls drop; the result card shows the pair's verdict;
-  finishing a round shows the scorecard and medal, and a medal on Nightfall unlocks Thunderhead.
+  finishing a round shows the scorecard and medal, and (beta switch off) a medal on Nightfall unlocks Thunderhead.
 - Free Play plays any open pair; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
 - A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Pair.
 - Progress survives force-quitting and reopening.

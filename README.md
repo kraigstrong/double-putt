@@ -18,7 +18,7 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 - **Courses** lists the nine-pair courses: Daybreak, Nightfall, Thunderhead, then the Funfair set (Midway, Big Top,
   Fireworks), each harder than the last. A round shows a running score vs par and ends with a scorecard and a medal:
   bronze at par or better, silver 4 under, gold 8 under (best round per course saved; a round in progress survives
-  relaunches). A medal unlocks the next course.
+  relaunches). A medal unlocks the next course; for now, in the beta, every course is open.
 - **Free Play** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
   **Trophy Shelf** (one per pair).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
@@ -65,7 +65,7 @@ Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to P
 ## The courses
 
 Each course is nine pairs played as a round. Daybreak and Nightfall are open from the start; each later course unlocks
-with a medal on the one before. In the app each course numbers its pairs 1–9. The tables come from
+with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse` opens them all). In the app each course numbers its pairs 1–9. The tables come from
 `Tools/solve.sh --readme`.
 
 ### Daybreak (par 40)

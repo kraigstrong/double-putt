@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Every course as a card with its par, best medal and trophies. Tapping one starts a round; later courses stay
-/// locked until the one before has a medal.
+/// locked until the one before has a medal (all are open in the beta).
 struct CoursesView: View {
     let app: AppState
     /// Starting this nine would end the round in progress, so ask first.
