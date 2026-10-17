@@ -16,9 +16,10 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 ## How to play
 
 - **Courses** lists the nine-pair courses: Daybreak, Nightfall, Thunderhead, then the Funfair set (Midway, Big Top,
-  Fireworks), then The Links (a putting course of slopes and surfaces), each harder than the last. A round shows a running score vs par and ends with a scorecard and a medal:
-  bronze at par or better, silver 4 under, gold 8 under (best round per course saved; a round in progress survives
-  relaunches). A medal unlocks the next course; for now, in the beta, every course is open.
+  Fireworks), then the putting courses of slopes and surfaces (The Links, City Muni), each harder than the
+  last. A round shows a running score vs par and ends with a scorecard and a medal: bronze at par or better,
+  silver 4 under, gold 8 under (best round per course saved; a round in progress survives relaunches). A medal unlocks
+  the next course; for now, in the beta, every course is open.
 - **Free Play** plays any pair on its own. A double ace on a pair, in a round or not, wins its trophy on the
   **Trophy Shelf** (one per pair).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
@@ -33,7 +34,8 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tunnels** (color-coded mouths,
 optional exit direction), **slopes** and round **hills / bowls**, smooth **contours** (tilts, tiers, humps and
 hollows that blend into one green), **surfaces** (curvy or angled greens shaped by fringe, rough, sand and ponds,
-each slowing the ball differently), **movers** (windmill rotors, sliding blocks) that
+each slowing the ball differently, and **cart paths** that run faster than the green), **movers** (windmill
+rotors, sliding blocks) that
 never stop, so when you putt matters as much as how, and from Midway on, **kicker pads** (springboards that launch the
 ball a set way at a set speed) and **carousels** (spinning disks that drag the ball along with them). A ball that stops
 in a mover's path or on a carousel slides to the nearest clear spot that's no nearer a cup. Sloped ground shows a grid
@@ -165,6 +167,20 @@ with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse
 | 7 | Fog Bank | Seaside Links | 4 | Same | contours, fringe, rough, sand, ponds |
 | 8 | Saddle | Seaside Links | 4 | Same | contours, fringe, rough, sand, ponds |
 | 9 | Lighthouse | Seaside Links | 5 | Mirror | contours, fringe, rough, sand, ponds |
+
+### City Muni (par 39)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Clubhouse | City Muni | 4 | Same | contours, fringe, rough, sand, cart paths |
+| 2 | Cart Path | City Muni | 4 | Mirror | contours, fringe, rough, cart paths |
+| 3 | Ball Washer | City Muni | 5 | Same | contours, fringe, rough, sand |
+| 4 | Water Tower | City Muni | 4 | Same | contours, fringe, rough, cart paths |
+| 5 | Chain Link | City Muni | 4 | Mirror | contours, fringe, rough, cart paths |
+| 6 | Twilight Rate | City Muni | 4 | Mirror | contours, fringe, rough, sand |
+| 7 | Practice Green | City Muni | 4 | Mirror | contours, fringe, rough, cart paths |
+| 8 | Skyline | City Muni | 5 | Mirror | contours, fringe, rough, ponds, cart paths |
+| 9 | Last Call | City Muni | 5 | Same | contours, fringe, rough, ponds, cart paths |
 
 The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
 course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).
