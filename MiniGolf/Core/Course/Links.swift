@@ -198,11 +198,13 @@ extension Levels {
     }
 
     /// Pair 7. One double green across the top of both holes, open through the middle wall, with the two cups close
-    /// together near its middle. Each hole leans in toward the middle (A's right at 128, B's left at 88), and a big
-    /// steep hump (380) stands on the outside of each lane where it opens onto the double green. A putt up either lane
-    /// rides the inner flank of its hump, which sheds it in across the middle; the lean keeps it curling, so each
-    /// ball crosses into the other hole's cup. Same: both start up and a little left, A's ball about 19° left of the
-    /// cup it drops in, B's about 12° right of its. B's ball goes through first, so they cross without meeting.
+    /// together near its middle. Each hole leans in toward the middle (A's right at 146.5, B's left at 102), and a
+    /// big steep hump (380) stands on the outside of each lane where it opens onto the double green. A putt up either
+    /// lane rides the inner flank of its hump, which sheds it in across the middle; the lean keeps it curling, so each
+    /// ball crosses into the other hole's cup. B's cup sits in a dish that gathers A's ball as it arrives. Same: both
+    /// start up and a little left, A's ball about 18° left of the cup it drops in, B's about 12° right of its; B's
+    /// ball goes through first, so they cross without meeting. A pot bunker on the inside of A's lane catches the
+    /// straighter line across, and a burn either side of the wall between the tee lanes swallows banks off it.
     static func fogBank() -> Level {
         var l = Level("Fog Bank", par: [2, 2], hint: "One green, two cups. Any ball can take either.")
         l.setting = "links"
@@ -212,14 +214,21 @@ extension Levels {
         l.green(nil, [(42, 125), (60, 108), (135, 108), (152, 125), (158, 250), (160, 350), (182, 420), (218, 420),
                       (240, 350), (242, 250), (248, 125), (265, 108), (340, 108), (358, 125), (360, 300), (360, 560),
                       (352, 690), (310, 740), (200, 745), (90, 740), (48, 690), (40, 560), (40, 300)])
+        // A pot bunker on the inside of A's lane, where it opens onto the double green.
+        l.paint(.sand, nil, [(168, 387.5), (157.16, 413.66), (131, 424.5), (104.84, 413.66), (94, 387.5), (104.84, 361.34), (131, 350.5), (157.16, 361.34)],
+                smooth: true)
         // Each hole leans in toward the middle; a steep hump on the outside of each lane sheds its ball across.
-        l.tilt(.a, downhill: 0, strength: 128)
-        l.tilt(.b, downhill: 180, strength: 88)
-        l.hump(nil, 60, 445, radius: 144, strength: 380)
-        l.hump(nil, 340, 470, radius: 144, strength: 380)
-        l.tee(.a, 90, 125); l.tee(.b, 115, 175)
-        l.cups = [Vec(170, 640), Vec(225, 670)]
-        l.solution = Shot(angle: 95.00, power: 0.610, mirrored: false)
+        l.tilt(.a, downhill: 0, strength: 146.5)
+        l.tilt(.b, downhill: 180, strength: 102)
+        l.hump(nil, 60, 439, radius: 144, strength: 380)
+        l.hump(nil, 340, 440, radius: 144, strength: 380)
+        // A dish round B's cup gathers A's ball.
+        l.hollow(nil, 226.5, 663, radius: 53.5, strength: 237.5)
+        l.tee(.a, 90, 125); l.tee(.b, 111.5, 159.5)
+        l.cups = [Vec(169, 636), Vec(226.5, 663)]
+        // A burn either side of the wall between the tee lanes.
+        l.paint(.water, nil, [(184, 140), (216, 140), (216, 370), (184, 370)])
+        l.solution = Shot(angle: 94.25, power: 0.600, mirrored: false)
         return l
     }
 
