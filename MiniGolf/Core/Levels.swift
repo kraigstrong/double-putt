@@ -22,6 +22,22 @@ struct Shot: Equatable {
     var velocity: Vec { .shot(degrees: angle, speed: power * Tuning.maxShotSpeed) }
 }
 
+/// A grandstand (the Stadium): a rectangle `width` along its front and `depth` deep, centred at `center`, with its
+/// front (the face the seats look out over) facing `facing` degrees.
+struct Stand {
+    var center: Vec
+    var width: Double
+    var depth: Double
+    var facing: Double
+
+    /// The front's two ends, then the back's (back right, back left), so each edge joins the next.
+    var corners: [Vec] {
+        let out = Vec.shot(degrees: facing, speed: 1), along = Vec(out.y, -out.x)
+        let front = center + out * (depth / 2), back = center - out * (depth / 2)
+        return [front - along * (width / 2), front + along * (width / 2), back + along * (width / 2), back - along * (width / 2)]
+    }
+}
+
 struct Level {
     var name: String
     var hint: String
@@ -44,6 +60,8 @@ struct Level {
     var patches: [Patch] = []
     /// Bandon, a cream long-haired dachshund, naps beside this pair (outside the play area, on a few Links holes).
     var bandon = false
+    /// Grandstands (the Stadium): solid blocks the ball banks off like any wall.
+    var stands: [Stand] = []
     var movers: [Mover] = []
     /// A known double ace, found by Tools/solver.
     var solution: Shot?
@@ -68,10 +86,9 @@ struct Level {
     }
 
     var walls: [Wall] {
-        rails + blocks.flatMap { b -> [Wall] in
-            let c = [Vec(b.minX, b.minY), Vec(b.maxX, b.minY), Vec(b.maxX, b.maxY), Vec(b.minX, b.maxY)]
-            return (0..<4).map { Wall(a: c[$0], b: c[($0 + 1) % 4], radius: Course.blockRadius) }
-        }
+        let outlines = blocks.map { b in [Vec(b.minX, b.minY), Vec(b.maxX, b.minY), Vec(b.maxX, b.maxY), Vec(b.minX, b.maxY)] }
+            + stands.map(\.corners)
+        return rails + outlines.flatMap { c in (0..<4).map { Wall(a: c[$0], b: c[($0 + 1) % 4], radius: Course.blockRadius) } }
     }
 
     // MARK: Builders (x/y are local to the side's hole)
@@ -102,6 +119,12 @@ struct Level {
 
     mutating func block(_ s: Side, _ minX: Double, _ minY: Double, _ maxX: Double, _ maxY: Double) {
         blocks.append(Box(minX + s.offset, minY, maxX + s.offset, maxY))
+    }
+
+    /// A grandstand centred at (x, y), `width` along its front and `depth` deep, its front facing `facing` degrees
+    /// (0 = right, 90 = up). The ball banks off it like any wall; the seats look out over its front.
+    mutating func stand(_ s: Side, _ x: Double, _ y: Double, width: Double, depth: Double = 34, facing: Double) {
+        stands.append(Stand(center: Vec(x + s.offset, y), width: width, depth: depth, facing: facing))
     }
 
     mutating func bumper(_ s: Side, _ x: Double, _ y: Double, r: Double = 16) {

@@ -179,15 +179,16 @@ extension Level {
     }
 
     /// Rough (or whatever's under it) should show between a green and the frame, so a green never looks cut off by a
-    /// rail: greens and their fringe keep at least this far from any wall's face. `--verify` checks it.
+    /// rail: greens and their fringe keep at least this far from any rail's face. `--verify` checks it. Blocks and
+    /// grandstands are exempt, since a green can run right up to a stand you bank off.
     static let greenMargin = 12.0
 
-    /// How close any green or fringe comes to a wall's face (infinity with none).
+    /// How close any green or fringe comes to a rail's face (infinity with none).
     var greenClearance: Double {
         var closest = Double.infinity
         for p in patches where p.surface == .green || p.surface == .fringe {
             for v in p.outline {
-                for w in walls { closest = min(closest, (v - closestPoint(v, w.a, w.b)).length - w.radius - p.pad) }
+                for w in rails { closest = min(closest, (v - closestPoint(v, w.a, w.b)).length - w.radius - p.pad) }
             }
         }
         return closest
