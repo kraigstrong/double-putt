@@ -25,7 +25,7 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-pair difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
-- Version 0.1, build 1 (Xcode's "Manage Version and Build Number" bumps the build on each upload).
+- Version 0.1, build 2. Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each upload.
 - iPhone only, portrait, full screen. Sound follows the silent switch (ambient), so it never surprises anyone.
 
 ### In BrightBench (a separate session)
@@ -45,14 +45,18 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
   the user, not used for tracking.
 
 ## Uploading a build
-1. Check out `main` at the commit you want and tag it (`double-putt-v0.1-beta.1`).
+Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by one in a PR first).
+
+1. Check out `main` at the commit you want and tag it `double-putt-v0.1-beta.B` (`double-putt-v0.1-beta.2` for
+   build 2).
 2. Archive and upload: in Xcode, the MiniGolf scheme and Any iOS Device (arm64), Product > Archive, then in the
    Organizer, Distribute App > App Store Connect > Upload. Or from the command line, with the Apple ID Xcode is
    signed in with:
    ```bash
+   B=2
    xcodebuild archive -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
-     -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-0.1-1.xcarchive
-   xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-0.1-1.xcarchive \
+     -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-0.1-$B.xcarchive
+   xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-0.1-$B.xcarchive \
      -exportOptionsPlist .build/ExportOptions.plist -exportPath .build/export -allowProvisioningUpdates
    ```
    where `ExportOptions.plist` has `method` `app-store-connect`, `destination` `upload` and `teamID` `MKACSCQ588`.
@@ -60,11 +64,11 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 3. Set the test information and the build's What to Test from `appstore/double-putt/testflight/` (see
    [appstore/README.md](../appstore/README.md)); dry-run first:
    ```bash
-   python3 appstore/push.py testflight --app double-putt --build 1 --dry-run
+   python3 appstore/push.py testflight --app double-putt --build $B --dry-run
    ```
    The first run also creates the Internal group (every build) and the Friends group.
 4. When it finishes processing, install from TestFlight as an internal tester and run the smoke check below.
-5. Send it to Friends: `--build 1 --submit` adds it to the group and submits it for Beta App Review (the first
+5. Send it to Friends: `--build $B --submit` adds it to the group and submits it for Beta App Review (the first
    build of each version is reviewed), and turns on Friends' public link, which it prints. Share the link, or
    invite with `--invite EMAIL`. Anyone who opens the link before the build is approved is told to wait.
 6. Record it in the build log at the end of this file.
