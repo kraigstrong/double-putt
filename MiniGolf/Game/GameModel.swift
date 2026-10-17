@@ -184,8 +184,13 @@ final class GameModel {
         return nines[i - 1]
     }
 
-    /// Earned by a medal on the course before (or open from the start).
-    func hasEarnedUnlock(_ nine: Nine) -> Bool { prerequisite(of: nine).map { medal($0) != .none } ?? true }
+    /// Earned by a medal on the course before (or open from the start). A medal on this course or a later one counts
+    /// too: the beta lets testers medal courses out of order, and once it's over, what's open should still run
+    /// unbroken from the first course to one past the furthest medal.
+    func hasEarnedUnlock(_ nine: Nine) -> Bool {
+        guard let i = nines.firstIndex(of: nine), i >= Self.openCourses else { return true }
+        return nines[(i - 1)...].contains { medal($0) != .none }
+    }
 
     /// Dev mode and the beta open everything.
     func isUnlocked(_ nine: Nine) -> Bool { devMode || Self.betaOpensEveryCourse || hasEarnedUnlock(nine) }
