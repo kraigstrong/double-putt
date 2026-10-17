@@ -19,8 +19,15 @@ extension Painter {
         parts += level.terrain.features.map { CGPath(rect: rect($0.area), transform: nil) }
         guard let first = parts.first else { return }
         var region = parts.dropFirst().reduce(first) { $0.union($1) }
-        // No grid on sand or water.
-        for p in level.patches where !p.surface.isTurf { region = region.subtracting(patchPath(p)) }
+        // Only on green and fringe, worked out in paint order as the physics does: the bare felt is green, then each
+        // patch adds or takes away.
+        if !level.patches.isEmpty {
+            var turf = CGPath(rect: CGRect(x: 0, y: 0, width: Course.width, height: Course.height), transform: nil)
+            for p in level.patches {
+                turf = p.surface.isTurf ? turf.union(patchPath(p)) : turf.subtracting(patchPath(p))
+            }
+            region = region.intersection(turf)
+        }
         let r = Course.railRadius
         let felt = CGPath(rect: CGRect(x: r, y: r, width: Course.width - 2 * r, height: Course.height - 2 * r), transform: nil)
 

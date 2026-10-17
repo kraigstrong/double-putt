@@ -119,7 +119,7 @@ extension Level {
     /// Whether anything tilts this pair's green.
     var hasGround: Bool { !slopes.isEmpty || !mounds.isEmpty || !terrain.isEmpty }
 
-    /// Whether `p` sits on sloped turf (not sand or water): in a slope box, a mound, or a hole with terrain.
+    /// Whether `p` sits on sloped green or fringe: in a slope box, a mound, or a hole with terrain.
     func isSloped(at p: Vec) -> Bool {
         guard patches.isEmpty || surface(at: p).isTurf else { return false }
         return slopes.contains { $0.box.contains(p) }

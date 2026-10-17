@@ -25,8 +25,9 @@ enum Surface: UInt8 {
         }
     }
 
-    /// Ground the slope grid and its dots show on (not sand or water).
-    var isTurf: Bool { self == .green || self == .fringe || self == .rough }
+    /// Ground the slope grid and its dots show on: the green and its fringe, where you read a putt (not rough, sand
+    /// or water, which would cover the whole frame in grid).
+    var isTurf: Bool { self == .green || self == .fringe }
 }
 
 /// One painted shape of a surface. Patches are painted in order, so a later one covers an earlier one.
