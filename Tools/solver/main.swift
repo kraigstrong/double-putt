@@ -116,6 +116,22 @@ extension Level {
     var hasTimedMovers: Bool { movers.contains { if case .carousel = $0.kind { false } else { true } } }
 }
 
+/// How far each ball's stored double ace is aimed off the straight line from its tee to the cup it drops in, in
+/// degrees (nil without a solution, or for a ball that doesn't drop). Near zero means "just aim at the cup".
+func aimOff(_ l: Level) -> [Double?]? {
+    guard let s = l.solution else { return nil }
+    var w = World(level: l)
+    w.time = l.solutionTime
+    let out = w.simulate(shot: s.velocity, mirrored: s.mirrored).world
+    return (0..<2).map { b in
+        guard let cup = out.balls[b].sunkIn else { return nil }
+        let aim = b == 1 && s.mirrored ? 180 - s.angle : s.angle
+        let d = l.cups[cup] - l.tees[b]
+        let off = (aim - atan2(d.y, d.x) * 180 / .pi + 540).truncatingRemainder(dividingBy: 360) - 180
+        return abs(off)
+    }
+}
+
 /// The mechanics a pair uses, for reports and the README.
 func mechanics(_ l: Level) -> String {
     var m: [String] = []
@@ -189,11 +205,14 @@ if args.contains("--verify") {
         let teesClear = !level.tees.contains { world.inMoverPath($0) }
         // A green or its fringe run up to a rail looks cut off by the frame.
         let roomy = level.greenClearance >= Level.greenMargin
-        failed = failed || !ok || !teesClear || !roomy
+        // A tee on a bank too steep to hold a ball would roll away before the first putt.
+        let teesHold = !level.tees.contains { world.tooSteep(at: $0, on: level.surface(at: $0), leaning: nil) != nil }
+        failed = failed || !ok || !teesClear || !roomy || !teesHold
         let timing = level.hasTimedMovers ? String(format: " at %.2fs", level.solutionTime) : ""
         print("\(ok ? "✓" : "✗") \(level.name): \(shot.angle)° \(Int(shot.power * 100))%\(shot.mirrored ? " mirror" : "")\(timing)"
               + (teesClear ? "" : "  ✗ a tee is in a mover's path")
-              + (roomy ? "" : String(format: "  ✗ a green comes within %.0f of a wall (needs %.0f)", level.greenClearance, Level.greenMargin)))
+              + (roomy ? "" : String(format: "  ✗ a green comes within %.0f of a wall (needs %.0f)", level.greenClearance, Level.greenMargin))
+              + (teesHold ? "" : "  ✗ a tee is on a bank too steep to hold a ball"))
     }
     // Bests and trophies are saved by pair name, and a round is nine pairs.
     if shipped && filter == nil && courseFilter == nil {
@@ -280,7 +299,8 @@ if args.contains("--timing") {
 if args.contains("--report") {
     func pad(_ s: String, _ n: Int) -> String { s.count >= n ? s : s + String(repeating: " ", count: n - s.count) }
     print(pad("#", 4) + pad("Course", 13) + pad("Pair", 18) + pad("Par", 6) + pad("Sugg", 6) + pad("Dbl ace", 9)
-          + pad("Needs", 8) + pad("Window", 13) + pad("Ace A/B %", 12) + pad("Water", 7) + pad("Timing", 9) + "Mechanics")
+          + pad("Needs", 8) + pad("Window", 13) + pad("Aim off", 10) + pad("Ace A/B %", 12) + pad("Water", 7) + pad("Timing", 9)
+          + "Mechanics")
     var summary: [(course: String, par: Int, aces: [Double])] = []
     for (i, level) in picked {
         var best: Best?
@@ -305,11 +325,12 @@ if args.contains("--report") {
             let w = timingWindow(level, shot, at: level.solutionTime)
             timing = String(format: "%.0fms", (w.early + w.late) * 1000 + 5)
         }
+        let off = aimOff(level).map { $0.map { $0.map { String(format: "%.0f", $0) } ?? "?" }.joined(separator: "/") + "°" } ?? "—"
         let c = course(of: i)
         let n = c.map { i - $0.pairs.lowerBound + 1 } ?? i + 1
         print(pad("\(n)", 4) + pad(c?.name ?? "draft", 13) + pad(level.name, 18) + pad("\(level.par[0])/\(level.par[1])", 6)
               + pad("\(holeAce[0] >= 0.25 ? 2 : 3)/\(holeAce[1] >= 0.25 ? 2 : 3)", 6) + pad(String(format: "%.3f%%", ace), 9)
-              + pad(needs, 8) + pad(window, 13) + pad(String(format: "%.2f/%.2f", holeAce[0], holeAce[1]), 12)
+              + pad(needs, 8) + pad(window, 13) + pad(off, 10) + pad(String(format: "%.2f/%.2f", holeAce[0], holeAce[1]), 12)
               + pad(String(format: "%.0f%%", water), 7) + pad(timing, 9) + mechanics(level))
         let name = c?.name ?? "draft"
         if summary.last?.course == name {
