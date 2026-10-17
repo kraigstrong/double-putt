@@ -75,6 +75,7 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
 - Play a few pairs in a round: strokes show as numbers when balls drop; the result card shows the pair's verdict;
   finishing a round shows the scorecard and medal, and a medal on Nightfall unlocks Thunderhead.
 - Free Play plays any open pair; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
+- A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Pair.
 - Progress survives force-quitting and reopening.
 - The screen doesn't dim while aiming; it sleeps normally on the title screen.
 - Background the app mid-pair: on return the pause menu is up and nothing moved while away.

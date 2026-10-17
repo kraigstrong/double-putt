@@ -139,7 +139,12 @@ struct GameView: View {
             .onTapGesture { withAnimation { showHint.toggle() } }
             Spacer(minLength: 0)
             ScoreChip(index: 1, strokes: game.strokes[1], sunk: game.sunk[1])
-            GlassIconButton(symbol: "arrow.counterclockwise", size: compact ? 38 : 42) { game.restart() }
+            // A round is played as it lies; only Free Play can start a pair over. The gap keeps the name centered.
+            if game.inRound {
+                Color.clear.frame(width: compact ? 38 : 42, height: compact ? 38 : 42)
+            } else {
+                GlassIconButton(symbol: "arrow.counterclockwise", size: compact ? 38 : 42) { game.restart() }
+            }
         }
     }
 
@@ -485,7 +490,9 @@ private struct PauseMenu: View {
             VStack(spacing: 12) {
                 Text("Paused").font(.rounded(30, .black)).padding(.bottom, 4)
                 PillButton(title: "Resume", symbol: "play.fill", fill: .putt) { game.paused = false }
-                PillButton(title: "Restart Pair", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 50) { game.restart() }
+                if !game.inRound {
+                    PillButton(title: "Restart Pair", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 50) { game.restart() }
+                }
                 if game.inRound {
                     PillButton(title: "Scorecard", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 50) {
                         game.paused = false
