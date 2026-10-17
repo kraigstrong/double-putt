@@ -100,3 +100,4 @@ The feedback email and the review contact are personal, so they come from the 1P
 | Build | Date | Source commit | Notes |
 |---|---|---|---|
 | 0.1 (1) | 2026-10-15 | `d146919` | First upload: six courses, analytics. Uploaded with `xcodebuild -exportArchive`. Internal testing, then submitted for external beta review with Friends' public link on (2026-10-15). |
+| 0.1 (2) | 2026-10-17 | `6a2cc8c` (tag `double-putt-v0.1-beta.2`) | The Links (course 7), every course open for the beta, rounds without restart. Uploaded with `xcodebuild -exportArchive`; What to Test set and submitted to Friends for beta review with `push.py testflight --build 2 --submit`. Fog Bank is the 2% window version. |
