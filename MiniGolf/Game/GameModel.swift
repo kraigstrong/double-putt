@@ -314,7 +314,9 @@ final class GameModel {
         analytics.pairStarted(pairContext, mode: inRound ? "round" : "single", par: par)
     }
 
+    /// Start the pair over. Free Play only: a round is played as it lies.
     func restart() {
+        guard !inRound else { return }
         paused = false
         scene?.loadLevel()
         analytics.pairStarted(pairContext, mode: inRound ? "round" : "single", par: par)
