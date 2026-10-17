@@ -151,19 +151,19 @@ with a medal on the one before. In the app each course numbers its pairs 1–9. 
 | 8 | Starburst | Fireworks | 6 | Mirror | water, bumpers, tunnels, bowls |
 | 9 | Grand Finale | Fireworks | 6 | Mirror | water, tunnels, rotors, carousels, kickers |
 
-### The Links (par 49)
+### The Links (par 40)
 
 | # | Pair | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Fescue | Seaside Links | 4 | Mirror | contours, fringe, rough |
-| 2 | Pot Bunker | Seaside Links | 5 | Same | contours, fringe, rough, sand |
-| 3 | Punchbowl | Seaside Links | 6 | Mirror | contours, fringe, rough |
-| 4 | Gorse Line | Seaside Links | 6 | Same | contours, fringe, rough |
-| 5 | Two Tiers | Seaside Links | 5 | Mirror | contours, fringe, rough |
-| 6 | Sea Wall | Seaside Links | 5 | Mirror | contours, fringe, rough, sand, ponds |
-| 7 | Fog Bank | Seaside Links | 6 | Mirror | contours, fringe, rough, sand |
-| 8 | Saddle | Seaside Links | 6 | Mirror | contours, fringe, rough, sand, ponds |
-| 9 | Lighthouse | Seaside Links | 6 | Mirror | contours, fringe, rough, sand, ponds |
+| 1 | Fescue | Seaside Links | 4 | Same | contours, fringe, rough |
+| 2 | Pot Bunker | Seaside Links | 4 | Same | contours, fringe, rough, sand |
+| 3 | Punchbowl | Seaside Links | 6 | Same | contours, fringe, rough, ponds |
+| 4 | Gorse Line | Seaside Links | 4 | Same | contours, fringe, rough |
+| 5 | Two Tiers | Seaside Links | 4 | Mirror | contours, fringe, rough |
+| 6 | Sea Wall | Seaside Links | 5 | Same | contours, fringe, rough, sand, ponds |
+| 7 | Fog Bank | Seaside Links | 4 | Same | contours, fringe, rough |
+| 8 | Saddle | Seaside Links | 4 | Same | contours, fringe, rough, sand, ponds |
+| 9 | Lighthouse | Seaside Links | 5 | Mirror | contours, fringe, rough, sand, ponds |
 
 The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
 course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).
