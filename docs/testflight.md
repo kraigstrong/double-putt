@@ -80,6 +80,8 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
 - Background the app mid-pair: on return the pause menu is up and nothing moved while away.
 - Sound off in Settings and the pause menu is remembered; with the phone on silent there's no sound.
 - Settings shows the version, and Privacy Policy and Support open in Safari.
+- The Links: the slope grid and its dots show on green and fringe only; on Two Tiers a soft putt up the false
+  front rolls back down; Bandon naps beside Fescue.
 
 ## Test Information
 The Beta App Description and What to Test are in `appstore/double-putt/testflight/en-US/`, and the Beta App Review
