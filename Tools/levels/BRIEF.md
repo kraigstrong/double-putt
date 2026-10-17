@@ -45,7 +45,7 @@ l.hump(nil, 200, 400, radius: 90, strength: 110) // nil instead of a hole: cours
 l.ground(.rough, .a)                         // surfaces, painted in order (later covers earlier): a hole's base
 l.green(.a, [(100, 90), (160, 110), ...])    // a green in this shape (smooth by default) with a fringe collar
 l.paint(.sand, .a, [(140, 380), ...], smooth: true)  // any surface in any shape: .green .fringe .rough .sand .water
-l.cartPath(.a, [(60, 90), (40, 400), (90, 760)], width: 22)  // a concrete cart path along a curve (City Muni): runs fast
+l.cartPath(.a, [(60, 90), (40, 300), (90, 520), (60, 760)], width: 22)  // a black cart path along a curve (City Muni): fast
 l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; blades at `phase` when the pair loads, then never stop
 l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
 l.kicker(.a, x, y, toward: 90, speed: 520)    // springboard pad (radius 13): launches a ball rolling onto it toward `toward`° at `speed`
@@ -91,13 +91,19 @@ Contours (from course 7):
   bunker, a soft one dies in it), and painted water is a hazard. The best pairs make one ball cross fringe or sand while the other stays on the green. Cups go on green.
 
 Cart paths (from course 8):
-- A **cart path** (City Muni's feature) is a concrete strip laid along a smooth curve through the points, open at
-  both ends. A putt runs 1.3–1.5 times as far along it as on the green (rolling resistance 130 against the green's
+- A **cart path** (City Muni's feature) is a black asphalt strip laid along a smooth curve through the points, open
+  at both ends. A putt runs 1.3–1.5 times as far along it as on the green (rolling resistance 130 against the green's
   240, less drag), and on any slope stronger than 130 it keeps rolling downhill until it reaches ground that holds
-  it, so a path down a bank carries a ball a long way. It isn't turf, so no slope grid shows on it: keep contours
-  under a path gentle, or make the run obvious from the green either side. Paint it after the ground it crosses
-  and before any green that should cover it. Make the path matter: one ball needs its extra run to reach a far cup,
-  or it carries one ball round a corner while the other stays on the green.
+  it. It isn't turf, so no slope grid shows on it. Paint it after the ground it crosses and before any green that
+  should cover it.
+  - **Lay paths as flowing curves** that wind between greens, bunkers and the fence, the way a real muni's do: at
+    least four points, with visible bends. Never a straight strip.
+  - **A ball doesn't follow a bend by itself**; it runs straight. To carry it round one, sit the path in a shallow
+    gully (a hollow, or tiers either side) so the slope steers it, or run the path along the fence so the ball
+    glances off the chain link and carries on. City Muni's Chain Link is the model: one ball rides its path across
+    the rough to the fence, glances off it and runs up beside it onto the top green, while the other ball stays on
+    its own green.
+  - **Make the path the route:** one ball rides it a long way while the other stays on the green.
 
 ## Your file
 Draft pairs in a scratch file under `Tools/levels/` (one per designer):
