@@ -19,8 +19,10 @@ struct Terrain {
         var area: Box
     }
 
-    /// Same cap as `Slope`: below `Tuning.rollDecel`, so a ball can always come to rest.
-    static let maxPull = 200.0
+    /// Contours can pull harder than the green (240) or fringe (330) can hold a ball, so a putt that comes up short on
+    /// a steep bank rolls back down it, like a links false front; World.step lets such a ball roll on. Rough (520)
+    /// holds anything up to this cap, so a runaway always stops. (Slope boxes and mounds stay at 200.)
+    static let maxPull = 400.0
     /// A mound's steepest pull, as a multiple of amplitude / radius (at r = radius / √3).
     static let moundPeak = 8 / (3 * 3.0.squareRoot())
 

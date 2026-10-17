@@ -356,6 +356,8 @@ struct World {
         let dt = Tuning.dt
         let r = Tuning.ballRadius
         time += dt
+        // The wall each ball leant on this step, if any: on a steep bank a ball can rest against a rail.
+        var leaning = [Vec?](repeating: nil, count: balls.count)
 
         for i in balls.indices where balls[i].sunkIn == nil {
             var b = balls[i]
@@ -371,6 +373,7 @@ struct World {
                     if distSq < minDist * minDist && distSq > 0 {
                         let n = d * (1 / distSq.squareRoot())
                         b.pos = q + n * minDist
+                        leaning[i] = n
                         let vn = b.vel.dot(n)
                         if vn < 0 {
                             b.vel -= n * ((1 + Tuning.wallRestitution) * vn)
@@ -521,12 +524,33 @@ struct World {
             speed = b.vel.length
             let newSpeed = frictionless ? speed : (speed - ground.rollDecel * dt) * (1 - ground.drag * dt)
             if newSpeed <= Tuning.stopSpeed && !overCup {
-                b.vel = .zero
+                if let pull = tooSteep(at: b.pos, on: ground, leaning: leaning[i]) {
+                    // A bank too steep for this surface to hold it: the ball rolls back down (a false front).
+                    b.vel = pull.normalized * Tuning.stopSpeed
+                } else {
+                    b.vel = .zero
+                }
             } else {
                 b.vel = b.vel * (max(newSpeed, Tuning.stopSpeed) / speed)
             }
             balls[i] = b
         }
+    }
+
+    /// The downhill pull at `p` when it's too strong for `surface` to hold a resting ball, after anything a wall the
+    /// ball is leaning on takes up; nil when the ground holds it. Only contours can be that steep, so pairs without
+    /// them never ask (and simulate exactly as before).
+    func tooSteep(at p: Vec, on surface: Surface, leaning wall: Vec?) -> Vec? {
+        guard !terrain.isEmpty else { return nil }
+        var pull = terrain.accel(at: p)
+        for s in slopes where s.box.contains(p) { pull += s.accel }
+        for m in mounds {
+            let d = p - m.center
+            let dist = d.length
+            if dist < m.radius && dist > 1 { pull += d * (m.strength / dist) }
+        }
+        if let n = wall, pull.dot(n) < 0 { pull -= n * pull.dot(n) }
+        return pull.length > surface.rollDecel ? pull : nil
     }
 
     // MARK: - Simulation helpers (aim guide + solver)
