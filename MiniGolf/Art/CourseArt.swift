@@ -27,10 +27,12 @@ enum CourseArt {
                 p.borderShape(fill: .black)
                 p.railShapes(level, fill: .black)
                 p.blockShapes(level, fill: .black)
+                p.standShapes(level, fill: .black)
             }
             p.border(theme, &rng)
             p.rails(level, theme, &rng)
             p.blocks(level, theme, &rng)
+            p.stands(level, &rng)
             if theme.snowCaps { p.snowCaps(level, theme) }
             p.posts(level, theme)
         }
