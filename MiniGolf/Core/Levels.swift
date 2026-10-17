@@ -246,7 +246,7 @@ enum Levels {
         "meadow": "Spring Meadow", "garden": "Walled Garden", "moat": "Castle Moat", "seaside": "Seaside Boardwalk",
         "autumn": "Autumn Grove", "desert": "Desert Canyon", "winter": "Winter Village", "night": "Night Garden",
         "midway": "Midway", "bigtop": "Big Top", "fireworks": "Fireworks", "links": "Seaside Links",
-        "muni": "City Muni",
+        "muni": "City Muni", "stadium": "Stadium Course",
     ]
 
     /// Every pair, in course order.
