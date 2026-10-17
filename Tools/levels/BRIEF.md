@@ -128,7 +128,7 @@ about where the previous course's middle sat. Shipped courses, measured:
 | 4 Midway | 0.080 0.075 0.068 0.062 0.052 0.044 0.040 0.038 0.029 | 1.5–3.25° × 6–11% | 47 | 410–465 ms | fun, but played easier than Thunderhead |
 | 5 Big Top | 0.065 0.051 0.049 0.047 0.042 0.037 0.033 0.029 0.024 | 1.0–1.75° × 5–10% | 47 | 245–400 ms | not yet playtested |
 | 6 Fireworks | 0.043 0.042 0.037 0.033 0.031 0.028 0.026 0.021 0.018 | 1.25–1.75° × 5–8% | 50 | 230–595 ms | not yet playtested |
-| 7 The Links | 0.041 0.035 0.028 0.025 0.022 0.021 0.018 0.013 0.010 | 1.0–1.5° × 2–7% | 40 | — (no movers) | first cut: slopes too gentle, routes obvious; retuned steeper |
+| 7 The Links | 0.041 0.035 0.028 0.025 0.022 0.021 0.024 0.013 0.010 | 1.0–1.5° × 5–7% | 40 | — (no movers) | first cut: slopes too gentle, routes obvious; retuned steeper |
 
 Midway measured a touch harder than Thunderhead yet played easier. Likely causes: wide windows (several ≥ 2.5°), and
 holes a player can ace almost at will (Springboard's A, High Striker's B and Teacups' B each ace 2.5–3% of all swings,

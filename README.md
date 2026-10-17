@@ -162,7 +162,7 @@ with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse
 | 4 | Gorse Line | Seaside Links | 4 | Same | contours, fringe, rough |
 | 5 | Two Tiers | Seaside Links | 4 | Mirror | contours, fringe, rough |
 | 6 | Sea Wall | Seaside Links | 5 | Same | contours, fringe, rough, sand, ponds |
-| 7 | Fog Bank | Seaside Links | 4 | Same | contours, fringe, rough |
+| 7 | Fog Bank | Seaside Links | 4 | Same | contours, fringe, rough, sand, ponds |
 | 8 | Saddle | Seaside Links | 4 | Same | contours, fringe, rough, sand, ponds |
 | 9 | Lighthouse | Seaside Links | 5 | Mirror | contours, fringe, rough, sand, ponds |
 
