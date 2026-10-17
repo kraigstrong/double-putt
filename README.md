@@ -28,6 +28,7 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
   over slopes (reading them is your job) and reaches further the firmer you putt.
 - Any ball can drop in any cup (one ball per cup). Water = +1 and the ball goes back.
 - Per-hole scoring; each pair's par is the sum of its two holes (2 or 3 each).
+- A round is played as it lies: there's no restarting a pair. Free Play has Retry and Restart Pair.
 
 Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tunnels** (color-coded mouths,
 optional exit direction), **slopes** and round **hills / bowls**, smooth **contours** (tilts, tiers, humps and
