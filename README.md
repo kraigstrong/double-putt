@@ -168,19 +168,19 @@ with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse
 | 8 | Saddle | Seaside Links | 4 | Same | contours, fringe, rough, sand, ponds |
 | 9 | Lighthouse | Seaside Links | 5 | Mirror | contours, fringe, rough, sand, ponds |
 
-### City Muni (par 39)
+### City Muni (par 40)
 
 | # | Pair | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Clubhouse | City Muni | 4 | Same | contours, fringe, rough, sand, cart paths |
+| 1 | Clubhouse | City Muni | 5 | Same | contours, fringe, rough, sand, cart paths |
 | 2 | Cart Path | City Muni | 4 | Mirror | contours, fringe, rough, cart paths |
-| 3 | Ball Washer | City Muni | 5 | Same | contours, fringe, rough, sand |
-| 4 | Water Tower | City Muni | 4 | Same | contours, fringe, rough, cart paths |
+| 3 | Ball Washer | City Muni | 5 | Same | contours, fringe, rough, cart paths |
+| 4 | Water Tower | City Muni | 4 | Same | contours, fringe, rough, sand, cart paths |
 | 5 | Chain Link | City Muni | 4 | Mirror | contours, fringe, rough, cart paths |
-| 6 | Twilight Rate | City Muni | 4 | Mirror | contours, fringe, rough, sand |
-| 7 | Practice Green | City Muni | 4 | Mirror | contours, fringe, rough, cart paths |
-| 8 | Skyline | City Muni | 5 | Mirror | contours, fringe, rough, ponds, cart paths |
-| 9 | Last Call | City Muni | 5 | Same | contours, fringe, rough, ponds, cart paths |
+| 6 | Twilight Rate | City Muni | 4 | Same | contours, fringe, rough, cart paths |
+| 7 | Skyline | City Muni | 4 | Mirror | contours, fringe, rough, cart paths |
+| 8 | Practice Green | City Muni | 5 | Same | contours, fringe, rough, sand, cart paths |
+| 9 | Last Call | City Muni | 5 | Mirror | contours, fringe, rough, sand, cart paths |
 
 The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
 course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).
