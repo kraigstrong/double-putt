@@ -44,7 +44,7 @@ enum Medal: Int, Comparable {
 extension Nine {
     /// The nines that exist for these pairs (debug builds can swap in a short test course).
     static func all(levelCount: Int) -> [Nine] {
-        Levels.nines.compactMap { n in
+        Levels.playable.nines.compactMap { n in
             let pairs = n.pairs.clamped(to: 0..<levelCount)
             return pairs.isEmpty ? nil : Nine(id: n.id, name: n.name, pairs: pairs)
         }
@@ -148,7 +148,7 @@ final class GameModel {
     /// First swing of the last attempt, restored on Retry so you can tweak it.
     @ObservationIgnored var lastOpeningShot: Shot?
 
-    static var levels = Levels.course
+    static var levels = Levels.playable.course
     var level: Level { Self.levels[levelIndex] }
     var theme: Theme { Theme.for(level) }
     var levelCount: Int { Self.levels.count }
