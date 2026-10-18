@@ -243,7 +243,7 @@ enum Levels {
         ("stadium", "The Stadium", [                 // Stadium Course
             firstTee(), pineStraw(), grandstand(),
             gallery(), railroadTies(), amphitheater(),
-            palmRow(), peninsula(), islandGreen(),
+            creek(), palmRow(), islandGreen(),
         ]),
     ]
 

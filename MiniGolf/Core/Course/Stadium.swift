@@ -45,40 +45,41 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. Short vs long, round one big waste bunker. A is a long green leaning hard right (150) toward the waste
-    /// bunker along its right flank; its ball starts well left of the cup, about 9° off the straight line, and curls
-    /// into a steep hollow below and left of the cup. B is short: its tee sits on a little tee box below the waste
-    /// bunker, which runs across the front of an island green and on round it. The bunker's front edge runs on a
-    /// diagonal, so the further right B's ball starts, the more sand it crosses, and the sand eats all the extra pace of
-    /// a putt firm enough for A. Both greens lean right, but the balls start out opposite ways: Mirror. Paint the
-    /// bunker rough and the double ace all but disappears (0.003%); the strip of it beside A's lane swallows banks
-    /// off the wall between the holes.
+    /// Pair 2. Short vs long, round two Florida waste areas. A is a long green leaning hard right (150) toward a big
+    /// waste area beside the right of its lane; its ball starts well left of the cup, about 9° off the straight line,
+    /// and curls into a steep hollow below and left of the cup (break too much and it finishes in the sand). B is
+    /// short: its tee box sits beside a big waste area that sweeps across the front of the green, up its right side
+    /// and round behind it. The waste area's front edge runs on a slant, deeper on the right, and B's ball has to
+    /// carry through it: the sand eats all the extra pace of a putt firm enough for A, and the green beyond leans
+    /// right into a dish round the cup. Both greens lean right, but the balls start out opposite ways: Mirror. Paint
+    /// B's waste area green and there's no double ace at all.
     static func pineStraw() -> Level {
         var l = Level("Pine Straw", par: [3, 3], hint: "Sand eats the pace. Hit it firm enough for the long one.")
         l.setting = "stadium"
         l.frame()
-        // A: a long green leaning right toward the waste bunker on its right; a lake behind.
+        // A: a long green leaning right toward a waste area beside the right of its lane.
         l.ground(.rough, .a)
-        l.paint(.water, .a, [(0, 775), (80, 768), (160, 770), (200, 778), (200, 800), (0, 800)])
-        l.paint(.sand, .a, [(200, 150), (160, 170), (140, 300), (150, 450), (175, 560), (200, 580)], smooth: true)
+        l.paint(.sand, .a, [(138, 210), (165, 235), (178, 330), (176, 450), (160, 540), (140, 520), (128, 430), (126, 320)],
+                smooth: true)
         l.green(.a, [(40, 108), (95, 108), (110, 250), (120, 400), (150, 520), (165, 640), (150, 725), (100, 740),
                      (60, 700), (45, 560), (40, 400), (35, 250)])
         l.tilt(.a, downhill: 0, strength: 150)
         l.hollow(.a, 110, 655, radius: 30, strength: 350)
         l.tee(.a, 60, 125)
         l.cup(.a, 120, 680)
-        // B: a tee box below the waste bunker, whose front edge runs on a diagonal; an island green in it, leaning
-        // right into a dish round the cup.
+        // B: a round tee box beside a big waste area that sweeps across the front of the green, up its right and round
+        // behind it; the green leans right into a dish round the cup.
         l.ground(.rough, .b)
-        l.paint(.sand, .b, [(0, 450), (200, 270), (200, 800), (0, 800)])
-        l.green(.b, [(55, 250), (110, 250), (120, 300), (110, 330), (55, 330), (45, 300)])
-        l.green(.b, [(60, 430), (120, 430), (150, 480), (160, 640), (140, 715), (90, 725), (50, 700), (40, 600),
-                     (45, 470)])
-        l.tilt(.b, downhill: 0, strength: 82)
-        l.hollow(.b, 115, 650, radius: 30, strength: 180)
+        l.paint(.sand, .b, [(28, 425), (70, 395), (115, 355), (140, 292), (168, 300), (178, 420), (176, 600), (168, 715),
+                            (140, 762), (90, 770), (45, 760), (40, 700), (60, 600), (40, 470)], smooth: true)
+        l.green(.b, [(52, 258), (92, 252), (112, 275), (108, 312), (75, 326), (46, 306)])
+        l.green(.b, [(48, 448), (105, 442), (135, 475), (142, 600), (130, 690), (90, 722), (48, 708), (34, 640),
+                     (34, 520)])
+        l.tilt(.b, downhill: 0, strength: 90)
+        l.hollow(.b, 119, 650, radius: 30, strength: 180)
         l.tee(.b, 75, 290)
-        l.cup(.b, 115, 650)
-        l.solution = Shot(angle: 92.75, power: 0.650, mirrored: true)
+        l.cup(.b, 119, 650)
+        l.solution = Shot(angle: 92.50, power: 0.650, mirrored: true)
         return l
     }
 
@@ -222,79 +223,82 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. B has a false front: a bank across the green too steep to hold a ball (400 against the green's 240), with
-    /// the cup in a dish just over its crest. The whole green leans left (142), so B's ball starts about 13° right of
-    /// the cup, runs up the right side and has to reach the crest slowly: too soft and the bank rolls it back down, too
-    /// firm and it runs through the dish. A is a long green running away from the tee, with a steep spectator mound in
-    /// the middle; the ace rides the mound's right shoulder, which throws off any putt that isn't on line. The putt that
-    /// crests B's bank slowly is just firm enough to reach A's cup, so without the false front there is no double ace.
-    /// Waste bunkers down both sides and behind both greens, and a burn either side of the wall between the holes,
-    /// swallow banks off the walls. Same, up and a little right.
+    /// Pair 7. A creek winds across both holes, under the wall between them, and stops short of each outer fence, so
+    /// the straight line to either cup is wet: each ball has to go round the creek's head on the outside. Both balls
+    /// start up and a little left. A's tee is by its creek head: its ball slips past it up the left, and the green,
+    /// leaning right, curls it back across above the creek into a dish round the cup, about 13° right of where it
+    /// was aimed; a bank behind the cup turns a firm putt back. B's ball starts from the far right, runs past the
+    /// other head of the creek, and B's green, leaning left, curls it into its cup. Same: the leans curl the balls
+    /// opposite ways (Mirror never double-aces). Paint the creek green or rough and the double ace is seven times as
+    /// common, with the straight lines open.
+    static func creek() -> Level {
+        var l = Level("Creek", par: [3, 3], hint: "The creek blocks both lines. Go round its ends.")
+        l.setting = "stadium"
+        l.frame()
+        l.ground(.rough, nil)
+        // A long green in each hole; a creek winds across both, under the wall between them, short of either fence.
+        l.green(.a, [(60, 105), (150, 105), (166, 250), (166, 500), (164, 690), (130, 735), (60, 735), (36, 650),
+                     (34, 400), (40, 200)])
+        l.green(.b, [(50, 105), (140, 105), (160, 200), (166, 400), (166, 650), (140, 735), (70, 735), (36, 690),
+                     (34, 500), (34, 250)])
+        l.paint(.water, nil, [(65, 368), (105, 415), (160, 425), (200, 452), (240, 482), (250, 464), (278, 410),
+                              (272, 385), (245, 378), (240, 398), (200, 368), (160, 340), (105, 332), (70, 345)],
+                smooth: true)
+        // A leans right, with a dish round the cup and a bank behind it.
+        l.tilt(.a, downhill: 0, strength: 125)
+        l.hollow(.a, 132, 570, radius: 35, strength: 50)
+        l.tier(.a, 138.95, 609.39, downhill: 260, strength: 400, width: 40)
+        l.tee(.a, 67.5, 125)
+        l.cup(.a, 132, 570)
+        // B leans left, with a little dish round the cup.
+        l.tilt(.b, downhill: 180, strength: 125)
+        l.hollow(.b, 47.5, 537.5, radius: 25, strength: 50)
+        l.tee(.b, 142.5, 125)
+        l.cup(.b, 47.5, 537.5)
+        l.solution = Shot(angle: 95.00, power: 0.540, mirrored: false)
+        return l
+    }
+
+    /// Pair 8. Short against long. B is a short, two-tier green with a false front: a bank across it too steep to hold
+    /// a ball (400 against the green's 240), with the cup in a dish just over the crest. The whole green leans left
+    /// (142), so B's ball starts about 13° right of the cup, runs up the right side and has to reach the crest slowly:
+    /// too soft and the bank rolls it back, too firm and it runs through the dish. A is a long, slim green bending
+    /// right, with a pond off its left side, a steep spectator mound in the middle and a curved bunker behind the cup.
+    /// The ace rides the mound's right shoulder, which throws off any putt that isn't on line. The putt that crests B's
+    /// bank slowly is just firm enough to reach A's cup, so without the false front there is no double ace. The pond
+    /// swallows banks off the fence beside it, and the bunker stops putts that would come back off the back fence.
+    /// Same, up and a little right.
     static func palmRow() -> Level {
         var l = Level("Palm Row", par: [3, 2], hint: "Come up short and the bank sends it back. Mind the mound.")
         l.setting = "stadium"
         l.frame()
-        // A: a long green running away from the tee, a steep spectator mound in the middle; waste bunkers down both
-        // sides and behind.
+        // A: a long, slim green bending right, a pond off its left side, a steep spectator mound in the middle and a
+        // curved bunker behind the cup.
         l.ground(.rough, .a)
-        l.paint(.sand, .a, [(200, 800), (0, 800), (0, 760), (60, 752), (140, 745), (200, 740)])
-        l.paint(.sand, .a, [(0, 140), (40, 140), (40, 760), (0, 760)])
-        l.paint(.sand, .a, [(160, 140), (200, 140), (200, 760), (160, 760)])
-        l.green(.a, [(60, 105), (110, 105), (130, 250), (160, 450), (165, 600), (150, 700), (110, 728), (70, 715),
-                     (60, 600), (45, 400), (40, 250)])
+        l.green(.a, [(60, 105), (110, 105), (125, 250), (150, 430), (165, 600), (150, 700), (115, 728), (80, 715),
+                     (70, 620), (55, 430), (45, 250)])
+        l.paint(.water, .a, [(38, 215), (56, 240), (62, 300), (58, 360), (64, 410), (50, 460), (32, 476), (24, 440),
+                             (22, 380), (28, 300), (30, 245)], smooth: true)
+        l.paint(.sand, .a, [(85, 742), (125, 744), (156, 722), (170, 690), (177, 708), (166, 746), (130, 768), (88, 762)],
+                smooth: true)
         l.tilt(.a, downhill: 70, strength: 65.4)
         l.hump(.a, 91.27, 432.83, radius: 80, strength: 357.89)
         l.tee(.a, 70, 125)
         l.cup(.a, 137.23, 674.66)
-        // B: a lower tier, a false front across the green, and the cup in a dish just over its crest; the whole green
-        // leans left. Waste bunkers down both sides and behind.
+        // B: a short green, narrow below and round on top, with a false front across it and the cup in a dish just
+        // over the crest; the whole green leans left. A waste area below it and a pot bunker off its left.
         l.ground(.rough, .b)
-        l.paint(.sand, .b, [(200, 800), (0, 800), (0, 760), (60, 752), (140, 745), (200, 740)])
-        l.paint(.sand, .b, [(0, 140), (40, 140), (40, 760), (0, 760)])
-        l.paint(.sand, .b, [(160, 140), (200, 140), (200, 760), (160, 760)])
-        l.green(.b, [(95, 105), (150, 105), (162, 300), (165, 500), (160, 640), (120, 700), (60, 700), (35, 640),
-                     (38, 500), (60, 300), (80, 160)])
+        l.paint(.sand, .b, [(35, 117), (90, 105), (150, 113), (172, 140), (158, 173), (115, 165), (70, 177), (38, 155)],
+                smooth: true)
+        l.green(.b, [(112, 205), (160, 213), (168, 360), (168, 560), (165, 675), (150, 730), (110, 737), (60, 730),
+                     (35, 700), (35, 620), (85, 520), (93, 360), (100, 255)])
+        l.paint(.sand, .b, [(52, 440), (72, 458), (66, 488), (46, 480), (42, 454)], smooth: true)
         l.tilt(.b, downhill: 180, strength: 141.55)
-        l.tier(.b, 100, 490.41, downhill: 270, strength: 400, width: 54.58)
-        l.hollow(.b, 86.84, 526.1, radius: 42.71, strength: 387.63)
-        l.tee(.b, 140.8, 130)
-        l.cup(.b, 80.84, 526.1)
-        // A burn either side of the wall between the holes.
-        l.paint(.water, nil, [(182, 200), (218, 200), (218, 600), (182, 600)])
+        l.tier(.b, 100, 590.41, downhill: 270, strength: 400, width: 54.58)
+        l.hollow(.b, 86.84, 626.1, radius: 42.71, strength: 387.63)
+        l.tee(.b, 140.8, 230)
+        l.cup(.b, 80.84, 626.1)
         l.solution = Shot(angle: 85.50, power: 0.550, mirrored: false)
-        return l
-    }
-
-    /// Pair 8. A's green is a peninsula: it runs up the right side from the tee, then juts left into the lake at the
-    /// top, with water short of it, beyond it and off its tip. The straight line to the cup is all water, and the
-    /// whole hole leans left into the lake, so the ball starts up the right side, about 14° right of the cup, and the
-    /// lean curls it round the bay onto the peninsula; a steep lip at the back of the peninsula turns firm putts back.
-    /// A pond on the right of the neck swallows banks off the middle wall. B is a long green leaning the other way, so
-    /// its ball curls right into the cup. Same, up and a little right. Paint the lake green and the straight line is
-    /// open: the double ace is seven times as common.
-    static func peninsula() -> Level {
-        var l = Level("Peninsula", par: [3, 2], hint: "The lake guards the straight line. Go round it.")
-        l.setting = "stadium"
-        l.frame()
-        // A: up the right side and left onto the peninsula; the lake fills the bay, and a pond guards the neck.
-        l.ground(.rough, .a)
-        l.paint(.water, .a, [(6, 230), (70, 225), (105, 270), (112, 400), (110, 560), (150, 600), (160, 700), (178, 794),
-                             (6, 794)])
-        l.paint(.water, .a, [(178, 230), (194, 230), (194, 470), (178, 470)])
-        l.green(.a, [(100, 105), (160, 105), (167, 160), (168, 350), (168, 560), (165, 690), (140, 725), (80, 730),
-                     (42, 712), (34, 665), (50, 625), (100, 605), (128, 560), (128, 400), (115, 250), (95, 170)])
-        l.tilt(.a, downhill: 180, strength: 144)
-        l.tier(.a, 59.03, 700.89, downhill: 290, strength: 400, width: 40)
-        l.tee(.a, 151, 125)
-        l.cup(.a, 71, 668)
-        // B: a long green leaning right.
-        l.ground(.rough, .b)
-        l.green(.b, [(40, 105), (110, 105), (125, 250), (160, 450), (164, 640), (158, 725), (110, 740), (60, 720),
-                     (50, 600), (40, 300)])
-        l.tilt(.b, downhill: 0, strength: 103)
-        l.tee(.b, 48, 125)
-        l.cup(.b, 138, 587)
-        l.solution = Shot(angle: 84.50, power: 0.600, mirrored: false)
         return l
     }
 
