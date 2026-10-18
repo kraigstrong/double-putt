@@ -182,18 +182,18 @@ with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse
 | 8 | Skyline | City Muni | 5 | Mirror | contours, fringe, rough, ponds, cart paths |
 | 9 | Last Call | City Muni | 5 | Same | contours, fringe, rough, ponds, cart paths |
 
-### The Stadium (par 48)
+### The Stadium (par 49)
 
 | # | Pair | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | First Tee | Stadium Course | 6 | Same | contours, fringe, rough, ponds |
-| 2 | Pine Straw | Stadium Course | 6 | Mirror | contours, fringe, rough, sand, ponds |
+| 2 | Pine Straw | Stadium Course | 6 | Mirror | contours, fringe, rough, sand |
 | 3 | Grandstand | Stadium Course | 6 | Same | stands, contours, fringe, rough, ponds |
 | 4 | Gallery | Stadium Course | 4 | Mirror | contours, fringe, rough |
 | 5 | Railroad Ties | Stadium Course | 6 | Mirror | contours, fringe, rough, sand, ponds |
 | 6 | Amphitheater | Stadium Course | 4 | Mirror | stands, contours, fringe, rough, ponds |
-| 7 | Palm Row | Stadium Course | 5 | Same | contours, fringe, rough, sand, ponds |
-| 8 | Peninsula | Stadium Course | 5 | Same | contours, fringe, rough, ponds |
+| 7 | Creek | Stadium Course | 6 | Same | contours, fringe, rough, ponds |
+| 8 | Palm Row | Stadium Course | 5 | Same | contours, fringe, rough, sand, ponds |
 | 9 | Island Green | Stadium Course | 6 | Mirror | stands, contours, fringe, rough, ponds |
 
 The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a

@@ -150,7 +150,7 @@ about where the previous course's middle sat. Shipped courses, measured:
 | 6 Fireworks | 0.043 0.042 0.037 0.033 0.031 0.028 0.026 0.021 0.018 | 1.25–1.75° × 5–8% | 50 | 230–595 ms | not yet playtested |
 | 7 The Links | 0.041 0.035 0.028 0.025 0.022 0.021 0.024 0.013 0.010 | 1.0–1.5° × 5–7% | 40 | — (no movers) | first cut: slopes too gentle, routes obvious; retuned steeper |
 | 8 City Muni | 0.030 0.026 0.023 0.022 0.018 0.016 0.014 0.012 0.011 | 1.0–1.5° × 3–7% | 39 | — (no movers) | not yet playtested |
-| 9 The Stadium | 0.024 0.022 0.020 0.017 0.017 0.015 0.014 0.011 0.012 | 1.0–1.75° × 5–6% | 48 | — (no movers) | not yet playtested |
+| 9 The Stadium | 0.024 0.022 0.020 0.017 0.017 0.015 0.015 0.014 0.012 | 1.0–1.75° × 5–6% | 49 | — (no movers) | first look: Pine Straw and Palm Row redone with natural shapes; Peninsula, a copy of Railroad Ties, became Creek |
 
 Midway measured a touch harder than Thunderhead yet played easier. Likely causes: wide windows (several ≥ 2.5°), and
 holes a player can ace almost at will (Springboard's A, High Striker's B and Teacups' B each ace 2.5–3% of all swings,
