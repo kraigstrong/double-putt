@@ -5,7 +5,7 @@ extension Painter {
 
     /// Each grandstand's footprint, for the shadow pass.
     func standShapes(_ level: Level, fill color: UIColor) {
-        for s in level.stands { fill(Self.standPath(s), color) }
+        for s in level.stands { fill(Self.standPath(Self.drawn(s)), color) }
     }
 
     /// Grandstands: rows of seats stepping up from a white front rail (the face you bank off) to a back wall, with a
@@ -15,7 +15,7 @@ extension Painter {
         let shirts = [UIColor(hex: 0xF4F1EA), UIColor(hex: 0xE0533D), UIColor(hex: 0xF2C14E), UIColor(hex: 0x3E7CB1),
                       UIColor(hex: 0x6BBF59), UIColor(hex: 0x1F2A36), UIColor(hex: 0xE88EB4)]
         let skin = [UIColor(hex: 0xF1C7A1), UIColor(hex: 0xC98E63), UIColor(hex: 0x8D5A3B), UIColor(hex: 0xE5B48A)]
-        for s in level.stands {
+        for s in level.stands.map(Self.drawn) {
             let c = s.corners.map { CGPoint(x: $0.x, y: $0.y) }
             let path = Self.standPath(s)
             fill(path, UIColor(hex: 0x8E959C))
@@ -178,6 +178,13 @@ extension Painter {
         stroke(pond, t.borderSide.darker(0.4), 5.5)
         stroke(pond.copy(dashingWithPhase: 0, lengths: [7, 1.1]), t.borderTop, 4.4)
         stroke(pond, t.borderTop.lighter(0.15).withAlphaComponent(0.5), 0.6)
+    }
+
+    /// A stand as drawn: grown by the walls' thickness all round, so a ball that banks off it touches the drawing
+    /// (as a planter is drawn out to its walls' faces).
+    private static func drawn(_ s: Stand) -> Stand {
+        let r = Course.blockRadius
+        return Stand(center: s.center, width: s.width + 2 * r, depth: s.depth + 2 * r, facing: s.facing)
     }
 
     private static func standPath(_ s: Stand) -> CGPath {
