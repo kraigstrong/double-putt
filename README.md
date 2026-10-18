@@ -70,6 +70,9 @@ Each course is nine pairs played as a round. Daybreak and Nightfall are open fro
 with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse` opens them all). In the app each course numbers its pairs 1–9. The tables come from
 `Tools/solve.sh --readme`.
 
+City Muni is still in development: it's in the lineup and the solver checks it, but only Debug builds play it
+(`Levels.inDevelopment`). TestFlight and App Store builds go straight from The Links to the next course.
+
 ### Daybreak (par 40)
 
 | # | Pair | Setting | Par | Double ace needs | Mechanics |
