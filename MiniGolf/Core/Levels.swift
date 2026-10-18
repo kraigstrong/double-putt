@@ -215,13 +215,13 @@ enum Levels {
         ("muni", "City Muni", [                      // City Muni
             clubhouse(), cartPath(), ballWasher(),
             waterTower(), chainLink(), twilightRate(),
-            practiceGreen(), skyline(), lastCall(),
+            skyline(), practiceGreen(), lastCall(),
         ]),
     ]
 
     /// The course content's revision, sent with analytics so counts never mix two versions of a pair. Bump it
     /// whenever any pair's layout, par or order changes.
-    static let revision = "2026-10-18.1"
+    static let revision = "2026-10-18.3"
 
     /// Display names of the visual settings (`Level.setting`).
     static let settingNames = [

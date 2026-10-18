@@ -1,157 +1,165 @@
 import Foundation
 
 // City Muni (course 8): an everyday city course, and a putting course like The Links. Greens shaped by fringe,
-// rough, sand and water, with steep contours to read, and cart paths that run faster than the green: several double
-// aces need one ball to ride a path while the other stays on its green. Designed with Tools/solver against
-// Tools/levels/BRIEF.md (course 8 targets).
+// rough, sand and water, with steep contours to read, and black cart paths that run faster than the green and wind
+// between them. Every double ace needs one ball to ride a path: steered round a bend by the slope, two mounds or a
+// hollow, or banked off the chain-link fence. Designed with Tools/solver against Tools/levels/BRIEF.md (course 8
+// targets).
 extension Levels {
-    /// Pair 1, the warm-up. A is a kidney green leaning hard right (170), with a big, steep bowl round the cup near
-    /// the top and a bunker in the bend. Its ball has to start up the left side, about 16° left of the cup, and let
-    /// the lean bring it round into the bowl, which gathers a range of paces. B is a long thin green that climbs to
-    /// its cup and leans a little right, into a small dip round the cup: a near-straight putt whose pace the climb
-    /// decides. The cart path up B's right side is only scenery here. Same, up and a little left. Take A's lean away
-    /// and the Same double ace is gone (a 0.009% Mirror one is left); take B's lean away and it's gone too.
+    /// Pair 1, the warm-up. A's tee box sits at the bottom left, and a cart path bows out to the left and sweeps up
+    /// and round to the right, past a bunker, to a green at the top right. The whole hole leans hard right (170) and
+    /// the path is laid along the curve that lean puts on a putt: aim up the path, about 14° left of the cup, and the
+    /// slope carries the ball round the bend and onto the green, where a big, steep bowl gathers it into the cup. Off
+    /// the path it dies in the rough. B is a long, thin green that climbs to its cup, with a bank just behind the cup
+    /// that turns a firm putt back: a straight putt whose pace the climb decides. Same, up and a little left. Paint the
+    /// path rough or green, or take the lean away, and there's no double ace.
     static func clubhouse() -> Level {
-        var l = Level("Clubhouse", par: [2, 2], hint: "One green leans hard. The other climbs to the cup.")
+        var l = Level("Clubhouse", par: [3, 2], hint: "The path bends with the slope. The other green climbs.")
         l.setting = "muni"
         l.frame()
-        // A: a kidney green leaning hard right, a bunker in its bend; a big bowl round the cup near the top.
+        // A: a tee box at the bottom left; a cart path curving up and right with the lean to a green at the top right.
         l.ground(.rough, .a)
-        l.green(.a, [(50, 108), (95, 110), (110, 200), (105, 330), (125, 450), (158, 560), (162, 660), (140, 728), (95, 738),
-                     (55, 690), (42, 560), (38, 400), (36, 250)])
-        l.paint(.sand, .a, [(140, 300), (165, 320), (172, 420), (160, 470), (138, 420), (130, 350)], smooth: true)
+        l.green(.a, [(42, 112), (82, 112), (90, 133), (80, 152), (45, 152), (36, 133)])
+        l.cartPath(.a, [(60, 150), (44, 260), (39, 370), (46, 460), (58, 525), (72, 575)], width: 26)
+        l.green(.a, [(95, 545), (150, 560), (162, 640), (150, 720), (110, 742), (72, 722), (66, 650), (76, 575)])
+        l.paint(.sand, .a, [(130, 330), (162, 345), (168, 420), (150, 460), (128, 430), (122, 370)], smooth: true)
         l.tilt(.a, downhill: 0, strength: 170)
-        l.hollow(.a, 104.91, 680, radius: 70, strength: 350)
-        l.tee(.a, 70, 125)
-        l.cup(.a, 118, 680)
-        // B: a long thin green climbing to the cup and leaning a little right; a cart path runs up the right side.
+        l.hollow(.a, 103.02, 700, radius: 40, strength: 375)
+        l.tee(.a, 60, 132)
+        l.cup(.a, 110, 700)
+        // B: a long, thin green climbing to the cup, with a bank just behind it.
         l.ground(.rough, .b)
-        l.cartPath(.b, [(172, 100), (166, 400), (160, 770)], width: 22)
-        l.green(.b, [(85, 108), (130, 110), (135, 250), (125, 400), (118, 540), (98, 612), (55, 615), (38, 540), (52, 400),
-                     (70, 250)])
-        l.tilt(.b, downhill: 315, strength: 130)
-        l.hollow(.b, 51.94, 553.06, radius: 22.5, strength: 260)
-        l.tee(.b, 105, 125)
-        l.cup(.b, 55, 550)
-        l.solution = Shot(angle: 100.75, power: 0.630, mirrored: false)
+        l.green(.b, [(85, 108), (130, 110), (150, 220), (148, 350), (135, 460), (100, 500), (55, 495), (38, 420), (42, 300),
+                     (60, 200)])
+        l.tilt(.b, downhill: 280, strength: 80)
+        l.hollow(.b, 59.57, 432.43, radius: 12, strength: 150)
+        l.tier(.b, 60, 470, downhill: 270, strength: 250, width: 15)
+        l.tee(.b, 110, 125)
+        l.cup(.b, 60, 430)
+        l.solution = Shot(angle: 99.25, power: 0.550, mirrored: false)
         return l
     }
 
-    /// Pair 2 introduces the cart path. A is long: a tee box, then a concrete path straight up through the rough to a
-    /// green at the top, the cup in a dip on it. A putt runs much further on the path than on grass, so the ball
-    /// rides it all the way up, rolls onto the green and drops. B is a long green leaning left (120) with no path on
-    /// its line, so its ball has to start right, about 10° off the cup, and curl back into a bowl round it; its path
-    /// runs up the right side, out of the way. The same power that carries A's ball up the path is just enough for
-    /// B on grass. A goes up-left and B up-right: Mirror. Paint A's path as the rough it crosses and there is no
-    /// double ace; paint it green and A's ball comes up short (the double ace drops to 0.010%, a 2% power window).
+    /// Pair 2. B's cart path winds up from the tee box between two grassy mounds, the first on its left and the second
+    /// on its right, so it bends right and then back left; each mound sheds the ball the way the path goes, and it
+    /// rolls off the end onto the top green and into a big bowl round the cup. Off the path it dies in the rough. A is
+    /// a long green leaning hard down and to the left (180): its ball starts about 8° right of the cup and curls back
+    /// into a dish. Mirror: A up and a little right, B up and a little left along the path. Paint the path rough and
+    /// there's no double ace; paint it green and it drops to 0.010% (a 0.75° window); flatten the mounds and it drops to
+    /// 0.008% (a 2% power window).
     static func cartPath() -> Level {
-        var l = Level("Cart Path", par: [2, 2], hint: "The path runs fast. One ball needs it, one doesn't.")
+        var l = Level("Cart Path", par: [2, 2], hint: "The path winds between two mounds. Ride it.")
         l.setting = "muni"
         l.frame()
-        // A: a tee box at the bottom right, a cart path up through the rough to a green at the top.
+        // A: a long green leaning down and to the left; the cup in a dish.
         l.ground(.rough, .a)
-        l.green(.a, [(132, 112), (160, 118), (164, 140), (150, 158), (128, 152), (122, 130)])
-        l.cartPath(.a, [(140, 150), (98, 560)], width: 24)
-        l.green(.a, [(70, 545), (120, 548), (152, 600), (150, 680), (115, 720), (60, 715), (40, 660), (45, 590)])
-        l.hollow(.a, 92, 610, radius: 35, strength: 325)
-        l.tee(.a, 145, 135)
-        l.cup(.a, 92, 610)
-        // B: a long green leaning left, the cup in a dip on its left side; a cart path up the right side.
+        l.green(.a, [(70, 108), (125, 108), (150, 220), (160, 460), (150, 580), (110, 620), (60, 610), (40, 530), (45, 300),
+                     (55, 200)])
+        l.tilt(.a, downhill: 210, strength: 180)
+        l.hollow(.a, 87.71, 554.45, radius: 45, strength: 350)
+        l.tee(.a, 110, 125)
+        l.cup(.a, 80, 550)
+        // B: a tee box, then a cart path winding up between two mounds to a green at the top, the cup in a bowl.
         l.ground(.rough, .b)
-        l.cartPath(.b, [(172, 100), (170, 400), (165, 770)], width: 22)
-        l.green(.b, [(60, 108), (110, 108), (125, 250), (138, 420), (142, 560), (138, 670), (110, 728), (60, 725), (36, 650),
-                     (36, 520), (50, 400), (55, 280), (50, 180)])
-        l.tilt(.b, downhill: 180, strength: 120)
-        l.hollow(.b, 61.5, 550, radius: 45, strength: 320)
-        l.tee(.b, 80, 125)
-        l.cup(.b, 55, 550)
-        l.solution = Shot(angle: 96.25, power: 0.500, mirrored: true)
+        l.green(.b, [(80, 112), (120, 112), (128, 135), (118, 152), (82, 152), (72, 135)])
+        l.cartPath(.b, [(100, 150), (96, 260), (110, 370), (128, 450), (133, 510), (124, 568)], width: 28)
+        l.green(.b, [(60, 590), (120, 585), (155, 640), (150, 715), (105, 742), (55, 735), (38, 680), (42, 620)])
+        l.hump(.b, 10, 300, radius: 170, strength: 350)
+        l.hump(.b, 190, 500, radius: 170, strength: 350)
+        l.hollow(.b, 90, 620, radius: 60, strength: 400)
+        l.tee(.b, 100, 132)
+        l.cup(.b, 90, 620)
+        l.solution = Shot(angle: 86.50, power: 0.630, mirrored: true)
         return l
     }
 
-    /// Pair 3. A has a false front: a long green leaning hard left (170), and two thirds of the way up a steep bank
-    /// (400, too steep for the green to hold a ball) runs across it, falling toward the tee and to the right, with the
-    /// cup's tier just above it. The ball has to start well right, about 8° off the cup, and arrive with pace enough to
-    /// climb the bank, which kicks it right as it climbs; then the lean curls it back into a little dip round the cup.
-    /// Come up short and the bank rolls it back down. B is short: its tee box sits halfway up the hole, a strip of rough
-    /// to cross, then a green leaning right into a dip round the cup, with greenside bunkers either side (they catch
-    /// some balls banked off the fences). Same: both up and a little right; the firm putt A's bank needs is the one that
-    /// carries B's ball through the rough. Take the bank away and the double ace halves and its window shrinks to
-    /// 0.75° × 3%.
+    /// Pair 3. A's cart path runs from the tee box up and right to the middle fence, touches it, and doubles back up
+    /// and left to a green at the top: A's ball rides it to the fence, banks off the chain link and rides the second
+    /// leg onto the green and into a dish round the cup, about 15° off the straight line. Off the path it dies in the
+    /// rough. B is a long green running up and right, leaning left (200), with a false front: a broad bank (400, too
+    /// steep for the green to hold a ball) across it just below the cup's tier. Its ball starts about 8° right of the
+    /// cup and needs the pace to climb the bank, then the lean curls it in; come up short and it rolls back down. Same:
+    /// both up and to the right. Paint the path rough, or take the bank away, and there's no double ace; paint the path
+    /// green and it drops to 0.010%, with a 0.75° × 2% window.
     static func ballWasher() -> Level {
-        var l = Level("Ball Washer", par: [3, 2], hint: "Come up short on the bank and it rolls back.")
+        var l = Level("Ball Washer", par: [2, 3], hint: "Bank it off the fence. Come up short and it rolls back.")
         l.setting = "muni"
         l.frame()
-        // A: a long green leaning left, with a false front: a steep bank across it below the cup's tier.
+        // A: a tee box, a cart path up to the middle fence and back off it, to a green at the top.
         l.ground(.rough, .a)
-        l.green(.a, [(60, 108), (130, 108), (150, 250), (152, 420), (160, 560), (150, 690), (110, 735), (60, 725), (40, 620),
-                     (45, 420), (45, 250)])
-        l.tilt(.a, downhill: 180, strength: 170)
-        l.tier(.a, 100, 520, downhill: 315, strength: 400, width: 55)
-        l.hollow(.a, 90, 600, radius: 25, strength: 125)
-        l.tee(.a, 120, 125)
-        l.cup(.a, 90, 600)
-        // B: short. A tee box halfway up, rough, then a green leaning right; bunkers either side of it.
+        l.green(.a, [(78, 112), (122, 112), (130, 132), (120, 152), (80, 152), (70, 132)])
+        l.cartPath(.a, [(102, 150), (133, 220), (162, 290), (185, 348), (170, 410), (150, 480), (124, 575)], width: 24)
+        l.green(.a, [(70, 590), (130, 580), (160, 640), (150, 715), (105, 742), (55, 730), (38, 670), (45, 615)])
+        l.hollow(.a, 130, 615, radius: 45, strength: 250)
+        l.tee(.a, 100, 132)
+        l.cup(.a, 130, 615)
+        // B: a long green running up and right, leaning left, with a false front just below the cup's tier.
         l.ground(.rough, .b)
-        l.green(.b, [(40, 312), (80, 312), (87, 335), (77, 352), (43, 352), (33, 335)])
-        l.green(.b, [(70, 430), (125, 430), (150, 520), (152, 640), (135, 715), (90, 730), (50, 710), (40, 620), (45, 510)])
-        l.paint(.sand, .b, [(8, 400), (43, 410), (47, 490), (8, 500)], smooth: true)
-        l.paint(.sand, .b, [(192, 400), (157, 410), (153, 490), (192, 500)], smooth: true)
-        l.tilt(.b, downhill: 300, strength: 130)
-        l.hollow(.b, 97.14, 634.95, radius: 20, strength: 175)
-        l.tee(.b, 60, 332)
-        l.cup(.b, 100, 630)
-        l.solution = Shot(angle: 85.25, power: 0.600, mirrored: false)
+        l.green(.b, [(40, 114), (75, 108), (100, 200), (110, 330), (125, 420), (160, 500), (165, 600), (145, 690), (95, 700),
+                     (75, 620), (70, 480), (48, 380), (40, 250), (37, 180)])
+        l.tilt(.b, downhill: 170, strength: 200)
+        l.tier(.b, 100, 480, downhill: 270, strength: 400, width: 80)
+        l.hollow(.b, 135, 580, radius: 25, strength: 125)
+        l.tee(.b, 45, 130)
+        l.cup(.b, 135, 580)
+        l.solution = Shot(angle: 71.00, power: 0.670, mirrored: false)
         return l
     }
 
-    /// Pair 4. Short vs long, and the cart path makes up the difference. A is a tee green and a top green with rough
-    /// between them, joined by a straight cart path; the cup sits where the path's line meets the top green, so A's
-    /// ball has to ride the whole path, and a putt soft enough for B still gets there because the path runs fast. B
-    /// is a short kidney green leaning down and to the left, with a bank too steep to hold a ball just behind the
-    /// cup: its ball starts about 12° right of the cup and curls in, and one that runs long climbs the bank and rolls
-    /// back. Same, up and a little left, along the path. Paint the path rough or green, or take away B's lean or its
-    /// bank, and there's no double ace.
+    /// Pair 4. B's cart path sweeps up from the tee box and bends right round a hollow, a broad dip with a bunker in
+    /// its bottom, to a green at the top. The ball rides it the whole way: the hollow's slope carries it round the
+    /// bend, the path's pace gets it to the green, and a steep bank behind the cup sends a firm one back. Off the
+    /// path it dies in the rough. A is a hog's back: a long green along a ridge, so the putt has to run straight
+    /// down the spine; a little off line and it falls away into the rough. Same, up and a little left, along the
+    /// spine, which starts B's ball about 12° left of its cup. Take the path away (rough or green) or flatten the
+    /// hollow and there's no double ace.
     static func waterTower() -> Level {
-        var l = Level("Water Tower", par: [2, 2], hint: "The cart path runs fast. The other green breaks hard.")
+        var l = Level("Water Tower", par: [2, 2], hint: "The path bends with the hollow. One green is a ridge.")
         l.setting = "muni"
         l.frame()
-        // A: a tee green, a straight cart path up through the rough, and a green at the top; the cup in a dish there.
+        // A: a hog's back, a long green along a ridge that falls away either side; a bank behind the cup.
         l.ground(.rough, .a)
-        l.green(.a, [(130, 112), (162, 114), (166, 140), (158, 165), (125, 165), (115, 140)])
-        l.cartPath(.a, [(150, 135), (127, 330), (105, 520)], width: 20)
-        l.green(.a, [(70, 490), (130, 505), (160, 580), (160, 690), (125, 740), (60, 735), (35, 650), (40, 540)])
-        l.hollow(.a, 88, 662, radius: 32, strength: 240)
-        l.tee(.a, 150, 125)
-        l.cup(.a, 88, 662)
-        // B: a kidney green leaning down and left; a steep bank behind the cup sends long putts back.
+        l.green(.a, [(101, 117), (78, 146), (56, 227), (43, 338), (41, 451), (50, 534), (69, 565), (92, 537),
+                     (113, 456), (127, 344), (129, 232), (119, 149)])
+        l.tier(.a, 74, 123, downhill: 184, strength: 238, width: 26)
+        l.tier(.a, 126, 127, downhill: 4, strength: 238, width: 26)
+        l.tier(.a, 70, 553.5, downhill: 274, strength: 317.5, width: 34)
+        l.hollow(.a, 72.5, 515.5, radius: 25.5, strength: 82)
+        l.tee(.a, 100, 125)
+        l.cup(.a, 72.5, 515.5)
+        // B: a tee box, a cart path sweeping up and round a hollow with a bunker in it, and a green at the top.
         l.ground(.rough, .b)
-        l.green(.b, [(140, 112), (164, 120), (166, 220), (150, 330), (125, 440), (85, 520), (45, 530), (34, 460),
-                     (45, 370), (90, 250), (120, 140)])
-        l.tilt(.b, downhill: 200, strength: 103)
-        l.tier(.b, 53, 485, downhill: 270, strength: 375, width: 30)
-        l.hollow(.b, 53, 440, radius: 29, strength: 250)
-        l.tee(.b, 150, 125)
-        l.cup(.b, 53, 440)
-        l.solution = Shot(angle: 95.50, power: 0.50, mirrored: false)
+        l.green(.b, [(40, 112), (85, 112), (92, 140), (80, 165), (45, 165), (38, 140)])
+        l.cartPath(.b, [(78, 140), (60, 200), (56, 270), (60, 340), (70, 414), (84, 487), (97, 550)], width: 24)
+        l.green(.b, [(100, 520), (150, 540), (165, 620), (160, 700), (130, 740), (85, 735), (70, 670), (75, 580)])
+        l.paint(.sand, .b, [(128, 285), (137.5, 305.5), (157, 310), (176, 294.5), (171, 270.5), (152, 262), (135, 268)],
+                smooth: true)
+        l.hollow(.b, 169.5, 278, radius: 193, strength: 244)
+        l.tier(.b, 135, 681, downhill: 280, strength: 376.5, width: 30)
+        l.hollow(.b, 139.5, 655, radius: 31, strength: 251)
+        l.tee(.b, 62, 128)
+        l.cup(.b, 139.5, 655)
+        l.solution = Shot(angle: 93.75, power: 0.51, mirrored: false)
         return l
     }
 
-    /// Pair 5. A's cart path runs from the tee box across the rough to the left fence and on up beside it. A's ball
-    /// rides it the whole way: along the path to the fence, a glancing bank off the chain link, then on up the path
-    /// beside the fence until it rolls off onto the top green and into the cup, about 11° off the straight line. Off
-    /// the path it dies in the rough. B's ball stays on its green, which leans hard left, so it starts about 9° right
-    /// of the cup and curls back into a dish. Mirror: A up and to the left, B up and to the right. Paint the path
-    /// rough or green and the double ace is gone.
+    /// Pair 5, the showpiece. A's cart path winds out of the tee box, across the rough to the left fence, up beside the
+    /// chain link and round behind the top green. A's ball rides it: along the path to the fence, a glancing bank off
+    /// the chain link, then on up beside the fence until it rolls off onto the top green and into the cup, about 11°
+    /// off the straight line. Off the path it dies in the rough. B's ball stays on its green, which leans hard left,
+    /// so it starts about 9° right of the cup and curls back into a dish. Mirror: A up and to the left, B up and to
+    /// the right. Paint the path rough or green and the double ace is gone.
     static func chainLink() -> Level {
         var l = Level("Chain Link", par: [2, 2], hint: "Ride the path along the fence. The other green leans.")
         l.setting = "muni"
         l.frame()
-        // A: a tee green and a top green with rough between; a cart path from the tee to the left fence, then up it.
+        // A: a tee green and a top green with rough between; a cart path from the tee to the left fence, up beside it
+        // and round behind the top green.
         l.ground(.rough, .a)
         l.green(.a, [(105, 112), (150, 112), (160, 140), (140, 165), (105, 165), (95, 140)])
         l.green(.a, [(60, 520), (120, 540), (150, 620), (140, 710), (100, 742), (55, 740), (36, 690), (38, 580)])
-        l.cartPath(.a, [(115, 145), (62, 330), (16, 520), (16, 700), (16, 790)], width: 23)
+        l.cartPath(.a, [(152, 150), (108, 200), (62, 330), (24, 470), (14, 560), (16, 640), (40, 728), (100, 776),
+                        (165, 772)], width: 23)
         l.hollow(.a, 61.5, 684.5, radius: 30.5, strength: 268.5)
         l.tee(.a, 125, 135)
         l.cup(.a, 61.5, 684.5)
@@ -167,147 +175,155 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. A is a broad green leaning up and to the right, with a false front across it (a bank too steep to
-    /// hold a ball) rising just past the cup and to its left, falling back toward it. The ace starts about 13° left
-    /// of the cup and runs past it up the fringe onto the bank; short of the top, the false front sends it back down
-    /// into the cup. Without the false front there's no double ace. B is a long, thin green leaning hard left: its
-    /// ball starts about 12° right of the cup and curls back into a dish. Mirror: A up and to the left, B up and to
-    /// the right. A bunker along the middle fence beside B's tee kills banks off it, which would otherwise make easy
-    /// Same double aces.
+    /// Pair 6. B is two greens, one above the other, with a false front between them: a fringe bank too steep to
+    /// hold a ball, so a putt that runs out of pace on it rolls back down. The cart path is the way up. B's green
+    /// leans left, so its ball starts up the right side about 12° right of the cup; at the bank it rides the path,
+    /// which climbs and bends left with the slope, and comes off the top onto the upper green and into a dish, a bank
+    /// behind the cup sending a firm one back. On the turf beside the path the same putt stalls on the bank. A is a
+    /// broad green with a knob in it: the ball has to run past the knob's left shoulder, which turns it into the cup.
+    /// Same, up and a little right. Take the path away and there's no double ace; flatten the false front and it moves
+    /// somewhere else entirely.
     static func twilightRate() -> Level {
-        var l = Level("Twilight Rate", par: [2, 2], hint: "A steep bank won't hold a short putt. It rolls back.")
+        var l = Level("Twilight Rate", par: [2, 2], hint: "The bank won't hold a putt, but the cart path climbs it.")
         l.setting = "muni"
         l.frame()
-        // A: a broad green leaning up and to the right; a false front across it just past the cup, falling back
-        // toward the cup, which sits in a shallow dish at its foot.
+        // A: a broad green with a knob in it; the cup in a dish beyond, a gentle rise behind.
         l.ground(.rough, .a)
-        l.green(.a, [(110, 112), (160, 114), (165, 250), (155, 400), (150, 560), (125, 690), (80, 705), (40, 650),
-                     (38, 500), (60, 350), (90, 200)])
-        l.tilt(.a, downhill: 50.5, strength: 113)
-        l.tier(.a, 67.5, 427.5, downhill: 298, strength: 345, width: 55)
-        l.hollow(.a, 89.5, 387.5, radius: 24, strength: 40.5)
-        l.tee(.a, 121, 125)
-        l.cup(.a, 89.5, 387.5)
-        // B: a long, thin green leaning hard left, the cup in a dish; a bunker along the middle fence beside the tee.
+        l.green(.a, [(80, 112), (140, 115), (165, 220), (162, 380), (150, 520), (120, 620), (80, 640), (45, 610),
+                     (34, 480), (40, 300), (60, 180)])
+        l.hump(.a, 125, 280.5, radius: 69, strength: 235.5)
+        l.tier(.a, 122, 611.5, downhill: 259, strength: 142.5, width: 30)
+        l.hollow(.a, 113, 566, radius: 27, strength: 273)
+        l.tee(.a, 100.5, 125)
+        l.cup(.a, 113, 566)
+        // B: a lower green, a fringe bank (the false front) and an upper green; the cart path climbs the bank.
         l.ground(.rough, .b)
-        l.green(.b, [(60, 112), (100, 114), (120, 250), (145, 420), (160, 560), (160, 680), (135, 735), (100, 720),
-                     (90, 600), (70, 450), (45, 300), (40, 180)])
-        l.tilt(.b, downhill: 157.5, strength: 133.5)
-        l.paint(.sand, .b, [(0, 130), (18, 138), (30, 160), (32, 240), (30, 320), (18, 342), (0, 350)])
-        l.hollow(.b, 127.5, 458, radius: 32, strength: 203.5)
-        l.tee(.b, 80.5, 125)
-        l.cup(.b, 127.5, 458)
-        l.solution = Shot(angle: 110.00, power: 0.47, mirrored: true)
+        l.paint(.fringe, .b, [(60, 380), (100, 372), (170, 380), (172, 450), (170, 520), (100, 528), (60, 520),
+                              (58, 450)], smooth: true)
+        l.cartPath(.b, [(159, 290), (160, 350), (155, 415), (143, 460), (124, 510)], width: 22)
+        l.green(.b, [(85, 112), (150, 112), (165, 160), (166, 300), (160, 365), (110, 375), (90, 370), (76, 300),
+                     (76, 180)])
+        l.green(.b, [(65, 525), (110, 520), (160, 540), (165, 640), (150, 710), (100, 740), (70, 725), (54, 640)])
+        l.tilt(.b, downhill: 180, strength: 90)
+        l.tier(.b, 100, 443, downhill: 227.5, strength: 392, width: 57.5)
+        l.tier(.b, 62.5, 645.5, downhill: 300, strength: 369.5, width: 30)
+        l.hollow(.b, 80, 615, radius: 34.5, strength: 220)
+        l.tee(.b, 150, 125)
+        l.cup(.b, 80, 615)
+        l.solution = Shot(angle: 86.25, power: 0.59, mirrored: false)
         return l
     }
 
-    /// Pair 7. Two long greens that lean opposite ways, each with a bank behind its cup that turns a firm putt back
-    /// toward it. A's tee box sits at the foot of a cart path that runs up and a little right; the whole hole leans
-    /// left and a touch back toward the tee, so the ball keeps its pace on the concrete, then curls left up the green
-    /// into a dish near the back, below a bank rising up and to the left. B is the practice green, a long oval leaning
-    /// right: its ball starts well left of the cup and curls right into a dish below a bank rising up and to the right.
-    /// Mirror: A goes up and right, B up and left; both banks forgive a putt that's a little firm.
-    static func practiceGreen() -> Level {
-        var l = Level("Practice Green", par: [2, 2], hint: "Firm putts come back off the banks. The path runs fast.")
-        l.setting = "muni"
-        l.frame()
-        // A: a tee box, a cart path up and a little right, then a long green; the hole leans left and back, and a bank
-        // behind the cup falls back toward it.
-        l.ground(.rough, .a)
-        l.green(.a, [(150, 130), (146.8, 140), (138, 147.3), (126, 150), (114, 147.3), (105.2, 140), (102, 130),
-                     (105.2, 120), (114, 112.7), (126, 110), (138, 112.7), (146.8, 120)])
-        l.cartPath(.a, [(126, 143), (136, 330)], width: 22)
-        l.green(.a, [(110, 330), (160, 340), (165, 500), (160, 650), (130, 730), (70, 740), (35, 690), (36, 560), (70, 420)])
-        l.tilt(.a, downhill: 195, strength: 140)
-        l.hollow(.a, 86, 708, radius: 33, strength: 320)
-        l.tier(.a, 70.6, 750.3, downhill: 290, strength: 210, width: 30)
-        l.tee(.a, 126, 125)
-        l.cup(.a, 86, 708)
-        // B: the practice green, a long oval leaning right and a little back toward its tee box; a bank behind the
-        // cup falls back toward it.
-        l.ground(.rough, .b)
-        l.green(.b, [(168, 420), (158.9, 575), (134, 688.5), (100, 730), (66, 688.5), (41.1, 575), (32, 420), (41.1, 265),
-                     (66, 151.5), (100, 110), (134, 151.5), (158.9, 265)])
-        l.green(.b, [(78, 145), (75.1, 155), (67, 162.3), (56, 165), (45, 162.3), (36.9, 155), (34, 145), (36.9, 135),
-                     (45, 127.7), (56, 125), (67, 127.7), (75.1, 135)])
-        l.tilt(.b, downhill: 345, strength: 140)
-        l.hollow(.b, 120, 607, radius: 45, strength: 320)
-        l.tier(.b, 142.5, 646, downhill: 240, strength: 185, width: 30)
-        l.tee(.b, 56, 140)
-        l.cup(.b, 120, 607)
-        l.solution = Shot(angle: 82.00, power: 0.620, mirrored: true)
-        return l
-    }
-
-    /// Pair 8. A is a long green toward the skyline, leaning hard left and a little back toward the tee, with a pond
-    /// along the left fence: its ball starts well right of the cup and the lean brings it round into a dish. B's tee
-    /// sits on a high tee green; a cart path runs straight down the bank to the lower green, which falls away left
-    /// into a dish round the cup. On the concrete the bank speeds the ball up (it holds nothing steeper than 130), so
-    /// a soft putt rides the path all the way down. Mirror: A goes up and right, B up and left along the path.
+    /// Pair 7. A is a long, thin green toward the skyline, leaning hard right: its ball starts well left of the cup,
+    /// about 17° off the line, and curls back into a dish. B tees off a high green; its cart path winds down a bank
+    /// and swings out to the right fence, then curls back left across the lower green, which falls away left. B's
+    /// ball rides it: the bank speeds it up (the asphalt can't hold it on that slope), the chain link turns it, and
+    /// the fall of the lower green brings it round into the cup. Mirror: A up and to the left, B up and to the right.
     static func skyline() -> Level {
-        var l = Level("Skyline", par: [3, 2], hint: "Ride the cart path down the bank. One green leans left.")
+        var l = Level("Skyline", par: [2, 2], hint: "Ride the path down the bank. It bends off the fence.")
         l.setting = "muni"
         l.frame()
-        // A: a long green leaning left and back, a pond along the left fence, the cup in a dish.
+        // A: a long, thin green leaning hard right; a tee green at its foot.
         l.ground(.rough, .a)
-        l.green(.a, [(110, 105), (165, 115), (165, 300), (160, 500), (150, 680), (110, 735), (60, 735), (35, 680), (35, 450),
-                     (60, 250)])
-        l.paint(.water, .a, [(0, 330), (14, 340), (22, 450), (14, 610), (0, 620)], smooth: true)
-        l.tilt(.a, downhill: 200, strength: 175)
-        l.hollow(.a, 80, 702, radius: 35, strength: 300)
-        l.tee(.a, 145, 130)
-        l.cup(.a, 80, 702)
-        // B: a high tee green, a cart path down the bank, and a lower green falling away left to the cup.
+        l.green(.a, [(60, 105), (130, 110), (150, 250), (160, 450), (165, 620), (145, 725), (95, 740), (60, 700), (50, 520),
+                     (40, 300)])
+        l.green(.a, [(168, 135), (165.6, 144), (159, 150.6), (150, 153), (141, 150.6), (134.4, 144), (132, 135),
+                     (134.4, 126), (141, 119.4), (150, 117), (159, 119.4), (165.6, 126)])
+        l.tilt(.a, downhill: 0, strength: 180)
+        l.hollow(.a, 114, 680, radius: 35, strength: 280)
+        l.tee(.a, 150, 130)
+        l.cup(.a, 114, 680)
+        // B: a high tee green, a bank falling away toward the skyline, and a lower green falling away left; the cart
+        // path winds down the bank, out to the right fence and back across.
         l.ground(.rough, .b)
-        l.green(.b, [(93, 105), (163, 105), (168, 200), (88, 200)], smooth: false)
-        l.green(.b, [(40, 420), (110, 405), (165, 430), (165, 600), (150, 700), (110, 740), (60, 735), (35, 650), (35, 500)])
-        l.cartPath(.b, [(128, 143), (118, 430)], width: 22)
-        l.tier(.b, 100, 320, downhill: 90, strength: 200, width: 60)
-        l.hollow(.b, -20, 650, radius: 200, strength: 200)
-        l.hollow(.b, 60, 650, radius: 30, strength: 240)
-        l.tee(.b, 128, 125)
-        l.cup(.b, 60, 650)
-        l.solution = Shot(angle: 83.25, power: 0.680, mirrored: true)
+        l.green(.b, [(135, 137), (131, 148), (120, 156.1), (105, 159), (90, 156.1), (79, 148), (75, 137), (79, 126),
+                     (90, 117.9), (105, 115), (120, 117.9), (131, 126)])
+        l.green(.b, [(40, 470), (110, 450), (165, 490), (165, 620), (150, 710), (100, 742), (50, 735), (35, 620)])
+        l.cartPath(.b, [(112.7, 164), (146.8, 269), (166.5, 331.4), (187, 421.1), (167.7, 517.6), (145.7, 613.6)], width: 22)
+        l.tier(.b, 100, 330, downhill: 90, strength: 200, width: 70)
+        l.hollow(.b, -30, 650, radius: 210, strength: 200)
+        l.hollow(.b, 95, 672, radius: 35, strength: 280)
+        l.tee(.b, 100, 125)
+        l.cup(.b, 95, 672)
+        l.solution = Shot(angle: 110.50, power: 0.650, mirrored: true)
         return l
     }
 
-    /// Pair 9, the finale: long against short. A climbs to a shelf under the city side. A false front, a bank too
-    /// steep to hold a ball, runs across the green below the cup, and a cart path climbs it straight up from the middle
-    /// of the green; a putt that doesn't crest the bank rolls back down, and the concrete is the cheap way up. Behind
-    /// the cup a gentler bank falls back toward it and turns a firm putt round. Ponds along both fences and a canal
-    /// behind the green take the bank shots. B is short: its tee sits high on a green that leans hard right and back
-    /// toward the tee, so its ball starts far left of the cup and curls across into a dish below a bank. Same: both go
-    /// up and a touch left. Take the false front away and the double ace moves to a softer putt; take the path away and
-    /// there isn't one.
-    static func lastCall() -> Level {
-        var l = Level("Last Call", par: [3, 2], hint: "Short putts roll back off the bank. Take the path up.")
+    /// Pair 8. A's cart path leaves the tee green and runs up and right between two bunkers to the middle fence,
+    /// touches it, and swings back up and left to the top green. A's ball rides it: a bank off the chain link turns it
+    /// about 28° and sends it back across onto the green and into the cup, about 14° off the straight line. Off the
+    /// path it dies in the rough or a bunker. B is the practice green, a long, narrow green that climbs gently from
+    /// the tee to the cup: a straight putt whose pace the climb decides. Paint the path rough or green and there's no
+    /// double ace; flatten B's climb and it doubles. Same: both balls go up and to the right, A's along its path and
+    /// B's along its green.
+    static func practiceGreen() -> Level {
+        var l = Level("Practice Green", par: [3, 2], hint: "Ride the path to the fence. The practice green climbs.")
         l.setting = "muni"
         l.frame()
-        // A: a long green up to a shelf; a false front below the cup with a cart path climbing it; a bank behind the cup.
+        // A: a tee green bottom middle, a cart path up to the middle fence and back across to the top green, a bunker
+        // either side of its first leg; the cup in a small dish.
         l.ground(.rough, .a)
-        l.green(.a, [(55, 105), (145, 105), (162, 300), (165, 550), (165, 680), (140, 735), (60, 740), (35, 680), (35, 550),
-                     (40, 300)])
-        l.cartPath(.a, [(65, 470), (65, 690)], width: 22)
-        l.tier(.a, 100, 610, downhill: 270, strength: 400, width: 60)
-        l.tilt(.a, downhill: 0, strength: 60)
-        l.paint(.water, .a, [(0, 762), (200, 762), (200, 800), (0, 800)])
-        l.paint(.water, .a, [(0, 300), (16, 315), (20, 430), (16, 545), (0, 560)], smooth: true)
-        l.paint(.water, .a, [(200, 300), (184, 315), (180, 430), (184, 545), (200, 560)], smooth: true)
-        l.hollow(.a, 91, 698.5, radius: 30, strength: 300)
-        l.tier(.a, 102.65, 742, downhill: 255, strength: 200, width: 30)
-        l.tee(.a, 70, 125)
-        l.cup(.a, 91, 698.5)
-        // B: short; the tee sits high on a green leaning hard right and back; a bank behind the cup; a canal behind.
+        l.cartPath(.a, [(109, 142.3), (138, 243), (170.3, 355.1), (184, 420), (161.6, 528), (138.1, 641)], width: 24)
+        l.green(.a, [(130, 131), (126.5, 141), (117, 148.3), (104, 151), (91, 148.3), (81.5, 141), (78, 131), (81.5, 121),
+                     (91, 113.7), (104, 111), (117, 113.7), (126.5, 121)])
+        l.green(.a, [(168, 700), (162.5, 726), (147.5, 745), (127, 752), (106.5, 745), (91.5, 726), (86, 700), (91.5, 674),
+                     (106.5, 655), (127, 648), (147.5, 655), (162.5, 674)])
+        l.paint(.sand, .a, [(119.6, 280.3), (122, 298.3), (118.6, 313), (110.3, 320.4), (99.4, 318.5), (88.7, 307.9),
+                            (81.2, 291.3), (78.7, 273.3), (82.1, 258.6), (90.4, 251.2), (101.4, 253.1), (112, 263.7)], smooth: true)
+        l.paint(.sand, .a, [(181.1, 196.3), (183.5, 213.3), (180.6, 227.1), (173.2, 234), (163.3, 232.1), (153.5, 222),
+                            (146.5, 206.3), (144.1, 189.3), (147, 175.5), (154.4, 168.6), (164.3, 170.5), (174.1, 180.7)], smooth: true)
+        l.hollow(.a, 133, 690, radius: 19, strength: 220)
+        l.tee(.a, 104, 125)
+        l.cup(.a, 133, 690)
+        // B: the practice green, long and narrow, climbing gently from the tee to the cup, which sits in a dish.
         l.ground(.rough, .b)
-        l.green(.b, [(70, 250), (140, 260), (165, 450), (160, 600), (165, 700), (130, 740), (60, 740), (35, 660), (35, 450),
-                     (40, 290)])
-        l.tilt(.b, downhill: 336, strength: 221)
-        l.paint(.water, .b, [(0, 762), (200, 762), (200, 800), (0, 800)])
-        l.hollow(.b, 146, 700, radius: 35, strength: 270)
-        l.tier(.b, 168.5, 739, downhill: 240, strength: 200, width: 30)
-        l.tee(.b, 34.5, 300)
-        l.cup(.b, 146, 700)
-        l.solution = Shot(angle: 93.75, power: 0.620, mirrored: false)
+        l.green(.b, [(42, 170), (68, 178), (98, 262), (130, 365), (156, 468), (166, 540), (162, 598), (140, 624), (112, 612),
+                     (96, 560), (74, 450), (46, 330), (34, 245), (34, 192)])
+        l.tilt(.b, downhill: 252.05, strength: 70)
+        l.hollow(.b, 154, 562, radius: 25, strength: 150)
+        l.tee(.b, 40, 210)
+        l.cup(.b, 154, 562)
+        l.solution = Shot(angle: 73.25, power: 0.540, mirrored: false)
+        return l
+    }
+
+    /// Pair 9, the finale. A is a long, narrow green that climbs gently from the tee to a false front: a steep bank
+    /// across the green just below the cup, too steep to hold a ball, with the cup on the shelf above it. A short putt
+    /// stalls on the bank and rolls back down; a firm one tops it and dies in the dish round the cup. B's cart path
+    /// leaves the tee green and runs up and left past a fairway bunker to the middle fence, touches it and swings
+    /// back up and right to the top green. B's ball rides it: a bank off the chain link turns it and sends it back
+    /// across onto the green and into the cup, about 14° off the straight line. Off the path it dies in the rough.
+    /// Paint the path rough or green and there's no double ace; take the false front away and the double ace is 2.6
+    /// times as common, at a softer putt. Mirror: A up and to the right along its green, B up and to the left along
+    /// the path; the pace that just tops A's bank is the pace B's bank needs.
+    static func lastCall() -> Level {
+        var l = Level("Last Call", par: [2, 3], hint: "Short putts roll back. Bank the path off the fence.")
+        l.setting = "muni"
+        l.frame()
+        // A: a long, narrow green climbing to a false front, the cup on the shelf above it in a dish.
+        l.ground(.rough, .a)
+        l.green(.a, [(42, 170), (68, 178), (98, 262), (130, 365), (156, 468), (166, 540), (162, 598), (138, 632), (106, 628),
+                     (88, 575), (74, 450), (46, 330), (34, 245), (34, 192)])
+        l.tilt(.a, downhill: 252.05, strength: 30)
+        l.tier(.a, 138.56, 514.44, downhill: 252.05, strength: 360, width: 48)
+        l.hollow(.a, 154, 562, radius: 25, strength: 150)
+        l.tee(.a, 40, 210)
+        l.cup(.a, 154, 562)
+        // B: a tee green bottom middle, a cart path up to the middle fence and back across to the top green, a
+        // fairway bunker right of its first leg and a greenside bunker; the cup in a small dish.
+        l.ground(.rough, .b)
+        l.cartPath(.b, [(91, 142.3), (62, 243), (29.7, 355.1), (16, 420), (38.4, 528), (61.9, 641)], width: 24)
+        l.green(.b, [(70, 131), (73.5, 141), (83, 148.3), (96, 151), (109, 148.3), (118.5, 141), (122, 131), (118.5, 121),
+                     (109, 113.7), (96, 111), (83, 113.7), (73.5, 121)])
+        l.green(.b, [(32, 700), (37.5, 726), (52.5, 745), (73, 752), (93.5, 745), (108.5, 726), (114, 700), (108.5, 674),
+                     (93.5, 655), (73, 648), (52.5, 655), (37.5, 674)])
+        l.paint(.sand, .b, [(150, 300), (152, 325), (146, 350), (133, 366), (118, 362), (108, 342), (106, 316), (112, 292),
+                            (125, 280), (139, 282)], smooth: true)
+        l.paint(.sand, .b, [(152, 690), (150, 712), (141, 724), (131, 716), (128, 694), (132, 672), (142, 666)], smooth: true)
+        l.hollow(.b, 67, 690, radius: 19, strength: 220)
+        l.tee(.b, 96, 125)
+        l.cup(.b, 67, 690)
+        l.solution = Shot(angle: 73.25, power: 0.550, mirrored: true)
         return l
     }
 }
