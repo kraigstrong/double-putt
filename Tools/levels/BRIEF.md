@@ -45,7 +45,7 @@ l.hump(nil, 200, 400, radius: 90, strength: 110) // nil instead of a hole: cours
 l.ground(.rough, .a)                         // surfaces, painted in order (later covers earlier): a hole's base
 l.green(.a, [(100, 90), (160, 110), ...])    // a green in this shape (smooth by default) with a fringe collar
 l.paint(.sand, .a, [(140, 380), ...], smooth: true)  // any surface in any shape: .green .fringe .rough .sand .water
-l.cartPath(.a, [(60, 90), (40, 400), (90, 760)], width: 22)  // a concrete cart path along a curve (City Muni): runs fast
+l.cartPath(.a, [(60, 90), (40, 300), (90, 520), (60, 760)], width: 22)  // a black cart path along a curve (City Muni): fast
 l.stand(.b, 100, 520, width: 120, depth: 34, facing: 270)    // a grandstand (The Stadium): the ball banks off it like a wall
 l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; blades at `phase` when the pair loads, then never stop
 l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
@@ -92,13 +92,19 @@ Contours (from course 7):
   bunker, a soft one dies in it), and painted water is a hazard. The best pairs make one ball cross fringe or sand while the other stays on the green. Cups go on green.
 
 Cart paths and grandstands (from course 8):
-- A **cart path** (City Muni's feature) is a concrete strip laid along a smooth curve through the points, open at
-  both ends. A putt runs 1.3–1.5 times as far along it as on the green (rolling resistance 130 against the green's
+- A **cart path** (City Muni's feature) is a black asphalt strip laid along a smooth curve through the points, open
+  at both ends. A putt runs 1.3–1.5 times as far along it as on the green (rolling resistance 130 against the green's
   240, less drag), and on any slope stronger than 130 it keeps rolling downhill until it reaches ground that holds
-  it, so a path down a bank carries a ball a long way. It isn't turf, so no slope grid shows on it: keep contours
-  under a path gentle, or make the run obvious from the green either side. Paint it after the ground it crosses
-  and before any green that should cover it. Make the path matter: one ball needs its extra run to reach a far cup,
-  or it carries one ball round a corner while the other stays on the green.
+  it. It isn't turf, so no slope grid shows on it. Paint it after the ground it crosses and before any green that
+  should cover it.
+  - **Lay paths as flowing curves** that wind between greens, bunkers and the fence, the way a real muni's do: at
+    least four points, with visible bends. Never a straight strip.
+  - **A ball doesn't follow a bend by itself**; it runs straight. To carry it round one, sit the path in a shallow
+    gully (a hollow, or tiers either side) so the slope steers it, or run the path along the fence so the ball
+    glances off the chain link and carries on. City Muni's Chain Link is the model: one ball rides its path across
+    the rough to the fence, glances off it and runs up beside it onto the top green, while the other ball stays on
+    its own green.
+  - **Make the path the route:** one ball rides it a long way while the other stays on the green.
 - A **grandstand** (The Stadium's feature, on three or four of its nine pairs) is a solid rectangle the ball banks
   off like any wall: `width` along its front, `depth` deep, centred at (x, y), its front facing `facing` degrees.
   Put one where a bank makes the shot: beside a green, along the frame, or angled across a corner. A green may run
@@ -149,7 +155,7 @@ about where the previous course's middle sat. Shipped courses, measured:
 | 5 Big Top | 0.065 0.051 0.049 0.047 0.042 0.037 0.033 0.029 0.024 | 1.0–1.75° × 5–10% | 47 | 245–400 ms | not yet playtested |
 | 6 Fireworks | 0.043 0.042 0.037 0.033 0.031 0.028 0.026 0.021 0.018 | 1.25–1.75° × 5–8% | 50 | 230–595 ms | not yet playtested |
 | 7 The Links | 0.041 0.035 0.028 0.025 0.022 0.021 0.024 0.013 0.010 | 1.0–1.5° × 5–7% | 40 | — (no movers) | first cut: slopes too gentle, routes obvious; retuned steeper |
-| 8 City Muni | 0.030 0.026 0.023 0.022 0.018 0.016 0.014 0.012 0.011 | 1.0–1.5° × 3–7% | 39 | — (no movers) | not yet playtested |
+| 8 City Muni | 0.030 0.027 0.022 0.021 0.019 0.017 0.015 0.014 0.010 | 1.0–1.75° × 5–7% | 40 | — (no movers) | first cut rejected (straight grey paths read as walls); redone with flowing black paths |
 | 9 The Stadium | 0.024 0.022 0.020 0.017 0.017 0.015 0.015 0.014 0.012 | 1.0–1.75° × 5–6% | 49 | — (no movers) | first look: Pine Straw and Palm Row redone with natural shapes; Peninsula, a copy of Railroad Ties, became Creek |
 
 Midway measured a touch harder than Thunderhead yet played easier. Likely causes: wide windows (several ≥ 2.5°), and

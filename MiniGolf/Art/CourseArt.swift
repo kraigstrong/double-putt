@@ -16,7 +16,8 @@ enum CourseArt {
             var rng = SeededRandom(seed: stableSeed(level.name))
             p.courseShadow()
             p.felt(theme)
-            p.surfaces(level, theme, &rng)
+            // Paint can run past the frame (a pond drawn out to the edge); only what's inside the rails shows.
+            p.clipped(CGPath(rect: p.feltRect, transform: nil)) { p.surfaces(level, theme, &rng) }
             p.slopeGrid(level, theme)
             p.water(level, theme, &rng)
             p.tees(level, theme)
@@ -369,7 +370,7 @@ struct Painter {
         return CGRect(x: -o, y: -o, width: Course.width + 2 * o, height: Course.height + 2 * o)
     }
 
-    private var feltRect: CGRect {
+    fileprivate var feltRect: CGRect {
         let r = Course.railRadius
         return CGRect(x: r, y: r, width: Course.width - 2 * r, height: Course.height - 2 * r)
     }

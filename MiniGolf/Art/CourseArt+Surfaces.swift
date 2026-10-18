@@ -58,25 +58,31 @@ extension Painter {
         }
     }
 
-    /// A cart path: pale concrete with a darker kerb along each side and expansion joints across it.
+    /// A cart path: black asphalt, flush with the grass (no kerb, so it never reads as a wall), speckled with
+    /// aggregate and worn paler in two cart tracks along its length.
     private func cartPath(_ p: Patch, _ path: CGPath, _ rng: inout SeededRandom) {
         let b = path.boundingBox
-        let light = UIColor(hex: 0xD9D6CF), dark = UIColor(hex: 0xB9B5AC)
-        linear(path, [light, dark], from: CGPoint(x: b.minX, y: b.maxY), to: CGPoint(x: b.maxX, y: b.minY))
+        let asphalt = UIColor(hex: 0x2F3236)
+        linear(path, [asphalt.lighter(0.06), asphalt, asphalt.darker(0.12)], from: CGPoint(x: b.minX, y: b.maxY), to: CGPoint(x: b.maxX, y: b.minY))
         clipped(path) {
-            for _ in 0..<Int(b.width * b.height / 18) {
+            for _ in 0..<Int(b.width * b.height / 10) {
                 let q = CGPoint(x: rng.range(b.minX, b.maxX), y: rng.range(b.minY, b.maxY))
-                fill(circle(q, 0.5), (rng.unit() < 0.5 ? dark.darker(0.15) : UIColor.white).withAlphaComponent(0.45))
+                fill(circle(q, rng.range(0.3, 0.6)), (rng.unit() < 0.6 ? UIColor(hex: 0x8A8D90) : UIColor.black).withAlphaComponent(0.35))
             }
-            // Expansion joints: the outline runs up one side and back down the other, so point i faces point n-1-i.
+            // The tracks: the outline runs up one side and back down the other, so point i faces point n-1-i.
             let n = p.outline.count
-            for i in stride(from: 4, to: n / 2 - 2, by: 5) {
-                stroke(CourseArt.line(CGPoint(x: p.outline[i].x, y: p.outline[i].y),
-                                      CGPoint(x: p.outline[n - 1 - i].x, y: p.outline[n - 1 - i].y)), dark.darker(0.2).withAlphaComponent(0.5), 1)
+            for f in [CGFloat(0.3), 0.7] {
+                let track = CGMutablePath()
+                for i in 0..<(n / 2) {
+                    let a = p.outline[i], c = p.outline[n - 1 - i]
+                    let q = CGPoint(x: a.x + (c.x - a.x) * f, y: a.y + (c.y - a.y) * f)
+                    if i == 0 { track.move(to: q) } else { track.addLine(to: q) }
+                }
+                stroke(track, UIColor.white.withAlphaComponent(0.07), 3.5)
             }
-            noise(alpha: 0.12)
+            noise(alpha: 0.1)
         }
-        stroke(path, dark.darker(0.3).withAlphaComponent(0.8), 1.5)
+        stroke(path, UIColor.black.withAlphaComponent(0.35), 0.8)
     }
 
     /// Sand: a raked bunker, lit from the top left, with a shaded lip where it drops below the turf.
