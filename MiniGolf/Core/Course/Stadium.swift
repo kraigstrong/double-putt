@@ -260,9 +260,10 @@ extension Levels {
             let p = line[i] + normal * h, q = line[i] - normal * h
             left.append((p.x, p.y)); right.append((q.x, q.y))
         }
-        // The wall between the holes is open where the creek runs under it (wet from y 371 to 424 there), kept a
-        // ball's width inside the water so nothing slips through dry.
-        l.frame(gaps: [379...417])
+        // The wall between the holes is open where the creek crosses it (wet from y 371.5 to 424.5 on the wall's
+        // line), so its rounded ends stop at the banks; a ball has to clear an end by its own radius to get through,
+        // which keeps it in the water.
+        l.frame(gaps: [367.5...428.5])
         l.ground(.rough, nil)
         // A long green in each hole, then the creek across both.
         l.green(.a, [(60, 105), (150, 105), (166, 250), (166, 500), (164, 690), (130, 735), (60, 735), (36, 650),
