@@ -177,6 +177,23 @@ struct Level {
                                             omega: rpm * 2 * .pi / 60, phase: phase * .pi / 180)))
     }
 
+    /// A round robot, a moving bumper `radius` across, driving a closed loop through `points` once every `period`
+    /// seconds: a smooth curve through three or more points, or with two, straight there and back. It starts at the
+    /// first point when the pair loads. Points are local to the side, or course coordinates with nil.
+    mutating func robot(_ s: Side?, _ points: [(Double, Double)], period: Double, radius: Double = 13) {
+        let pts = points.map { Vec($0.0 + (s?.offset ?? 0), $0.1) }
+        movers.append(Mover(kind: .robot(loop: Loop(through: pts), period: period), radius: radius))
+    }
+
+    /// A force field from (x1, y1) to (x2, y2): a wall while it's lit, open while it's dark. It's lit for `on`
+    /// seconds of every `period`, starting `start` seconds after the pair loads (and again every period).
+    mutating func field(_ s: Side?, _ x1: Double, _ y1: Double, _ x2: Double, _ y2: Double,
+                        period: Double, on: Double, start: Double = 0) {
+        let o = s?.offset ?? 0
+        movers.append(Mover(kind: .field(a: Vec(x1 + o, y1), b: Vec(x2 + o, y2), period: period, on: on, start: start),
+                            radius: 3))
+    }
+
     /// A block that slides by (dx, dy) and back every `period` seconds, starting from this rect when the pair loads.
     mutating func slider(_ s: Side, _ minX: Double, _ minY: Double, _ maxX: Double, _ maxY: Double,
                          dx: Double, dy: Double, period: Double) {
@@ -256,7 +273,7 @@ enum Levels {
         "meadow": "Spring Meadow", "garden": "Walled Garden", "moat": "Castle Moat", "seaside": "Seaside Boardwalk",
         "autumn": "Autumn Grove", "desert": "Desert Canyon", "winter": "Winter Village", "night": "Night Garden",
         "midway": "Midway", "bigtop": "Big Top", "fireworks": "Fireworks", "links": "Seaside Links",
-        "muni": "City Muni", "stadium": "Stadium Course",
+        "muni": "City Muni", "stadium": "Stadium Course", "starbase": "Starbase",
     ]
 
     /// Every pair, in course order.
