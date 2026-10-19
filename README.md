@@ -72,8 +72,8 @@ Each course is nine pairs played as a round. Daybreak and Nightfall are open fro
 with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse` opens them all). In the app each course numbers its pairs 1–9. The tables come from
 `Tools/solve.sh --readme`.
 
-City Muni and Starbase are still in development: they're in the lineup and the solver checks them, but only Debug
-builds play them (`Levels.inDevelopment`). TestFlight and App Store builds skip them.
+City Muni is still in development: it's in the lineup and the solver checks it, but only Debug builds play it
+(`Levels.inDevelopment`). TestFlight and App Store builds skip it.
 
 ### Daybreak (par 40)
 
