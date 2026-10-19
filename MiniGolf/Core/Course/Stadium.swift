@@ -223,39 +223,65 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A creek winds across both holes, under the wall between them, and stops short of each outer fence, so
-    /// the straight line to either cup is wet: each ball has to go round the creek's head on the outside. Both balls
-    /// start up and a little left. A's tee is by its creek head: its ball slips past it up the left, and the green,
-    /// leaning right, curls it back across above the creek into a dish round the cup, about 13° right of where it
-    /// was aimed; a bank behind the cup turns a firm putt back. B's ball starts from the far right, runs past the
-    /// other head of the creek, and B's green, leaning left, curls it into its cup. Same: the leans curl the balls
-    /// opposite ways (Mirror never double-aces). Paint the creek green or rough and the double ace is seven times as
-    /// common, with the straight lines open.
+    /// Pair 7. A creek winds across both holes in a gentle S, under the wall between them (open there, inside the
+    /// water), and stops short of each outer fence, so the straight line to either cup is wet: each ball has to go round
+    /// the creek's end on its own side. Both balls start up and a little left. A's tee is by its end of the creek: its
+    /// ball slips past it up the left, and the green, leaning right, curls it back across above the creek into a dish
+    /// round the cup, about 14° right of where it was aimed; a bank behind the cup turns a firm putt back. B's ball
+    /// starts from the far right, runs past the other end of the creek, and B's green, leaning left, curls it into a
+    /// dish round its cup. Same: the leans curl the balls opposite ways (Mirror never double-aces). Paint the creek green
+    /// or rough and the straight lines open: the double ace is five or six times as common.
     static func creek() -> Level {
-        var l = Level("Creek", par: [3, 3], hint: "The creek blocks both lines. Go round its ends.")
+        var l = Level("Creek", par: [3, 2], hint: "The creek blocks both lines. Go round its ends.")
         l.setting = "stadium"
-        l.frame()
+        // The creek: a ribbon 48 wide along a gentle S-curve through these points, tapering to rounded ends.
+        let spine = [Vec(60, 355), Vec(100, 352), Vec(150, 372), Vec(200, 398), Vec(240, 414), Vec(280, 410)]
+        let half = 24.0, taper = 38.4
+        let ends = [spine[0] * 2 - spine[1]] + spine + [spine[spine.count - 1] * 2 - spine[spine.count - 2]]
+        var line: [Vec] = []
+        for i in 1..<(ends.count - 2) {
+            let p0 = ends[i - 1], p1 = ends[i], p2 = ends[i + 1], p3 = ends[i + 2]
+            let steps = max(2, Int(((p2 - p1).length / 4).rounded(.up)))
+            for k in 0..<steps {
+                let t = Double(k) / Double(steps), t2 = t * t, t3 = t2 * t
+                let a = p1 * 2, b = (p2 - p0) * t, c = (p0 * 2 - p1 * 5 + p2 * 4 - p3) * t2, d = (p1 * 3 - p0 - p2 * 3 + p3) * t3
+                line.append((a + b + c + d) * 0.5)
+            }
+        }
+        line.append(spine[spine.count - 1])
+        var run = [0.0]
+        for i in 1..<line.count { run.append(run[i - 1] + (line[i] - line[i - 1]).length) }
+        var left: [(Double, Double)] = [], right: [(Double, Double)] = []
+        for i in line.indices {
+            let along = (line[min(i + 1, line.count - 1)] - line[max(i - 1, 0)]).normalized
+            let normal = Vec(-along.y, along.x)
+            let fromEnd = min(run[i], run[run.count - 1] - run[i])
+            let h = fromEnd >= taper ? half : half * (1 - (taper - fromEnd) * (taper - fromEnd) / (taper * taper)).squareRoot()
+            let p = line[i] + normal * h, q = line[i] - normal * h
+            left.append((p.x, p.y)); right.append((q.x, q.y))
+        }
+        // The wall between the holes is open where the creek runs under it (wet from y 371 to 424 there), kept a
+        // ball's width inside the water so nothing slips through dry.
+        l.frame(gaps: [379...417])
         l.ground(.rough, nil)
-        // A long green in each hole; a creek winds across both, under the wall between them, short of either fence.
+        // A long green in each hole, then the creek across both.
         l.green(.a, [(60, 105), (150, 105), (166, 250), (166, 500), (164, 690), (130, 735), (60, 735), (36, 650),
                      (34, 400), (40, 200)])
         l.green(.b, [(50, 105), (140, 105), (160, 200), (166, 400), (166, 650), (140, 735), (70, 735), (36, 690),
-                     (34, 500), (34, 250)])
-        l.paint(.water, nil, [(65, 368), (105, 415), (160, 425), (200, 452), (240, 482), (250, 464), (278, 410),
-                              (272, 385), (245, 378), (240, 398), (200, 368), (160, 340), (105, 332), (70, 345)],
-                smooth: true)
+                     (31, 520), (34, 250)])
+        l.paint(.water, nil, left + right.reversed().dropFirst().dropLast(), smooth: true)
         // A leans right, with a dish round the cup and a bank behind it.
-        l.tilt(.a, downhill: 0, strength: 125)
-        l.hollow(.a, 132, 570, radius: 35, strength: 50)
-        l.tier(.a, 138.95, 609.39, downhill: 260, strength: 400, width: 40)
-        l.tee(.a, 67.5, 125)
-        l.cup(.a, 132, 570)
-        // B leans left, with a little dish round the cup.
-        l.tilt(.b, downhill: 180, strength: 125)
-        l.hollow(.b, 47.5, 537.5, radius: 25, strength: 50)
-        l.tee(.b, 142.5, 125)
-        l.cup(.b, 47.5, 537.5)
-        l.solution = Shot(angle: 95.00, power: 0.540, mirrored: false)
+        l.tilt(.a, downhill: 0, strength: 130)
+        l.hollow(.a, 130, 580, radius: 40, strength: 62.5)
+        l.tier(.a, 136.95, 619.39, downhill: 260, strength: 350, width: 40)
+        l.tee(.a, 72.5, 125)
+        l.cup(.a, 130, 580)
+        // B leans left, with a dish round the cup.
+        l.tilt(.b, downhill: 180, strength: 135)
+        l.hollow(.b, 45, 527.5, radius: 25, strength: 150)
+        l.tee(.b, 147.5, 125)
+        l.cup(.b, 45, 527.5)
+        l.solution = Shot(angle: 96.75, power: 0.550, mirrored: false)
         return l
     }
 
