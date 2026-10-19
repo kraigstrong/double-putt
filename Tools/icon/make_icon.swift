@@ -142,15 +142,44 @@ func putter(_ c: CGContext) {
         c.fill(CGRect(x: 0, y: faceTop - 5, width: S, height: 5))
     }
 
-    // Shaft from the heel, rising out of frame, with a glint down one side.
-    let heel = CGPoint(x: S * 0.78, y: faceTop + depth * 0.38)
+    // Shaft from the heel, at true scale against the head and balls, so the grip is far above the frame:
+    // a black ferrule where it meets the crown, then chrome running out of the top.
+    let base = CGPoint(x: S * 0.775, y: faceTop + depth * 0.42)
     let dir = CGPoint(x: 0.196, y: 0.981)
     let side = CGPoint(x: -dir.y, y: dir.x)
-    let gripStart = CGPoint(x: heel.x + dir.x * S * 0.32, y: heel.y + dir.y * S * 0.32)
-    fill(c, taper(heel, gripStart, 22, 26), 0x7F8891)
-    fill(c, taper(CGPoint(x: heel.x + side.x * 4, y: heel.y + side.y * 4),
-                  CGPoint(x: gripStart.x + side.x * 5, y: gripStart.y + side.y * 5), 5, 6), 0xE6EBEF, 0.8)
-    fill(c, taper(gripStart, CGPoint(x: gripStart.x + dir.x * 400, y: gripStart.y + dir.y * 400), 56, 64), 0x1B2228)
+    func section(_ from: CGFloat, _ to: CGFloat, _ w0: CGFloat, _ w1: CGFloat) -> CGPath {
+        let a = CGPoint(x: base.x + dir.x * from, y: base.y + dir.y * from)
+        let b = CGPoint(x: base.x + dir.x * to, y: base.y + dir.y * to)
+        let p = CGMutablePath()
+        p.addLines(between: [CGPoint(x: a.x + side.x * w0 / 2, y: a.y + side.y * w0 / 2), CGPoint(x: b.x + side.x * w1 / 2, y: b.y + side.y * w1 / 2),
+                             CGPoint(x: b.x - side.x * w1 / 2, y: b.y - side.y * w1 / 2), CGPoint(x: a.x - side.x * w0 / 2, y: a.y - side.y * w0 / 2)])
+        p.closeSubpath()
+        return p
+    }
+    /// Shading across the shaft, lit from the left.
+    func across(_ colors: [UInt32], _ locs: [CGFloat], width w: CGFloat) {
+        c.drawLinearGradient(grad(colors.map { rgb($0) }, locs), start: CGPoint(x: base.x + side.x * w / 2, y: base.y + side.y * w / 2),
+                             end: CGPoint(x: base.x - side.x * w / 2, y: base.y - side.y * w / 2),
+                             options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
+    }
+    let shaftW: CGFloat = 66, ferruleW: CGFloat = 80, ferruleLen: CGFloat = 50
+    // Soft contact shadow on the crown, thrown right, away from the light.
+    c.saveGState()
+    c.translateBy(x: base.x + 12, y: base.y - 6)
+    c.scaleBy(x: 1, y: 0.3)
+    c.drawRadialGradient(grad([rgb(0, 0.4), rgb(0, 0)], [0, 1]), startCenter: .zero, startRadius: ferruleW * 0.35,
+                         endCenter: .zero, endRadius: ferruleW * 0.85, options: [.drawsBeforeStartLocation])
+    c.restoreGState()
+    clipped(c, section(ferruleLen - 6, 900, shaftW, shaftW + 8)) {
+        across([0x8E979F, 0xF4F7F9, 0xC9D0D7, 0x8A939C, 0x4F5760], [0, 0.25, 0.45, 0.75, 1], width: shaftW + 4)
+    }
+    // The ferrule's sides, then its rounded foot (shaded separately: as one clip path the overlap would cancel out).
+    for part in [section(0, ferruleLen, ferruleW, ferruleW - 6),
+                 CGPath(ellipseIn: CGRect(x: base.x - ferruleW / 2, y: base.y - 12, width: ferruleW, height: 24), transform: nil)] {
+        clipped(c, part) {
+            across([0x2A2F35, 0x59616A, 0x22272C, 0x111417], [0, 0.28, 0.7, 1], width: ferruleW)
+        }
+    }
 }
 
 /// Flat-shaded ball, its alignment stripe running toward the camera, with one shade crescent away from the light.
