@@ -75,12 +75,14 @@ Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by o
 
 ## Smoke check on the TestFlight build
 On a physical iPhone, with a fresh install (and later, as an update over the previous build):
+- The home screen shows the app icon with the mallet behind two balls.
 - The title shows; How to Play runs on Twins for a first-time player.
-- Courses lists every course, all open while the beta switch is on. With it off, Daybreak and Nightfall are open
+- Courses lists every course but City Muni (Debug builds only), all open while the beta switch is on. With it off, Daybreak and Nightfall are open
   and the rest locked until the previous course has a medal. Long-pressing the logo does nothing (no dev mode).
 - Play a few pairs in a round: strokes show as numbers when balls drop; the result card shows the pair's verdict;
   finishing a round shows the scorecard and medal, and (beta switch off) a medal on Nightfall unlocks Thunderhead.
-- Free Play plays any open pair; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
+- Free Play shows a row per course that swipes sideways, and keeps each row where you left it until the app quits.
+  It plays any open pair; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
 - A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Pair.
 - Progress survives force-quitting and reopening.
 - The screen doesn't dim while aiming; it sleeps normally on the title screen.
@@ -89,6 +91,9 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
 - Settings shows the version, and Privacy Policy and Support open in Safari.
 - The Links: the slope grid and its dots show on green and fringe only; on Two Tiers a soft putt up the false
   front rolls back down; Bandon naps beside Fescue.
+- The Stadium: on Grandstand a ball banks off the stands like a wall.
+- Starbase: a robot bounces the ball like a bumper; a lit force field is a wall and a dark one lets the ball
+  through; robots and fields keep moving while you aim.
 
 ## Test Information
 The Beta App Description and What to Test are in `appstore/double-putt/testflight/en-US/`, and the Beta App Review
