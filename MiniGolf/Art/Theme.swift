@@ -4,10 +4,10 @@ import UIKit
 struct Theme {
     enum Border { case wood, stone, painted, chainLink, ties }
     enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust, confetti, sparks, mist }
-    enum Ground { case grass, sand, snow, links, muni, stadium }
-    enum Trees { case round, palm, cactus, pine, tents, gorse }
-    enum Bed { case flowers, dune, rocks, snowbank, awning }
-    enum Water { case pond, tidepool, ice, bulkhead }
+    enum Ground { case grass, sand, snow, links, muni, stadium, deck }
+    enum Trees { case round, palm, cactus, pine, tents, gorse, crates }
+    enum Bed { case flowers, dune, rocks, snowbank, awning, machinery }
+    enum Water { case pond, tidepool, ice, bulkhead, void }
     enum Post { case stone, buoy, lantern, balloon }
 
     var id = ""
@@ -37,6 +37,8 @@ struct Theme {
     var post = Post.stone
     /// Glowing lanterns around the course (night).
     var lanterns = false
+    /// Sci-fi pieces (Starbase): teleporter pads for tunnels and boost pads for kickers.
+    var scifi = false
     /// Rubber ducks on the ponds instead of lily pads (funfair).
     var ducks = false
     /// SwiftUI accents for cards and the results screen.
@@ -249,9 +251,29 @@ struct Theme {
         return t
     }()
 
+    // MARK: Starbase (course 10): a space station deck. Dark floor plates, steel bulkheads with neon trim, cargo
+    // crates and consoles, open hatches to space for water; patrol robots and force fields.
+
+    static let starbase: Theme = {
+        var t = Theme()
+        t.id = "starbase"
+        t.rough = UIColor(hex: 0x262D39); t.roughShade = UIColor(hex: 0x1D232D); t.roughLight = UIColor(hex: 0x3A4555)
+        t.feltLight = UIColor(hex: 0x3AA98C); t.feltDark = UIColor(hex: 0x329A7F)
+        t.border = .painted; t.borderTop = UIColor(hex: 0x5C6878); t.borderSide = UIColor(hex: 0x394250)
+        t.trim = UIColor(hex: 0x4FE3FF)
+        t.canopies = [UIColor(hex: 0xC9822F), UIColor(hex: 0x6E7B8C), UIColor(hex: 0x4E6E8E)]
+        t.flowers = [UIColor(hex: 0x4FE3FF), UIColor(hex: 0xFF5FD2), UIColor(hex: 0xFFD166)]
+        t.booths = [UIColor(hex: 0x4A5566)]
+        t.waterDeep = UIColor(hex: 0x04050C); t.waterShallow = UIColor(hex: 0x151A3A)
+        t.ground = .deck; t.trees = .crates; t.bed = .machinery; t.water = .void; t.post = .lantern
+        t.ambient = .motes; t.scifi = true
+        t.accent = UIColor(hex: 0x4FE3FF)
+        return t
+    }()
+
     static let all: [String: Theme] = Dictionary(uniqueKeysWithValues:
-        [meadow, garden, moat, seaside, autumn, desert, winter, night, midway, bigtop, fireworks, links, muni, stadium]
-            .map { ($0.id, $0) })
+        [meadow, garden, moat, seaside, autumn, desert, winter, night, midway, bigtop, fireworks, links, muni, stadium,
+         starbase].map { ($0.id, $0) })
 
     static func `for`(_ level: Level) -> Theme { all[level.setting] ?? .meadow }
 }
