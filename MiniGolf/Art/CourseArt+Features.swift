@@ -85,6 +85,7 @@ extension Painter {
 
     /// Pipe mouths: a dark hole with a colored rim; the color pairs the two ends. Exit arrows when set.
     func tunnels(_ level: Level, _ t: Theme) {
+        if t.scifi { teleporters(level); return }
         for (i, tn) in level.tunnels.enumerated() {
             let color = TunnelColors.color(i)
             for (mouth, exit) in [(tn.a, tn.exitA), (tn.b, tn.exitB)] {
@@ -116,6 +117,7 @@ extension Painter {
 
     /// Springboard pads: a red plate with a yellow rim and chevrons pointing where it launches the ball.
     func kickers(_ level: Level, _ t: Theme) {
+        if t.scifi { boostPads(level); return }
         for k in level.kickers {
             let c = CGPoint(x: k.center.x, y: k.center.y)
             let r = CGFloat(Kicker.radius)

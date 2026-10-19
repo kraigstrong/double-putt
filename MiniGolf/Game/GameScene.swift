@@ -310,6 +310,23 @@ final class GameScene: SKScene {
                 body = SKSpriteNode(texture: SKTexture(image: CourseArt.carousel(radius: radius, theme: self.theme, ppu: ppu)))
                 shadow = SKSpriteNode()
                 body.size = CGSize(width: (radius + 3) * 2, height: (radius + 3) * 2)
+            case .robot:
+                body = SKSpriteNode(texture: texture("robot-\(m.radius)") { CourseArt.robot(radius: m.radius, ppu: ppu, shadow: false) })
+                shadow = SKSpriteNode(texture: texture("robotShadow-\(m.radius)") { CourseArt.robot(radius: m.radius, ppu: ppu, shadow: true) })
+                body.size = CGSize(width: (m.radius + 3) * 2, height: (m.radius + 3) * 2)
+            case .field(let a, let b, _, _, _):
+                let length = (b - a).length
+                body = SKSpriteNode(texture: SKTexture(image: CourseArt.fieldPosts(length: length, ppu: ppu, shadow: false)))
+                shadow = SKSpriteNode(texture: SKTexture(image: CourseArt.fieldPosts(length: length, ppu: ppu, shadow: true)))
+                body.size = CGSize(width: length + 14, height: 14)
+                let beam = SKSpriteNode(texture: SKTexture(image: CourseArt.fieldBeam(length: length, ppu: ppu)))
+                beam.size = CGSize(width: length, height: 10)
+                beam.name = "beam"
+                beam.blendMode = .add
+                beam.zPosition = -0.1
+                body.addChild(beam)
+                body.position = Vec((a.x + b.x) / 2, (a.y + b.y) / 2).cg
+                body.zRotation = atan2(b.y - a.y, b.x - a.x)
             }
             shadow.size = body.size
             shadow.alpha = 0.3
@@ -338,6 +355,20 @@ final class GameScene: SKScene {
                 body.zRotation = m.bladeAngle(0, at: t)
             case .slider(let box, _, _):
                 body.position = (box.center + m.sliderOffset(at: t)).cg
+            case .robot:
+                let pose = m.robotPose(at: t)
+                body.position = pose.pos.cg
+                body.zRotation = atan2(pose.heading.y, pose.heading.x)
+            case .field(_, _, let period, _, _):
+                // Lit: the beam blazes with a slight shimmer. Dark: a faint trace, flickering for the last moment
+                // before it lights so you can see it coming.
+                let beam = body.childNode(withName: "beam")
+                if m.isLit(at: t) {
+                    beam?.alpha = 0.9 + 0.1 * CGFloat(sin(t * 40))
+                } else {
+                    let soon = m.isLit(at: t + 0.3) || m.isLit(at: t + period * 0.02 + 0.3)
+                    beam?.alpha = soon ? (sin(t * 60) > 0 ? 0.45 : 0.15) : 0.08
+                }
             }
             shadow.position = CGPoint(x: body.position.x + 2.5, y: body.position.y - 3.5)
             shadow.zRotation = body.zRotation
