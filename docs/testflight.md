@@ -25,7 +25,7 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-pair difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
-- Version 0.1, build 2. Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each upload.
+- Version 0.1, build 3. Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each upload.
 - iPhone only, portrait, full screen. Sound follows the silent switch (ambient), so it never surprises anyone.
 
 ### In BrightBench (a separate session)
