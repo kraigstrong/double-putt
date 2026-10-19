@@ -16,7 +16,8 @@ enum CourseArt {
             var rng = SeededRandom(seed: stableSeed(level.name))
             p.courseShadow()
             p.felt(theme)
-            p.surfaces(level, theme, &rng)
+            // Paint can run past the frame (a pond drawn out to the edge); only what's inside the rails shows.
+            p.clipped(CGPath(rect: p.feltRect, transform: nil)) { p.surfaces(level, theme, &rng) }
             p.slopeGrid(level, theme)
             p.water(level, theme, &rng)
             p.tees(level, theme)
@@ -367,7 +368,7 @@ struct Painter {
         return CGRect(x: -o, y: -o, width: Course.width + 2 * o, height: Course.height + 2 * o)
     }
 
-    private var feltRect: CGRect {
+    fileprivate var feltRect: CGRect {
         let r = Course.railRadius
         return CGRect(x: r, y: r, width: Course.width - 2 * r, height: Course.height - 2 * r)
     }
@@ -561,6 +562,7 @@ struct Painter {
             case .wood: len = min(rng.range(70, 130), length - pos)
             case .stone: len = min(rng.range(18, 34), length - pos)
             case .painted: len = min(rng.range(60, 110), length - pos)
+            case .chainLink: len = min(rng.range(44, 60), length - pos)
             }
             let piece = horizontal
                 ? CGRect(x: r.minX + pos, y: r.minY, width: len, height: r.height)
@@ -569,6 +571,7 @@ struct Painter {
             case .wood: plank(piece, horizontal: horizontal, t, &rng)
             case .stone: stone(piece, t, &rng)
             case .painted: paintedPlank(piece, horizontal: horizontal, t, &rng)
+            case .chainLink: chainLinkPanel(piece, horizontal: horizontal, t, &rng)
             }
             pos += len
             k += 1
@@ -748,7 +751,7 @@ struct Painter {
         case .sand: sandGround(t, rect, &rng); return
         case .snow: snowGround(t, rect, &rng); return
         case .links: linksGround(t, rect, &rng); return
-        case .grass: break
+        case .grass, .muni: break
         }
         let area = rect.width * rect.height
         for _ in 0..<Int(area / 9000) {
@@ -786,6 +789,7 @@ struct Painter {
             let s = rng.range(1.2, 2.6)
             fill(CGPath(ellipseIn: CGRect(x: p.x - s, y: p.y - s * 0.7, width: s * 2, height: s * 1.4), transform: nil), UIColor(hex: 0xB9B3A6).withAlphaComponent(0.8))
         }
+        if t.ground == .muni { wornPatches(t, rect, &rng) }
     }
 
     func tree(_ t: Theme, radius r: CGFloat, color: UIColor, _ rng: inout SeededRandom) {

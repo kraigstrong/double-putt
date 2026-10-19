@@ -166,7 +166,7 @@ struct Level {
 struct Nine: Identifiable, Equatable {
     let id: String
     let name: String
-    /// Indices into `Levels.course`.
+    /// Indices into the pairs being played (`Levels.playable.course`, or `Levels.course` for the solver).
     let pairs: Range<Int>
 }
 
@@ -212,29 +212,52 @@ enum Levels {
             gorseLine(), twoTiers(), seaWall(),
             fogBank(), saddle(), lighthouse(),
         ]),
+        ("muni", "City Muni", [                      // City Muni
+            clubhouse(), cartPath(), ballWasher(),
+            waterTower(), chainLink(), twilightRate(),
+            skyline(), practiceGreen(), lastCall(),
+        ]),
     ]
 
     /// The course content's revision, sent with analytics so counts never mix two versions of a pair. Bump it
     /// whenever any pair's layout, par or order changes.
-    static let revision = "2026-10-17.2"
+    static let revision = "2026-10-18.5"
 
     /// Display names of the visual settings (`Level.setting`).
     static let settingNames = [
         "meadow": "Spring Meadow", "garden": "Walled Garden", "moat": "Castle Moat", "seaside": "Seaside Boardwalk",
         "autumn": "Autumn Grove", "desert": "Desert Canyon", "winter": "Winter Village", "night": "Night Garden",
         "midway": "Midway", "bigtop": "Big Top", "fireworks": "Fireworks", "links": "Seaside Links",
+        "muni": "City Muni",
     ]
 
     /// Every pair, in course order.
     static let course: [Level] = lineup.flatMap(\.pairs)
 
-    static let nines: [Nine] = {
+    static let nines: [Nine] = ninesOf(lineup)
+
+    /// Courses still being worked on. They stay in the lineup, so the solver checks them, but only Debug (Xcode)
+    /// builds play them: TestFlight and App Store builds leave them out.
+    static let inDevelopment: Set<String> = ["muni"]
+
+    /// The pairs and nines a player gets: the whole lineup in Debug builds, and without the courses still in
+    /// development otherwise. (`course` and `nines` are always the whole lineup, for the solver.)
+    static let playable: (course: [Level], nines: [Nine]) = {
+        #if DEBUG
+        let shown = lineup
+        #else
+        let shown = lineup.filter { !inDevelopment.contains($0.id) }
+        #endif
+        return (shown.flatMap(\.pairs), ninesOf(shown))
+    }()
+
+    private static func ninesOf(_ courses: [(id: String, name: String, pairs: [Level])]) -> [Nine] {
         var start = 0
-        return lineup.map { c in
+        return courses.map { c in
             defer { start += c.pairs.count }
             return Nine(id: c.id, name: c.name, pairs: start..<start + c.pairs.count)
         }
-    }()
+    }
 
     static func twins() -> Level {
         var l = Level("Twins", par: [2, 2], hint: "Same hole twice. Warm up.")

@@ -2,9 +2,9 @@ import UIKit
 
 /// Visual setting for a hole pair. Everything is drawn in code from these values.
 struct Theme {
-    enum Border { case wood, stone, painted }
+    enum Border { case wood, stone, painted, chainLink }
     enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust, confetti, sparks, mist }
-    enum Ground { case grass, sand, snow, links }
+    enum Ground { case grass, sand, snow, links, muni }
     enum Trees { case round, palm, cactus, pine, tents, gorse }
     enum Bed { case flowers, dune, rocks, snowbank, awning }
     enum Water { case pond, tidepool, ice }
@@ -216,8 +216,25 @@ struct Theme {
         return t
     }()
 
+    // MARK: City Muni (course 8): an everyday city course. Park trees, a chain-link fence on a concrete kerb, worn
+    // patches and clover, a water tower; cart paths run between the greens.
+
+    static let muni: Theme = {
+        var t = Theme()
+        t.id = "muni"
+        t.rough = UIColor(hex: 0x76A04A); t.roughShade = UIColor(hex: 0x618A3B); t.roughLight = UIColor(hex: 0x98BC66)
+        t.feltLight = UIColor(hex: 0x5DB25A); t.feltDark = UIColor(hex: 0x52A450)
+        t.border = .chainLink; t.borderTop = UIColor(hex: 0xC4C7C9); t.borderSide = UIColor(hex: 0x8A9095)
+        t.canopies = [UIColor(hex: 0x4C8C3A), UIColor(hex: 0x3E7A33), UIColor(hex: 0x5E9E46)]
+        t.flowers = [UIColor(hex: 0xF5D547), UIColor(hex: 0xFFFFFF), UIColor(hex: 0xF5D547)]
+        t.ground = .muni; t.trees = .round
+        t.accent = UIColor(hex: 0xF29E38)
+        return t
+    }()
+
     static let all: [String: Theme] = Dictionary(uniqueKeysWithValues:
-        [meadow, garden, moat, seaside, autumn, desert, winter, night, midway, bigtop, fireworks, links].map { ($0.id, $0) })
+        [meadow, garden, moat, seaside, autumn, desert, winter, night, midway, bigtop, fireworks, links, muni]
+            .map { ($0.id, $0) })
 
     static func `for`(_ level: Level) -> Theme { all[level.setting] ?? .meadow }
 }

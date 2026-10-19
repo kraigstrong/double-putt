@@ -4,14 +4,18 @@ import Foundation
 /// comes from what surrounds it, and a ball can roll from one to the next, losing pace as it goes.
 enum Surface: UInt8 {
     case green, fringe, rough, sand, water
+    /// A concrete cart path: the ball runs faster along it than on the green, and on any real slope it keeps rolling.
+    case path
 
-    /// Constant rolling resistance, units/s². Above any slope's pull (200), so a ball can rest on all of them.
+    /// Constant rolling resistance, units/s². Above any slope's pull (200), so a ball can rest on all of them (except
+    /// a cart path, which is meant to be quick).
     var rollDecel: Double {
         switch self {
         case .green, .water: return Tuning.rollDecel
         case .fringe: return 330
         case .rough: return 520
         case .sand: return 1500
+        case .path: return 130
         }
     }
 
@@ -22,6 +26,7 @@ enum Surface: UInt8 {
         case .fringe: return 0.5
         case .rough: return 0.75
         case .sand: return 1.2
+        case .path: return 0.2
         }
     }
 
@@ -113,6 +118,33 @@ extension Level {
     mutating func paint(_ surface: Surface, _ s: Side?, _ points: [(Double, Double)], smooth: Bool = false, pad: Double = 0) {
         let pts = points.map { Vec($0.0 + (s?.offset ?? 0), $0.1) }
         patches.append(Patch(surface: surface, outline: smooth ? Patch.curve(through: pts) : pts, pad: pad))
+    }
+
+    /// A cart path `width` wide running along `points` (a smooth curve through them, open at both ends), on one hole
+    /// or, with nil, across the course. Paint it after the ground it crosses and before anything that should cover it.
+    mutating func cartPath(_ s: Side?, _ points: [(Double, Double)], width: Double = 22) {
+        let pts = points.map { Vec($0.0 + (s?.offset ?? 0), $0.1) }
+        guard pts.count >= 2 else { return }
+        // Sample an open Catmull-Rom curve (the ends repeated), then offset each sample either side of the line.
+        let ends = [pts[0] * 2 - pts[1]] + pts + [pts[pts.count - 1] * 2 - pts[pts.count - 2]]
+        var line: [Vec] = []
+        for i in 1..<(ends.count - 2) {
+            let p0 = ends[i - 1], p1 = ends[i], p2 = ends[i + 1], p3 = ends[i + 2]
+            let steps = max(2, Int(((p2 - p1).length / 8).rounded(.up)))
+            for k in 0..<steps {
+                let t = Double(k) / Double(steps), t2 = t * t, t3 = t2 * t
+                let a = p1 * 2, b = (p2 - p0) * t, c = (p0 * 2 - p1 * 5 + p2 * 4 - p3) * t2, d = (p1 * 3 - p0 - p2 * 3 + p3) * t3
+                line.append((a + b + c + d) * 0.5)
+            }
+        }
+        line.append(pts[pts.count - 1])
+        let normals = line.indices.map { i -> Vec in
+            let d = (line[min(i + 1, line.count - 1)] - line[max(i - 1, 0)]).normalized
+            return Vec(-d.y, d.x)
+        }
+        let left = line.indices.map { line[$0] + normals[$0] * (width / 2) }
+        let right = line.indices.map { line[$0] - normals[$0] * (width / 2) }
+        patches.append(Patch(surface: .path, outline: left + right.reversed()))
     }
 
     /// Covers a whole hole (or, with nil, the course) in `surface`: the ground a green sits in.
