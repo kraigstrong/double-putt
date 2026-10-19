@@ -147,6 +147,7 @@ func mechanics(_ l: Level) -> String {
     var m: [String] = []
     if !l.water.isEmpty { m.append("water") }
     if !l.bumpers.isEmpty { m.append("bumpers") }
+    if !l.stands.isEmpty { m.append("stands") }
     if !l.tunnels.isEmpty { m.append("tunnels") }
     if !l.slopes.isEmpty { m.append("slopes") }
     if l.mounds.contains(where: { $0.strength > 0 }) { m.append("hills") }

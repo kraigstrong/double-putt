@@ -28,10 +28,12 @@ enum CourseArt {
                 p.borderShape(fill: .black)
                 p.railShapes(level, fill: .black)
                 p.blockShapes(level, fill: .black)
+                p.standShapes(level, fill: .black)
             }
             p.border(theme, &rng)
             p.rails(level, theme, &rng)
             p.blocks(level, theme, &rng)
+            p.stands(level, &rng)
             if theme.snowCaps { p.snowCaps(level, theme) }
             p.posts(level, theme)
         }
@@ -437,6 +439,7 @@ struct Painter {
         switch t.water {
         case .tidepool: tidepool(water, t, &rng); return
         case .ice: ice(water, t, &rng); return
+        case .bulkhead: bulkheadPond(water, t, &rng); return
         case .pond: break
         }
         let pond = water.path, bounds = water.bounds
@@ -563,6 +566,7 @@ struct Painter {
             case .stone: len = min(rng.range(18, 34), length - pos)
             case .painted: len = min(rng.range(60, 110), length - pos)
             case .chainLink: len = min(rng.range(44, 60), length - pos)
+            case .ties: len = min(rng.range(24, 34), length - pos)
             }
             let piece = horizontal
                 ? CGRect(x: r.minX + pos, y: r.minY, width: len, height: r.height)
@@ -572,6 +576,7 @@ struct Painter {
             case .stone: stone(piece, t, &rng)
             case .painted: paintedPlank(piece, horizontal: horizontal, t, &rng)
             case .chainLink: chainLinkPanel(piece, horizontal: horizontal, t, &rng)
+            case .ties: tie(piece, horizontal: horizontal, t, &rng)
             }
             pos += len
             k += 1
@@ -752,6 +757,7 @@ struct Painter {
         case .snow: snowGround(t, rect, &rng); return
         case .links: linksGround(t, rect, &rng); return
         case .grass, .muni: break
+        case .stadium: mowerStripes(t, rect)
         }
         let area = rect.width * rect.height
         for _ in 0..<Int(area / 9000) {
@@ -790,6 +796,7 @@ struct Painter {
             fill(CGPath(ellipseIn: CGRect(x: p.x - s, y: p.y - s * 0.7, width: s * 2, height: s * 1.4), transform: nil), UIColor(hex: 0xB9B3A6).withAlphaComponent(0.8))
         }
         if t.ground == .muni { wornPatches(t, rect, &rng) }
+        if t.ground == .stadium { pineStraw(rect, &rng); gallery(rect, &rng) }
     }
 
     func tree(_ t: Theme, radius r: CGFloat, color: UIColor, _ rng: inout SeededRandom) {

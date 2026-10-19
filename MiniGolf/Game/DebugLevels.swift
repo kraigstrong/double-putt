@@ -1,7 +1,7 @@
 #if DEBUG
 // Mechanic test pairs for checking visuals: launch with `-tests 1`.
 enum DebugLevels {
-    static let all: [Level] = [muniTest(), tunnelTest(), slopeTest(), contourTest(), surfaceTest(), rotorTest(),
+    static let all: [Level] = [muniTest(), stadiumTest(), tunnelTest(), slopeTest(), contourTest(), surfaceTest(), rotorTest(),
                                sliderTest(), funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]
 
     /// City Muni: greens in rough with a cart path winding between them, a bunker, contours.
@@ -20,6 +20,25 @@ enum DebugLevels {
         l.hollow(.b, 120, 650, radius: 50, strength: 200)
         l.tee(.a, 90, 160); l.tee(.b, 120, 160)
         l.cup(.a, 100, 640); l.cup(.b, 120, 650)
+        return l
+    }
+
+    /// The Stadium: an island green in a tie-walled pond, a grandstand behind it, a waste bunker and a stand on the
+    /// other hole angled across a corner.
+    static func stadiumTest() -> Level {
+        var l = Level("stadiumTest", par: [2, 2], hint: "")
+        l.setting = "stadium"
+        l.frame()
+        l.ground(.rough, nil)
+        l.green(.a, [(50, 110), (150, 110), (150, 300), (50, 300)])
+        l.paint(.water, .a, [(20, 420), (180, 420), (180, 700), (20, 700)], smooth: true)
+        l.green(.a, [(60, 480), (140, 470), (150, 620), (70, 640)], fringe: 10)
+        l.stand(.a, 100, 735, width: 140, depth: 30, facing: 270)
+        l.green(.b, [(40, 110), (170, 110), (175, 700), (30, 720)])
+        l.paint(.sand, .b, [(40, 300), (160, 320), (150, 380), (50, 360)], smooth: true)
+        l.stand(.b, 160, 660, width: 90, depth: 28, facing: 225)
+        l.tee(.a, 100, 150); l.tee(.b, 100, 150)
+        l.cup(.a, 100, 560); l.cup(.b, 90, 600)
         return l
     }
 
