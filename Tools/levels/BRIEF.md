@@ -175,6 +175,7 @@ about where the previous course's middle sat. Shipped courses, measured:
 | 7 The Links | 0.041 0.035 0.028 0.025 0.022 0.021 0.024 0.013 0.010 | 1.0–1.5° × 5–7% | 40 | — (no movers) | first cut: slopes too gentle, routes obvious; retuned steeper |
 | 8 City Muni | 0.030 0.027 0.022 0.021 0.019 0.017 0.015 0.014 0.010 | 1.0–1.75° × 5–7% | 40 | — (no movers) | first cut rejected (straight grey paths read as walls); redone with flowing black paths, still not right: Debug builds only for now |
 | 9 The Stadium | 0.024 0.022 0.020 0.017 0.017 0.015 0.015 0.014 0.012 | 1.0–1.75° × 5–6% | 48 | — (no movers) | played front to back: "great"; Pine Straw and Palm Row redone with natural shapes; Peninsula, a copy of Railroad Ties, became Creek |
+| 10 Starbase | 0.030 0.027 0.022 0.017 0.017 0.015 0.015 0.013 0.013 | 1.0–1.5° × 5–7% | 44 | 730 ms–1.5 s | not yet playtested |
 
 Midway measured a touch harder than Thunderhead yet played easier. Likely causes: wide windows (several ≥ 2.5°), and
 holes a player can ace almost at will (Springboard's A, High Striker's B and Teacups' B each ace 2.5–3% of all swings,
