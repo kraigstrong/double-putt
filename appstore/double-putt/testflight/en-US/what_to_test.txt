@@ -1,7 +1,10 @@
 Thanks for playing! New in this build:
-- The Links: a seaside putting course of slopes, fringe and sand.
-- Every course is open for the beta, so explore anything without earning medals first.
-- Rounds play it as it lies: no restarting a pair mid-round. Free Play still has Retry.
+- The Stadium: a tournament course with ponds, pine straw and grandstands you can bank off.
+- Starbase: a space station with patrol robots to bounce off and force fields that are a wall while they're lit.
+- Free Play shows each course as a row you swipe through.
+- A new app icon.
+- Fog Bank on The Links is redone, so its double ace is easier to find.
+- Every course is still open for the beta.
 
 We'd love to hear which pairs felt too hard or too easy (and roughly how many tries they took), whether any hint or mechanic was confusing, and any bugs, crashes or sound problems. Sound follows the phone's silent switch, so turn that off to hear it.
 
