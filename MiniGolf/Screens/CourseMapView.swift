@@ -94,7 +94,10 @@ private struct CourseRow: View {
                         Text(summary).font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.6))
                     }
                 }
-                Text(nine.settingNames).font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.55))
+                // A one-setting course's line would only repeat its name ("Midway", "The Links").
+                if !nine.name.localizedCaseInsensitiveContains(nine.settingNames) {
+                    Text(nine.settingNames).font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.55))
+                }
             }
             .padding(.horizontal, 16)
 
