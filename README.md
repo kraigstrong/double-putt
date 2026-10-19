@@ -185,7 +185,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 | 8 | Practice Green | City Muni | 5 | Same | contours, fringe, rough, sand, cart paths |
 | 9 | Last Call | City Muni | 5 | Mirror | contours, fringe, rough, sand, cart paths |
 
-### The Stadium (par 49)
+### The Stadium (par 48)
 
 | # | Pair | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
@@ -195,7 +195,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 | 4 | Gallery | Stadium Course | 4 | Mirror | contours, fringe, rough |
 | 5 | Railroad Ties | Stadium Course | 6 | Mirror | contours, fringe, rough, sand, ponds |
 | 6 | Amphitheater | Stadium Course | 4 | Mirror | stands, contours, fringe, rough, ponds |
-| 7 | Creek | Stadium Course | 6 | Same | contours, fringe, rough, ponds |
+| 7 | Creek | Stadium Course | 5 | Same | contours, fringe, rough, ponds |
 | 8 | Palm Row | Stadium Course | 5 | Same | contours, fringe, rough, sand, ponds |
 | 9 | Island Green | Stadium Course | 6 | Mirror | stands, contours, fringe, rough, ponds |
 
