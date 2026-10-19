@@ -18,7 +18,9 @@ enum CourseArt {
             p.felt(theme)
             // Paint can run past the frame (a pond drawn out to the edge); only what's inside the rails shows.
             p.clipped(CGPath(rect: p.feltRect, transform: nil)) { p.surfaces(level, theme, &rng) }
+            if theme.scifi { p.conveyors(level) }
             p.slopeGrid(level, theme)
+            if theme.scifi { p.wells(level) }
             p.water(level, theme, &rng)
             p.tees(level, theme)
             p.cups(level, theme)

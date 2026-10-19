@@ -19,6 +19,12 @@ extension Painter {
         parts += level.terrain.features.map { CGPath(rect: rect($0.area), transform: nil) }
         guard let first = parts.first else { return }
         var region = parts.dropFirst().reduce(first) { $0.union($1) }
+        // Starbase draws slope boxes as conveyor belts, whose chevrons (and the gliding dots) already show the pull.
+        if t.scifi {
+            for sl in level.slopes { region = region.subtracting(CGPath(rect: rect(sl.box), transform: nil)) }
+            // Clipping to an empty path clips nothing, so with only belts there's no grid to draw at all.
+            if region.boundingBoxOfPath.isEmpty { return }
+        }
         // Only on green and fringe, worked out in paint order as the physics does: the bare felt is green, then each
         // patch adds or takes away.
         if !level.patches.isEmpty {

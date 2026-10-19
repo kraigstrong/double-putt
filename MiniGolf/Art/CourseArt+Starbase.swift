@@ -161,6 +161,52 @@ extension Painter {
         }
     }
 
+    /// Slope boxes as conveyor belts: dark belting with ribs across it and chevrons pointing the way it carries.
+    func conveyors(_ level: Level) {
+        for sl in level.slopes {
+            let r = CGRect(x: sl.box.minX, y: sl.box.minY, width: sl.box.width, height: sl.box.height)
+            let path = rounded(r, 4)
+            fill(path, UIColor(hex: 0x1E242E))
+            let a = CGFloat(atan2(sl.accel.y, sl.accel.x))
+            clipped(path) {
+                // Ribs across the belt, square to the way it runs.
+                let d = CGPoint(x: cos(a), y: sin(a)), n = CGPoint(x: -d.y, y: d.x)
+                let reach = hypot(r.width, r.height)
+                var k = -reach
+                while k < reach {
+                    let c = CGPoint(x: r.midX + d.x * k, y: r.midY + d.y * k)
+                    stroke(CourseArt.line(CGPoint(x: c.x - n.x * reach, y: c.y - n.y * reach), CGPoint(x: c.x + n.x * reach, y: c.y + n.y * reach)),
+                           UIColor(hex: 0x39424F), 1.4)
+                    k += 6
+                }
+                var y = r.minY + 14
+                while y < r.maxY - 6 {
+                    var x = r.minX + 14
+                    while x < r.maxX - 6 {
+                        chevron(at: CGPoint(x: x, y: y), angle: a, size: 5, color: Neon.amber.withAlphaComponent(0.75))
+                        x += 28
+                    }
+                    y += 28
+                }
+            }
+            stroke(path, Neon.amber.withAlphaComponent(0.6), 1)
+        }
+    }
+
+    /// Hills and bowls as repulsors and gravity wells: rings of light, magenta pushing out, cyan pulling in.
+    func wells(_ level: Level) {
+        for m in level.mounds {
+            let c = CGPoint(x: m.center.x, y: m.center.y), R = CGFloat(m.radius)
+            let color = m.strength > 0 ? Neon.magenta : Neon.cyan
+            for k in 1...3 {
+                let f = CGFloat(k) / 3
+                stroke(circle(c, R * f), color.withAlphaComponent(0.55 - 0.12 * CGFloat(k)), 1.4)
+            }
+            shadow(dx: 0, dy: 0, blur: 5, alpha: 0.9) { fill(circle(c, 3), color) }
+            fill(circle(c, 1.5), UIColor.white)
+        }
+    }
+
     /// Kickers as boost pads: a dark plate with glowing chevrons pointing where it launches the ball.
     func boostPads(_ level: Level) {
         for k in level.kickers {
