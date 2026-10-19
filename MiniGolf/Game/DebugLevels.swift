@@ -1,8 +1,28 @@
 #if DEBUG
 // Mechanic test pairs for checking visuals: launch with `-tests 1`.
 enum DebugLevels {
-    static let all: [Level] = [muniTest(), stadiumTest(), tunnelTest(), slopeTest(), contourTest(), surfaceTest(), rotorTest(),
+    static let all: [Level] = [starbaseTest(), muniTest(), stadiumTest(), tunnelTest(), slopeTest(), contourTest(), surfaceTest(), rotorTest(),
                                sliderTest(), funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]
+
+    /// Starbase: patrol robots, force fields, teleporter pads, a boost pad, machinery, an open hatch and a gravity well.
+    static func starbaseTest() -> Level {
+        var l = Level("starbaseTest", par: [2, 2], hint: "")
+        l.setting = "starbase"
+        l.frame(gaps: [560...640])
+        l.tee(.a, 100, 110); l.tee(.b, 100, 110)
+        l.block(.a, 20, 380, 70, 420)
+        l.block(.a, 130, 380, 180, 420)
+        l.field(.a, 70, 400, 130, 400, period: 2, on: 1)
+        l.robot(.a, [(40, 230), (160, 230), (160, 300), (40, 300)], period: 4)
+        l.tunnel(.b, 60, 260, .b, 140, 640, exitB: 90)
+        l.kicker(.b, 150, 200, toward: 100, speed: 520)
+        l.field(.b, 20, 470, 180, 470, period: 3, on: 1.5, start: 1)
+        l.water(.a, 30, 600, 90, 660)
+        l.bowl(.b, 100, 720, radius: 40)
+        l.robot(nil, [(160, 600), (240, 600)], period: 3, radius: 12)
+        l.cup(.a, 140, 700); l.cup(.b, 100, 720)
+        return l
+    }
 
     /// City Muni: greens in rough with a cart path winding between them, a bunker, contours.
     static func muniTest() -> Level {

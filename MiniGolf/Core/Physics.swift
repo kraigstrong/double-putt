@@ -107,6 +107,12 @@ struct Mover {
         /// A spinning disk, flush with the green, that drags any ball on it toward its surface's motion. It turns
         /// at a steady rate, so its pull doesn't depend on when you swing; only its art follows the clock.
         case carousel(center: Vec, radius: Double, omega: Double, phase: Double)
+        /// A round robot driving a closed loop at a steady speed, once every `period` seconds. A ball bounces off
+        /// it as off a bumper.
+        case robot(loop: Loop, period: Double)
+        /// A force field across a gap: a wall while it's lit, nothing while it's dark. It's lit for `on` seconds of
+        /// every `period`, starting `start` seconds into the cycle.
+        case field(a: Vec, b: Vec, period: Double, on: Double, start: Double)
     }
 
     var kind: Kind
@@ -121,7 +127,16 @@ struct Mover {
     var period: Double {
         switch kind {
         case .rotor(_, _, _, let omega, _), .carousel(_, _, let omega, _): return omega == 0 ? 0 : 2 * .pi / abs(omega)
-        case .slider(_, _, let period): return period
+        case .slider(_, _, let period), .robot(_, let period), .field(_, _, let period, _, _): return period
+        }
+    }
+
+    /// How lively a bounce off it is: a robot like a bumper, a force field like a wall, the rest a little dead.
+    var bounce: Double {
+        switch kind {
+        case .robot: return Tuning.bumperRestitution
+        case .field: return Tuning.wallRestitution
+        case .rotor, .slider, .carousel: return Mover.restitution
         }
     }
 
@@ -136,6 +151,10 @@ struct Mover {
             return d - radius
         case .carousel(let center, let r, _, _):
             return (p - center).length - r
+        case .robot(let loop, _):
+            return loop.distance(to: p) - radius
+        case .field(let a, let b, _, _, _):
+            return (p - closestPoint(p, a, b)).length - radius
         }
     }
 
@@ -162,8 +181,22 @@ struct Mover {
         switch kind {
         case .rotor(_, let blades, _, let omega, let phase): return phase + omega * t + 2 * .pi * Double(k) / Double(blades)
         case .carousel(_, _, let omega, let phase): return phase + omega * t
-        case .slider: return 0
+        case .slider, .robot, .field: return 0
         }
+    }
+
+    /// Where a robot is at time t, and the way it's heading.
+    func robotPose(at t: Double) -> (pos: Vec, heading: Vec) {
+        guard case .robot(let loop, let period) = kind else { return (.zero, Vec(1, 0)) }
+        return loop.at(loop.length * t / period)
+    }
+
+    /// Whether a force field is lit (solid) at time t.
+    func isLit(at t: Double) -> Bool {
+        guard case .field(_, _, let period, let on, let start) = kind else { return false }
+        var u = (t - start).truncatingRemainder(dividingBy: period)
+        if u < 0 { u += period }
+        return u < on
     }
 
     /// Calls `body` with each solid piece at time t and the surface velocity function for it.
@@ -189,7 +222,51 @@ struct Mover {
             body(Wall(a: p3, b: p0, radius: radius), surface)
         case .carousel:
             break
+        case .robot(let loop, let period):
+            let (p, heading) = robotPose(at: t)
+            let v = heading * (loop.length / period)
+            body(Wall(a: p, b: p, radius: radius), { _ in v })
+        case .field(let a, let b, _, _, _):
+            if isLit(at: t) { body(Wall(a: a, b: b, radius: radius), { _ in .zero }) }
         }
+    }
+}
+
+/// A closed loop a robot drives round: points along it, and the distance along the loop to each.
+struct Loop {
+    let points: [Vec]
+    /// Distance along the loop to each point; the last entry is the whole way round.
+    let along: [Double]
+    var length: Double { along.last ?? 0 }
+
+    /// A smooth closed curve through `points` (two points: there and back in a straight line).
+    init(through pts: [Vec]) {
+        let samples = pts.count >= 3 ? Patch.curve(through: pts, piece: 4) : pts
+        points = samples
+        var d = [0.0]
+        for i in samples.indices { d.append(d[i] + (samples[(i + 1) % samples.count] - samples[i]).length) }
+        along = d
+    }
+
+    /// The point `s` along the loop (wrapping round) and the way the loop runs there.
+    func at(_ s: Double) -> (pos: Vec, heading: Vec) {
+        let total = length
+        guard total > 0, let first = points.first else { return (points.first ?? .zero, Vec(1, 0)) }
+        var s = s.truncatingRemainder(dividingBy: total)
+        if s < 0 { s += total }
+        var lo = 0, hi = points.count - 1
+        while lo < hi {
+            let mid = (lo + hi + 1) / 2
+            if along[mid] <= s { lo = mid } else { hi = mid - 1 }
+        }
+        let a = points[lo], b = points[(lo + 1) % points.count]
+        let span = along[lo + 1] - along[lo]
+        guard span > 0 else { return (first, Vec(1, 0)) }
+        return (a + (b - a) * ((s - along[lo]) / span), (b - a) * (1 / span))
+    }
+
+    func distance(to p: Vec) -> Double {
+        points.indices.map { (p - closestPoint(p, points[$0], points[($0 + 1) % points.count])).length }.min() ?? .infinity
     }
 }
 
@@ -417,8 +494,10 @@ struct World {
                         let u = surface(q)
                         let vn = (b.vel - u).dot(n)
                         if vn < 0 {
-                            b.vel -= n * ((1 + Mover.restitution) * vn)
-                            if -vn > 20 { events.append(.wall(ball: i, speed: -vn)) }
+                            b.vel -= n * ((1 + m.bounce) * vn)
+                            if -vn > 20 {
+                                if case .robot = m.kind { events.append(.bumper(ball: i, speed: -vn)) } else { events.append(.wall(ball: i, speed: -vn)) }
+                            }
                         }
                     }
                 }

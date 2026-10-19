@@ -18,7 +18,9 @@ enum CourseArt {
             p.felt(theme)
             // Paint can run past the frame (a pond drawn out to the edge); only what's inside the rails shows.
             p.clipped(CGPath(rect: p.feltRect, transform: nil)) { p.surfaces(level, theme, &rng) }
+            if theme.scifi { p.conveyors(level) }
             p.slopeGrid(level, theme)
+            if theme.scifi { p.wells(level) }
             p.water(level, theme, &rng)
             p.tees(level, theme)
             p.cups(level, theme)
@@ -81,6 +83,7 @@ enum CourseArt {
             case .round, .palm: p.canopy(radius: r, color: color, &rng, flowers: flowers)
             case .tents: p.balloons(radius: r, theme, &rng)
             case .gorse: p.gorse(radius: r * 0.8, color: rng.pick(theme.canopies), theme, &rng)
+            case .crates: p.console(radius: r * 0.8, theme, &rng)
             }
         }
         return Prop(image: img, size: rect.size)
@@ -440,6 +443,7 @@ struct Painter {
         case .tidepool: tidepool(water, t, &rng); return
         case .ice: ice(water, t, &rng); return
         case .bulkhead: bulkheadPond(water, t, &rng); return
+        case .void: voidPond(water, t, &rng); return
         case .pond: break
         }
         let pond = water.path, bounds = water.bounds
@@ -708,6 +712,7 @@ struct Painter {
         case .rocks: rockBed(r, square: square, t, &rng); return
         case .snowbank: snowbank(r, square: square, t, &rng); return
         case .awning: awning(r, square: square, t, &rng); return
+        case .machinery: machinery(r, square: square, t, &rng); return
         case .flowers: break
         }
         let path = CourseArt.rounded(r, 2, square: square)
@@ -756,6 +761,7 @@ struct Painter {
         case .sand: sandGround(t, rect, &rng); return
         case .snow: snowGround(t, rect, &rng); return
         case .links: linksGround(t, rect, &rng); return
+        case .deck: deckGround(t, rect, &rng); return
         case .grass, .muni: break
         case .stadium: mowerStripes(t, rect)
         }
@@ -807,6 +813,7 @@ struct Painter {
         case .pine: pine(radius: r, color: color, &rng)
         case .tents: tent(radius: r * 0.9, color: color, t, &rng)
         case .gorse: gorse(radius: r * 0.7, color: color, t, &rng)
+        case .crates: crate(radius: r * 0.75, color: color, &rng)
         }
     }
 

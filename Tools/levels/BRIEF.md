@@ -25,7 +25,7 @@ played as a round. About ten courses are planned, each a little harder than the 
 ## Builder API (x/y are local to the side's hole: 0–200 wide; `.a` or `.b`)
 ```swift
 var l = Level("Name", par: [2, 3], hint: "One short teasing sentence.")
-l.setting = "links"                  // meadow garden moat seaside autumn desert winter night midway bigtop fireworks links muni stadium
+l.setting = "links"                  // meadow garden moat seaside autumn desert winter night midway bigtop fireworks links muni stadium starbase
 l.bandon = true                      // Bandon the dachshund naps beside this pair (a few Links pairs)
 l.frame(gaps: [380...460])          // outer fence + middle wall; gaps = y-ranges where the middle wall is open
 l.tee(.a, x, y); l.cup(.a, x, y)    // and .b. Or l.cups = [Vec(..), Vec(..)] in global coords
@@ -51,6 +51,8 @@ l.rotor(.a, x, y, blades: 4, length: 45, rpm: 30, phase: 0)       // windmill; b
 l.slider(.b, minX, minY, maxX, maxY, dx: 90, dy: 0, period: 2.5)  // block glides by (dx,dy) and back, forever
 l.kicker(.a, x, y, toward: 90, speed: 520)    // springboard pad (radius 13): launches a ball rolling onto it toward `toward`° at `speed`
 l.carousel(.b, x, y, radius: 45, rpm: 25)     // spinning disk, flush with the green: drags a ball on it along with its surface
+l.robot(.a, [(40, 300), (160, 300), (100, 420)], period: 4)  // a round robot (a moving bumper) driving a loop (Starbase)
+l.field(.b, 20, 400, 180, 400, period: 3, on: 1.5, start: 0) // a force field: a wall while lit, open while dark (Starbase)
 l.solution = Shot(angle: 72.5, power: 0.81, mirrored: true)       // from the solver
 l.solutionTime = 0                   // mover clock when `solution` is struck (movers only; 0 = the load pose)
 ```
@@ -112,6 +114,22 @@ Cart paths and grandstands (from course 8):
   as off any wall. The Stadium's other pairs are putting pairs like The Links, with its look: island greens in
   water, bunkers and spectator mounds.
 
+Robots and force fields (from course 10, Starbase):
+- A **robot** is round (`radius` 13 by default) and drives a closed loop through its points at a steady speed, once
+  every `period` seconds: a smooth curve through three or more points, or straight there and back with two. It
+  starts at the first point when the pair loads. A ball bounces off it as off a bumper (restitution 1.0), and a
+  robot driving into a ball shoves it along. Keep its loop clear of tees and cups (a cup it drives over is
+  confusing), and use it so the timing matters: the double ace slips past it, or banks off it.
+- A **force field** runs from one point to another: a wall (bounce 0.72) while it's lit, nothing while it's dark.
+  It's lit for `on` seconds of every `period`, starting `start` seconds into the cycle. Span a gap between two walls,
+  blocks or the frame so it reads as a gate. Good puzzles: one ball banks off a lit field while the other slips
+  through its own dark one; fields out of step with each other; a field that's the only bank into a cup.
+- Both are movers, so they never stop and the strike time matters (`--timing`). Keep periods simple (2, 3, 4 or 6
+  seconds) so the pair's whole cycle stays short, and keep every tee outside every mover's sweep.
+- On Starbase other pieces are drawn the sci-fi way: tunnels are teleporter pads, `hill`/`bowl` are repulsors and
+  gravity wells, `slope` boxes are conveyor belts, kickers are boost pads, blocks are machinery and water is an
+  open hatch to space (+1 and the ball goes back). Their physics is unchanged.
+
 ## Your file
 Draft pairs in a scratch file under `Tools/levels/` (one per designer):
 ```swift
@@ -157,6 +175,7 @@ about where the previous course's middle sat. Shipped courses, measured:
 | 7 The Links | 0.041 0.035 0.028 0.025 0.022 0.021 0.024 0.013 0.010 | 1.0–1.5° × 5–7% | 40 | — (no movers) | first cut: slopes too gentle, routes obvious; retuned steeper |
 | 8 City Muni | 0.030 0.027 0.022 0.021 0.019 0.017 0.015 0.014 0.010 | 1.0–1.75° × 5–7% | 40 | — (no movers) | first cut rejected (straight grey paths read as walls); redone with flowing black paths, still not right: Debug builds only for now |
 | 9 The Stadium | 0.024 0.022 0.020 0.017 0.017 0.015 0.015 0.014 0.012 | 1.0–1.75° × 5–6% | 48 | — (no movers) | played front to back: "great"; Pine Straw and Palm Row redone with natural shapes; Peninsula, a copy of Railroad Ties, became Creek |
+| 10 Starbase | 0.030 0.027 0.022 0.017 0.017 0.015 0.015 0.013 0.013 | 1.0–1.5° × 5–7% | 44 | 730 ms–1.5 s | not yet playtested |
 
 Midway measured a touch harder than Thunderhead yet played easier. Likely causes: wide windows (several ≥ 2.5°), and
 holes a player can ace almost at will (Springboard's A, High Striker's B and Teacups' B each ace 2.5–3% of all swings,
@@ -173,7 +192,7 @@ find and repeat the shot):
 | 7 The Links | ~0.04 → ~0.01 | 1.0–1.5° × 5–7% | — | ~1.2% | 50–54 |
 | 8 City Muni | ~0.030 → ~0.009 | 1.0–1.5° × 5–7% | — | ~1.2% | the solver's |
 | 9 The Stadium | ~0.025 → ~0.006 | 1.0–1.25° × 5–6% | — | ~1.0% | the solver's |
-| 10 | ~0.03 → ~0.005 | 0.75–1.25° × 4–6% | 150 ms | ~1.0% | 52–54 |
+| 10 Starbase | ~0.030 → ~0.006 | 1.0–1.5° × 5–6% | 150 ms | ~1.0% | the solver's |
 
 Harder isn't only a smaller double-ace share: more mechanics working together, more asymmetry between A and B, and
 more 3-par holes all count.

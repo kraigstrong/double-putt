@@ -16,10 +16,11 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 ## How to play
 
 - **Courses** lists the nine-pair courses: Daybreak, Nightfall, Thunderhead, then the Funfair set (Midway, Big Top,
-  Fireworks), then the putting courses of slopes and surfaces (The Links, City Muni, The Stadium), each harder than
-  the last. A round shows a running score vs par and ends with a scorecard and a medal: bronze at par or better,
-  silver 4 under, gold 8 under (best round per course saved; a round in progress survives relaunches). A medal unlocks
-  the next course; for now, in the beta, every course is open.
+  Fireworks), then the putting courses of slopes and surfaces (The Links, City Muni, The Stadium), then Starbase, a
+  space station of patrol robots and force fields, each harder than the last. A round shows a running score vs par
+  and ends with a scorecard and a medal: bronze at par or better, silver 4 under, gold 8 under (best round per course
+  saved; a round in progress survives relaunches). A medal unlocks the next course; for now, in the beta, every course
+  is open.
 - **Free Play** plays any pair on its own: each course is a row you swipe to pick a pair. A double ace on a pair, in
   a round or not, wins its trophy on the **Trophy Shelf** (one per pair).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
@@ -35,7 +36,8 @@ Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tun
 optional exit direction), **slopes** and round **hills / bowls**, smooth **contours** (tilts, tiers, humps and
 hollows that blend into one green), **surfaces** (curvy or angled greens shaped by fringe, rough, sand and ponds,
 each slowing the ball differently, and **cart paths** that run faster than the green), **grandstands** you bank off
-like a wall, **movers** (windmill rotors, sliding blocks) that
+like a wall, **movers** (windmill rotors, sliding blocks, and on Starbase patrol **robots** you bounce off like
+bumpers and **force fields** that are a wall while lit and open while dark) that
 never stop, so when you putt matters as much as how, and from Midway on, **kicker pads** (springboards that launch the
 ball a set way at a set speed) and **carousels** (spinning disks that drag the ball along with them). A ball that stops
 in a mover's path or on a carousel slides to the nearest clear spot that's no nearer a cup. Sloped ground shows a grid
@@ -70,8 +72,8 @@ Each course is nine pairs played as a round. Daybreak and Nightfall are open fro
 with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse` opens them all). In the app each course numbers its pairs 1–9. The tables come from
 `Tools/solve.sh --readme`.
 
-City Muni is still in development: it's in the lineup and the solver checks it, but only Debug builds play it
-(`Levels.inDevelopment`). TestFlight and App Store builds go straight from The Links to the next course.
+City Muni and Starbase are still in development: they're in the lineup and the solver checks them, but only Debug
+builds play them (`Levels.inDevelopment`). TestFlight and App Store builds skip them.
 
 ### Daybreak (par 40)
 
@@ -198,6 +200,20 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 | 7 | Creek | Stadium Course | 5 | Same | contours, fringe, rough, ponds |
 | 8 | Palm Row | Stadium Course | 5 | Same | contours, fringe, rough, sand, ponds |
 | 9 | Island Green | Stadium Course | 6 | Mirror | stands, contours, fringe, rough, ponds |
+
+### Starbase (par 44)
+
+| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Docking Bay | Starbase | 4 | Mirror | robots |
+| 2 | Airlock | Starbase | 5 | Same | water, force fields |
+| 3 | Patrol Route | Starbase | 5 | Mirror | robots |
+| 4 | Teleporter | Starbase | 5 | Same | water, tunnels, force fields |
+| 5 | Conveyor Deck | Starbase | 6 | Mirror | slopes, force fields |
+| 6 | Tractor Beam | Starbase | 4 | Mirror | water, bowls, robots, kickers |
+| 7 | Reactor Core | Starbase | 5 | Mirror | water, hills, rotors, force fields |
+| 8 | Laser Grid | Starbase | 5 | Mirror | water, force fields |
+| 9 | Mothership | Starbase | 5 | Same | water, tunnels, slopes, robots, force fields |
 
 The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
 course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).
