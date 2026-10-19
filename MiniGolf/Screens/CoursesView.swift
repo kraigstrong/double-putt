@@ -85,7 +85,7 @@ private struct CourseCard: View {
                     .background(Circle().fill(Color(theme.accent)))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(nine.name).font(.rounded(21, .heavy))
-                    Text(settings).font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.65))
+                    Text(nine.settingNames).font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.65))
                     if unlocked {
                         Text("Par \(game.par(of: nine)) · \(won)/\(nine.pairs.count) 🏆" + (inProgress ? " · in progress" : ""))
                             .font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.85))
@@ -129,11 +129,13 @@ private struct CourseCard: View {
         .buttonStyle(PressStyle(scale: 0.97))
         .disabled(!unlocked)
     }
+}
 
+extension Nine {
     /// The course's settings in order, e.g. "Meadow · Garden · Moat · Seaside".
-    private var settings: String {
+    @MainActor var settingNames: String {
         var seen: [String] = []
-        for i in nine.pairs where !seen.contains(GameModel.levels[i].setting) { seen.append(GameModel.levels[i].setting) }
+        for i in pairs where !seen.contains(GameModel.levels[i].setting) { seen.append(GameModel.levels[i].setting) }
         return seen.map { Self.shortNames[$0] ?? $0.capitalized }.joined(separator: " · ")
     }
 

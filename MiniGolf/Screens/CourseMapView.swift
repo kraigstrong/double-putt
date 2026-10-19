@@ -1,29 +1,9 @@
 import SwiftUI
 
-/// Free Play: every pair, grouped by nine and then by setting. Tapping one plays it on its own (outside a round).
+/// Free Play: one row per course, swiped sideways to pick a pair. Tapping one plays it on its own (outside a round).
 struct CourseMapView: View {
     let app: AppState
     private var game: GameModel { app.game }
-
-    private struct Section: Identifiable {
-        let id: Int
-        let theme: Theme
-        let indices: [Int]
-    }
-
-    /// The nine's pairs in runs of the same setting.
-    private func sections(_ nine: Nine) -> [Section] {
-        var out: [Section] = []
-        for i in nine.pairs {
-            let level = GameModel.levels[i]
-            if let last = out.last, last.theme.id == level.setting {
-                out[out.count - 1] = Section(id: last.id, theme: last.theme, indices: last.indices + [i])
-            } else {
-                out.append(Section(id: i, theme: Theme.for(level), indices: [i]))
-            }
-        }
-        return out
-    }
 
     var body: some View {
         VStack(spacing: 10) {
@@ -39,45 +19,23 @@ struct CourseMapView: View {
             }
             .padding(.horizontal, 16)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
-                    ForEach(game.nines) { nine in
-                        VStack(alignment: .leading, spacing: 14) {
-                            let locked = !game.isUnlocked(nine)
-                            HStack(alignment: .firstTextBaseline) {
-                                Text(nine.name).font(.rounded(22, .black))
-                                Spacer()
-                                if locked, let before = game.prerequisite(of: nine) {
-                                    Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
-                                        .font(.rounded(12, .bold)).foregroundStyle(Color.putt)
-                                } else {
-                                    Text(nineSummary(nine)).font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.6))
-                                }
-                            }
-                            ForEach(sections(nine)) { section in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack(spacing: 8) {
-                                        Text(section.theme.setting.uppercased())
-                                            .font(.rounded(12, .black)).tracking(1.5)
-                                            .foregroundStyle(Color(section.theme.accent))
-                                        Rectangle().fill(Color(section.theme.accent).opacity(0.35)).frame(height: 1)
-                                    }
-                                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
-                                        ForEach(section.indices, id: \.self) { i in
-                                            let level = GameModel.levels[i]
-                                            PairCard(number: game.pairNumber(i), level: level, best: game.best(for: level),
-                                                     trophy: game.hasTrophy(level), locked: locked) {
-                                                app.play(level: i)
-                                            }
-                                        }
-                                    }
-                                }
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        ForEach(game.nines) { nine in
+                            CourseRow(nine: nine, game: game,
+                                      first: Binding(get: { app.freePlay.cards[nine.id] }, set: { app.freePlay.cards[nine.id] = $0 })) {
+                                app.play(level: $0)
                             }
                         }
                     }
+                    .scrollTargetLayout()
+                    .padding(.top, 6)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
+                .scrollPosition(id: Binding(get: { app.freePlay.course }, set: { app.freePlay.course = $0 }), anchor: .top)
+                // A position set before the scroll view appears doesn't move it, so go back there by hand.
+                .onAppear { if let course = app.freePlay.course { proxy.scrollTo(course, anchor: .top) } }
             }
         }
         .foregroundStyle(.white)
@@ -92,8 +50,87 @@ struct CourseMapView: View {
         let won = GameModel.levels.filter(game.hasTrophy).count
         return "\(GameModel.levels.count) pairs · \(won) \(won == 1 ? "trophy" : "trophies")"
     }
+}
 
-    private func nineSummary(_ nine: Nine) -> String {
+/// Where Free Play was left, so it opens there again (until the app quits): the course scrolled to the top, and
+/// the first card in view on each course's row.
+struct FreePlaySpot {
+    var course: String?
+    var cards: [String: Int] = [:]
+
+    /// Bring a pair's course and card into view, unless they already are.
+    mutating func reveal(_ pair: Int, in nines: [Nine]) {
+        guard let k = nines.firstIndex(where: { $0.pairs.contains(pair) }) else { return }
+        let nine = nines[k]
+        // Two cards show in full. Bring the pair in second, so the one before it shows too.
+        let first = cards[nine.id] ?? nine.pairs.lowerBound
+        if !(first...first + 1).contains(pair) { cards[nine.id] = max(pair - 1, nine.pairs.lowerBound) }
+        // So do two courses.
+        let top = course.flatMap { id in nines.firstIndex { $0.id == id } } ?? 0
+        if !(top...top + 1).contains(k) { course = nine.id }
+    }
+}
+
+/// A course's name and settings over its pairs, in a row that swipes sideways and settles on a card. Cards ease
+/// smaller and dimmer as they slide off either edge.
+private struct CourseRow: View {
+    let nine: Nine
+    let game: GameModel
+    /// The first card in view.
+    @Binding var first: Int?
+    let play: (Int) -> Void
+
+    var body: some View {
+        let locked = !game.isUnlocked(nine)
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(nine.name).font(.rounded(22, .black))
+                    Spacer()
+                    if locked, let before = game.prerequisite(of: nine) {
+                        Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
+                            .font(.rounded(12, .bold)).foregroundStyle(Color.putt)
+                    } else {
+                        Text(summary).font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.6))
+                    }
+                }
+                // A one-setting course's line would only repeat its name ("Midway", "The Links").
+                if !nine.name.localizedCaseInsensitiveContains(nine.settingNames) {
+                    Text(nine.settingNames).font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.55))
+                }
+            }
+            .padding(.horizontal, 16)
+
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal) {
+                    HStack(spacing: 10) {
+                        ForEach(nine.pairs, id: \.self) { i in
+                            let level = GameModel.levels[i]
+                            PairCard(number: game.pairNumber(i), level: level, best: game.best(for: level),
+                                     trophy: game.hasTrophy(level), locked: locked) {
+                                play(i)
+                            }
+                            // Two and a half cards across, so the cut-off one says the row swipes.
+                            .containerRelativeFrame(.horizontal, count: 5, span: 2, spacing: 10)
+                            .scrollTransition(.interactive, axis: .horizontal) { card, phase in
+                                card.scaleEffect(1 - abs(phase.value) * 0.12).opacity(1 - abs(phase.value) * 0.5)
+                            }
+                        }
+                    }
+                    .scrollTargetLayout()
+                }
+                .contentMargins(.horizontal, 16, for: .scrollContent)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $first)
+                .onAppear { if let first { proxy.scrollTo(first, anchor: .leading) } }
+                .scrollIndicators(.hidden)
+                // Let the card shadows spill below the row.
+                .scrollClipDisabled()
+            }
+        }
+    }
+
+    private var summary: String {
         let won = nine.pairs.filter { game.hasTrophy(GameModel.levels[$0]) }.count
         return "Par \(game.par(of: nine)) · \(won)/\(nine.pairs.count) 🏆"
     }
@@ -112,44 +149,50 @@ private struct PairCard: View {
         let theme = Theme.for(level)
         let par = level.par[0] + level.par[1]
         Button(action: action) {
-            ZStack(alignment: .bottom) {
-                Color(theme.rough)
-                if let img = MenuArt.shared.card(level) {
-                    Image(uiImage: img).resizable().scaledToFill().transition(.opacity)
-                }
-                LinearGradient(colors: [.clear, .clear, Color.ink.opacity(0.85)], startPoint: .top, endPoint: .bottom)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(alignment: .top) {
-                        Text("\(number)")
-                            .font(.rounded(12, .black))
-                            .foregroundStyle(Color.ink)
-                            .frame(width: 22, height: 22)
-                            .background(Circle().fill(Color(theme.accent)))
-                        Spacer()
-                        Group {
-                            if locked {
-                                Image(systemName: "lock.fill").font(.system(size: 13, weight: .bold)).frame(width: 20, height: 22)
-                            } else {
-                                TrophyView(earned: trophy, accent: Color(theme.accent), size: 22)
-                            }
-                        }
-                        .padding(5)
-                        .background(Circle().fill(Color.ink.opacity(0.5)))
+            // The backdrop sets the card's shape; the art and labels sit over it, so the art can't stretch the card.
+            Color(theme.rough)
+                .aspectRatio(0.7, contentMode: .fit)
+                .overlay {
+                    if let img = MenuArt.shared.card(level) {
+                        // The art spills past the card before it's clipped; don't let the spill catch taps.
+                        Image(uiImage: img).resizable().scaledToFill().allowsHitTesting(false).transition(.opacity)
                     }
-                    Spacer()
-                    Text(level.name).font(.rounded(13, .heavy)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.7)
-                    Text(best.map { "Best \($0) · Par \(par)" } ?? "Par \(par)")
-                        .font(.rounded(10, .semibold)).foregroundStyle(.white.opacity(0.7))
                 }
-                .padding(8)
-            }
-            .aspectRatio(0.62, contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
-            .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
-            .animation(.easeOut(duration: 0.3), value: MenuArt.shared.cards[level.name] != nil)
-            .opacity(locked ? 0.45 : 1)
+                .overlay {
+                    LinearGradient(colors: [.clear, .clear, Color.ink.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                }
+                .overlay {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(alignment: .top) {
+                            Text("\(number)")
+                                .font(.rounded(13, .black))
+                                .foregroundStyle(Color.ink)
+                                .frame(width: 24, height: 24)
+                                .background(Circle().fill(Color(theme.accent)))
+                            Spacer()
+                            Group {
+                                if locked {
+                                    Image(systemName: "lock.fill").font(.system(size: 13, weight: .bold)).frame(width: 20, height: 22)
+                                } else {
+                                    TrophyView(earned: trophy, accent: Color(theme.accent), size: 22)
+                                }
+                            }
+                            .padding(5)
+                            .background(Circle().fill(Color.ink.opacity(0.5)))
+                        }
+                        Spacer()
+                        Text(level.name).font(.rounded(15, .heavy)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.7)
+                        Text(best.map { "Best \($0) · Par \(par)" } ?? "Par \(par)")
+                            .font(.rounded(11, .semibold)).foregroundStyle(.white.opacity(0.7))
+                    }
+                    .padding(9)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
+                .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
+                .animation(.easeOut(duration: 0.3), value: MenuArt.shared.cards[level.name] != nil)
+                .opacity(locked ? 0.45 : 1)
         }
         .buttonStyle(PressStyle(scale: 0.95))
         .disabled(locked)
