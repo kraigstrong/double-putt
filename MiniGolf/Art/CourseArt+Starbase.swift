@@ -115,16 +115,21 @@ extension Painter {
         stroke(path, UIColor.black.withAlphaComponent(0.4), 0.8)
     }
 
-    /// Water as an open hatch to space: black, full of stars, with a glowing rim and hazard-striped edge.
-    func voidPond(_ water: CourseArt.Pond, _ t: Theme, _ rng: inout SeededRandom) {
+    /// Water as an open hatch to space: black, full of stars, with a glowing rim and hazard-striped edge. `hidden`
+    /// adds a pair's hidden stars (`CourseArt.hiddenStars`) to those that fall in this hatch.
+    func voidPond(_ water: CourseArt.Pond, _ t: Theme, _ rng: inout SeededRandom, hidden: [CourseArt.Star] = []) {
         let pond = water.path, b = water.bounds
         stroke(pond.copy(dashingWithPhase: 0, lengths: [5, 5]), Neon.amber, 5)
         radial(pond, [t.waterShallow, t.waterDeep], center: CGPoint(x: b.midX, y: b.midY), radius: max(b.width, b.height) * 0.6)
         clipped(pond) {
             for _ in 0..<Int(b.width * b.height / 60) + 6 {
                 let p = CGPoint(x: rng.range(b.minX, b.maxX), y: rng.range(b.minY, b.maxY))
-                fill(circle(p, rng.range(0.3, 0.9)), UIColor.white.withAlphaComponent(rng.range(0.4, 0.95)))
+                let r = rng.range(0.3, 0.9), alpha = rng.range(0.4, 0.95)
+                // A little dark sky round the hidden stars, so their lines read to someone who looks for them.
+                if hidden.contains(where: { hypot($0.center.x - p.x, $0.center.y - p.y) < 3 }) { continue }
+                fill(circle(p, r), UIColor.white.withAlphaComponent(alpha))
             }
+            for star in hidden { fill(circle(star.center, star.radius), UIColor.white.withAlphaComponent(star.alpha)) }
             shadow(dx: 0, dy: 0, blur: 6, alpha: 0.8) {
                 let ring = CGMutablePath()
                 ring.addRect(b.insetBy(dx: -30, dy: -30))
@@ -220,6 +225,86 @@ extension Painter {
                 chevron(at: p, angle: a, size: 4.2, color: Neon.cyan.withAlphaComponent(0.5 + 0.25 * CGFloat(i)))
             }
         }
+    }
+}
+
+// MARK: - Hidden stars
+
+extension CourseArt {
+    /// A star in a hatch to space: centre, radius and brightness.
+    struct Star {
+        var center: CGPoint
+        var radius: CGFloat
+        var alpha: CGFloat
+    }
+
+    /// A pattern some of a hatch's stars line up along. The stars are drawn just like the ones round them, so it
+    /// shows only to someone who knows it's there. Strokes are in pattern units (y up, 6 tall), placed at `origin`,
+    /// `scale` course units per pattern unit and turned `tilt` degrees anticlockwise.
+    struct StarPattern {
+        var origin: CGPoint
+        var scale: CGFloat
+        var tilt: CGFloat
+        var strokes: [[(CGFloat, CGFloat)]]
+    }
+
+    /// Two of Starbase's open hatches hide a pattern in their stars.
+    static let starPatterns: [String: StarPattern] = [
+        "Airlock": StarPattern(origin: CGPoint(x: 244, y: 710), scale: 5, tilt: 5, strokes: [
+            [(0, 0), (0, 6), (2.6, 6), (3.5, 5.6), (3.9, 4.8), (3.5, 3.6), (2.6, 3.1), (0, 3.1)],
+            [(2.2, 3.1), (4, 0)],
+            [(5.6, 0), (7.6, 0)],
+            [(6.6, 0), (6.6, 6)],
+            [(5.6, 6), (7.6, 6)],
+            [(9.2, 6), (9.2, 0), (12.6, 0)],
+            [(17.6, 6), (14.2, 6), (14.2, 0), (17.6, 0)],
+            [(14.2, 3.1), (16.8, 3.1)],
+            [(19.2, 6), (21.2, 3), (23.2, 6)],
+            [(21.2, 3), (21.2, 0)],
+        ]),
+        "Laser Grid": StarPattern(origin: CGPoint(x: 222, y: 704), scale: 5, tilt: -4, strokes: [
+            [(0, 0), (0, 6), (2.6, 6), (3.5, 5.6), (3.9, 4.8), (3.5, 3.6), (2.6, 3.1), (0, 3.1)],
+            [(2.2, 3.1), (4, 0)],
+            [(9, 6), (5.6, 6), (5.6, 0), (9, 0)],
+            [(5.6, 3.1), (8.2, 3.1)],
+            [(10.6, 0), (12.6, 6), (14.6, 0)],
+            [(11.4, 2.4), (13.8, 2.4)],
+            [(20, 4.9), (19.4, 5.7), (18.2, 6), (17, 5.7), (16.3, 4.6), (16.2, 3), (16.3, 1.4), (17, 0.3), (18.2, 0),
+             (19.4, 0.3), (20.1, 1.2), (20.2, 2.7), (18.5, 2.7)],
+            [(21.8, 0), (23.8, 6), (25.8, 0)],
+            [(22.6, 2.4), (25, 2.4)],
+            [(27.4, 0), (27.4, 6), (31.4, 0), (31.4, 6)],
+        ]),
+    ]
+
+    /// A pair's hidden stars: spaced about evenly along its pattern's strokes, each nudged a little off its line, and
+    /// as varied in size and brightness as the rest. None on a pair without a pattern. They draw on their own random
+    /// numbers, so the rest of the pair's art stays as it was.
+    static func hiddenStars(_ level: Level) -> [Star] {
+        guard let pattern = starPatterns[level.name] else { return [] }
+        var rng = SeededRandom(seed: stableSeed(level.name) &+ 1)
+        let spacing: CGFloat = 3.6, nudge: CGFloat = 0.65
+        let a = pattern.tilt * .pi / 180
+        var stars: [Star] = []
+        for stroke in pattern.strokes {
+            let points = stroke.map { CGPoint(x: pattern.origin.x + pattern.scale * ($0.0 * cos(a) - $0.1 * sin(a)),
+                                              y: pattern.origin.y + pattern.scale * ($0.0 * sin(a) + $0.1 * cos(a))) }
+            let segments = zip(points, points.dropFirst()).map { ($0, $1, hypot($1.x - $0.x, $1.y - $0.y)) }
+            let length = segments.reduce(0) { $0 + $1.2 }
+            let count = max(1, Int((length / spacing).rounded()))
+            for k in 0...count {
+                var s = length * CGFloat(k) / CGFloat(count), p = points[points.count - 1]
+                for (from, to, d) in segments {
+                    if s <= d { p = CGPoint(x: from.x + (to.x - from.x) * s / d, y: from.y + (to.y - from.y) * s / d); break }
+                    s -= d
+                }
+                // Where strokes meet, one star does for both.
+                if stars.contains(where: { hypot($0.center.x - p.x, $0.center.y - p.y) < spacing * 0.6 }) { continue }
+                stars.append(Star(center: CGPoint(x: p.x + rng.range(-nudge, nudge), y: p.y + rng.range(-nudge, nudge)),
+                                  radius: rng.range(0.3, 0.9), alpha: rng.range(0.4, 0.95)))
+            }
+        }
+        return stars
     }
 }
 

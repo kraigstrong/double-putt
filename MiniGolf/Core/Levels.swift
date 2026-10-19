@@ -288,7 +288,7 @@ enum Levels {
 
     /// Courses still being worked on. They stay in the lineup, so the solver checks them, but only Debug (Xcode)
     /// builds play them: TestFlight and App Store builds leave them out.
-    static let inDevelopment: Set<String> = ["muni", "starbase"]
+    static let inDevelopment: Set<String> = ["muni"]
 
     /// The pairs and nines a player gets: the whole lineup in Debug builds, and without the courses still in
     /// development otherwise. (`course` and `nines` are always the whole lineup, for the solver.)

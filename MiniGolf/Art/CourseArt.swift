@@ -434,16 +434,17 @@ struct Painter {
     }
 
     func water(_ level: Level, _ t: Theme, _ rng: inout SeededRandom) {
-        for water in CourseArt.ponds(level) { pond(water, t, &rng) }
+        let hidden = CourseArt.hiddenStars(level)
+        for water in CourseArt.ponds(level) { pond(water, t, &rng, hidden: hidden) }
     }
 
-    /// One pond in the setting's water style (painted ponds call this too).
-    func pond(_ water: CourseArt.Pond, _ t: Theme, _ rng: inout SeededRandom) {
+    /// One pond in the setting's water style (painted ponds call this too). `hidden`: extra stars for a hatch to space.
+    func pond(_ water: CourseArt.Pond, _ t: Theme, _ rng: inout SeededRandom, hidden: [CourseArt.Star] = []) {
         switch t.water {
         case .tidepool: tidepool(water, t, &rng); return
         case .ice: ice(water, t, &rng); return
         case .bulkhead: bulkheadPond(water, t, &rng); return
-        case .void: voidPond(water, t, &rng); return
+        case .void: voidPond(water, t, &rng, hidden: hidden); return
         case .pond: break
         }
         let pond = water.path, bounds = water.bounds
