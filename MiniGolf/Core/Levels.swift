@@ -262,11 +262,16 @@ enum Levels {
             gallery(), railroadTies(), amphitheater(),
             creek(), palmRow(), islandGreen(),
         ]),
+        ("starbase", "Starbase", [                   // Starbase
+            dockingBay(), airlock(), patrolRoute(),
+            teleporter(), conveyorDeck(), tractorBeam(),
+            reactorCore(), laserGrid(), mothership(),
+        ]),
     ]
 
     /// The course content's revision, sent with analytics so counts never mix two versions of a pair. Bump it
     /// whenever any pair's layout, par or order changes.
-    static let revision = "2026-10-18.7"
+    static let revision = "2026-10-19.1"
 
     /// Display names of the visual settings (`Level.setting`).
     static let settingNames = [
@@ -283,7 +288,7 @@ enum Levels {
 
     /// Courses still being worked on. They stay in the lineup, so the solver checks them, but only Debug (Xcode)
     /// builds play them: TestFlight and App Store builds leave them out.
-    static let inDevelopment: Set<String> = ["muni"]
+    static let inDevelopment: Set<String> = ["muni", "starbase"]
 
     /// The pairs and nines a player gets: the whole lineup in Debug builds, and without the courses still in
     /// development otherwise. (`course` and `nines` are always the whole lineup, for the solver.)
