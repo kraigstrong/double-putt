@@ -21,6 +21,7 @@ final class AppState {
 
     var screen: Screen = .title
     var soundOn = SoundFX.shared.isEnabled
+    var freePlay = FreePlaySpot()
     let game: GameModel
     @ObservationIgnored let scene: GameScene
 
@@ -66,6 +67,12 @@ final class AppState {
         game.leaveRound()
         game.start(level: level)
         screen = .game
+    }
+
+    /// Back to Free Play from a pair, with that pair in view.
+    func backToFreePlay() {
+        freePlay.reveal(game.levelIndex, in: game.nines)
+        screen = .levels
     }
 
     func playRound(_ nine: Nine) {

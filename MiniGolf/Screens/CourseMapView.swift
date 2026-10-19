@@ -19,14 +19,23 @@ struct CourseMapView: View {
             }
             .padding(.horizontal, 16)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    ForEach(game.nines) { nine in
-                        CourseRow(nine: nine, game: game) { app.play(level: $0) }
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        ForEach(game.nines) { nine in
+                            CourseRow(nine: nine, game: game,
+                                      first: Binding(get: { app.freePlay.cards[nine.id] }, set: { app.freePlay.cards[nine.id] = $0 })) {
+                                app.play(level: $0)
+                            }
+                        }
                     }
+                    .scrollTargetLayout()
+                    .padding(.top, 6)
+                    .padding(.bottom, 24)
                 }
-                .padding(.top, 6)
-                .padding(.bottom, 24)
+                .scrollPosition(id: Binding(get: { app.freePlay.course }, set: { app.freePlay.course = $0 }), anchor: .top)
+                // A position set before the scroll view appears doesn't move it, so go back there by hand.
+                .onAppear { if let course = app.freePlay.course { proxy.scrollTo(course, anchor: .top) } }
             }
         }
         .foregroundStyle(.white)
@@ -43,11 +52,32 @@ struct CourseMapView: View {
     }
 }
 
+/// Where Free Play was left, so it opens there again (until the app quits): the course scrolled to the top, and
+/// the first card in view on each course's row.
+struct FreePlaySpot {
+    var course: String?
+    var cards: [String: Int] = [:]
+
+    /// Bring a pair's course and card into view, unless they already are.
+    mutating func reveal(_ pair: Int, in nines: [Nine]) {
+        guard let k = nines.firstIndex(where: { $0.pairs.contains(pair) }) else { return }
+        let nine = nines[k]
+        // Two cards show in full. Bring the pair in second, so the one before it shows too.
+        let first = cards[nine.id] ?? nine.pairs.lowerBound
+        if !(first...first + 1).contains(pair) { cards[nine.id] = max(pair - 1, nine.pairs.lowerBound) }
+        // So do two courses.
+        let top = course.flatMap { id in nines.firstIndex { $0.id == id } } ?? 0
+        if !(top...top + 1).contains(k) { course = nine.id }
+    }
+}
+
 /// A course's name and settings over its pairs, in a row that swipes sideways and settles on a card. Cards ease
 /// smaller and dimmer as they slide off either edge.
 private struct CourseRow: View {
     let nine: Nine
     let game: GameModel
+    /// The first card in view.
+    @Binding var first: Int?
     let play: (Int) -> Void
 
     var body: some View {
@@ -68,28 +98,32 @@ private struct CourseRow: View {
             }
             .padding(.horizontal, 16)
 
-            ScrollView(.horizontal) {
-                HStack(spacing: 10) {
-                    ForEach(nine.pairs, id: \.self) { i in
-                        let level = GameModel.levels[i]
-                        PairCard(number: game.pairNumber(i), level: level, best: game.best(for: level),
-                                 trophy: game.hasTrophy(level), locked: locked) {
-                            play(i)
-                        }
-                        // Two and a half cards across, so the cut-off one says the row swipes.
-                        .containerRelativeFrame(.horizontal, count: 5, span: 2, spacing: 10)
-                        .scrollTransition(.interactive, axis: .horizontal) { card, phase in
-                            card.scaleEffect(1 - abs(phase.value) * 0.12).opacity(1 - abs(phase.value) * 0.5)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal) {
+                    HStack(spacing: 10) {
+                        ForEach(nine.pairs, id: \.self) { i in
+                            let level = GameModel.levels[i]
+                            PairCard(number: game.pairNumber(i), level: level, best: game.best(for: level),
+                                     trophy: game.hasTrophy(level), locked: locked) {
+                                play(i)
+                            }
+                            // Two and a half cards across, so the cut-off one says the row swipes.
+                            .containerRelativeFrame(.horizontal, count: 5, span: 2, spacing: 10)
+                            .scrollTransition(.interactive, axis: .horizontal) { card, phase in
+                                card.scaleEffect(1 - abs(phase.value) * 0.12).opacity(1 - abs(phase.value) * 0.5)
+                            }
                         }
                     }
+                    .scrollTargetLayout()
                 }
-                .scrollTargetLayout()
+                .contentMargins(.horizontal, 16, for: .scrollContent)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $first)
+                .onAppear { if let first { proxy.scrollTo(first, anchor: .leading) } }
+                .scrollIndicators(.hidden)
+                // Let the card shadows spill below the row.
+                .scrollClipDisabled()
             }
-            .contentMargins(.horizontal, 16, for: .scrollContent)
-            .scrollTargetBehavior(.viewAligned)
-            .scrollIndicators(.hidden)
-            // Let the card shadows spill below the row.
-            .scrollClipDisabled()
         }
     }
 
