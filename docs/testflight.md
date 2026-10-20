@@ -47,13 +47,13 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 ## Uploading a build
 Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by one in a PR first).
 
-1. Check out `main` at the commit you want and tag it `double-putt-v0.1-beta.B` (`double-putt-v0.1-beta.2` for
-   build 2).
+1. Check out `main` at the commit you want and tag it `double-putt-v0.1-beta.B` (`double-putt-v0.1-beta.3` for
+   build 3).
 2. Archive and upload: in Xcode, the MiniGolf scheme and Any iOS Device (arm64), Product > Archive, then in the
    Organizer, Distribute App > App Store Connect > Upload. Or from the command line, with the Apple ID Xcode is
    signed in with:
    ```bash
-   B=2
+   B=3
    xcodebuild archive -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
      -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-0.1-$B.xcarchive
    xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-0.1-$B.xcarchive \
