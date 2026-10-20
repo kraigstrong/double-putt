@@ -126,7 +126,7 @@ extension Painter {
                 let p = CGPoint(x: rng.range(b.minX, b.maxX), y: rng.range(b.minY, b.maxY))
                 let r = rng.range(0.3, 0.9), alpha = rng.range(0.4, 0.95)
                 // A little dark sky round the hidden stars, so their lines read to someone who looks for them.
-                if hidden.contains(where: { hypot($0.center.x - p.x, $0.center.y - p.y) < 3 }) { continue }
+                if hidden.contains(where: { hypot($0.center.x - p.x, $0.center.y - p.y) < $0.gap }) { continue }
                 fill(circle(p, r), UIColor.white.withAlphaComponent(alpha))
             }
             for star in hidden { fill(circle(star.center, star.radius), UIColor.white.withAlphaComponent(star.alpha)) }
@@ -231,28 +231,34 @@ extension Painter {
 // MARK: - Hidden stars
 
 extension CourseArt {
-    /// A star in a hatch to space: centre, radius and brightness.
+    /// A star in a hatch to space: centre, radius and brightness, and for a hidden star, how far round it the hatch's
+    /// other stars leave dark sky.
     struct Star {
         var center: CGPoint
         var radius: CGFloat
         var alpha: CGFloat
+        var gap: CGFloat = 0
     }
 
     /// A pattern some of a hatch's stars line up along. The stars are drawn just like the ones round them, so it
     /// shows only to someone who knows it's there. Strokes are in pattern units (y up, 6 tall), placed at `origin`,
-    /// `scale` course units per pattern unit and turned `tilt` degrees anticlockwise.
+    /// `scale` course units per pattern unit and turned `tilt` degrees anticlockwise. Stars sit about `spacing` course
+    /// units apart along them, with `gap` units of dark sky round each: closer stars and a wider gap read more clearly.
+    /// Big loops are left open: the gap darkens a loop's whole middle, which stands out.
     struct StarPattern {
         var origin: CGPoint
         var scale: CGFloat
         var tilt: CGFloat
+        var spacing: CGFloat
+        var gap: CGFloat
         var strokes: [[(CGFloat, CGFloat)]]
     }
 
     /// Two of Starbase's open hatches hide a pattern in their stars.
     static let starPatterns: [String: StarPattern] = [
-        "Airlock": StarPattern(origin: CGPoint(x: 244, y: 710), scale: 5, tilt: 5, strokes: [
-            [(0, 0), (0, 6), (2.6, 6), (3.5, 5.6), (3.9, 4.8), (3.5, 3.6), (2.6, 3.1), (0, 3.1)],
-            [(2.2, 3.1), (4, 0)],
+        "Airlock": StarPattern(origin: CGPoint(x: 244, y: 710), scale: 5, tilt: 5, spacing: 4.2, gap: 2.2, strokes: [
+            [(0, 0), (0, 6), (2.6, 6), (3.5, 5.6), (3.9, 4.8), (3.5, 3.6), (2.6, 3.1)],
+            [(2.6, 3.1), (4, 0)],
             [(5.6, 0), (7.6, 0)],
             [(6.6, 0), (6.6, 6)],
             [(5.6, 6), (7.6, 6)],
@@ -262,9 +268,9 @@ extension CourseArt {
             [(19.2, 6), (21.2, 3), (23.2, 6)],
             [(21.2, 3), (21.2, 0)],
         ]),
-        "Laser Grid": StarPattern(origin: CGPoint(x: 222, y: 704), scale: 5, tilt: -4, strokes: [
-            [(0, 0), (0, 6), (2.6, 6), (3.5, 5.6), (3.9, 4.8), (3.5, 3.6), (2.6, 3.1), (0, 3.1)],
-            [(2.2, 3.1), (4, 0)],
+        "Laser Grid": StarPattern(origin: CGPoint(x: 222, y: 704), scale: 5, tilt: -4, spacing: 4.8, gap: 1.6, strokes: [
+            [(0, 0), (0, 6), (2.6, 6), (3.5, 5.6), (3.9, 4.8), (3.5, 3.6), (2.6, 3.1)],
+            [(2.6, 3.1), (4, 0)],
             [(9, 6), (5.6, 6), (5.6, 0), (9, 0)],
             [(5.6, 3.1), (8.2, 3.1)],
             [(10.6, 0), (12.6, 6), (14.6, 0)],
@@ -283,7 +289,7 @@ extension CourseArt {
     static func hiddenStars(_ level: Level) -> [Star] {
         guard let pattern = starPatterns[level.name] else { return [] }
         var rng = SeededRandom(seed: stableSeed(level.name) &+ 1)
-        let spacing: CGFloat = 3.6, nudge: CGFloat = 0.65
+        let spacing = pattern.spacing, nudge: CGFloat = 0.9
         let a = pattern.tilt * .pi / 180
         var stars: [Star] = []
         for stroke in pattern.strokes {
@@ -301,7 +307,7 @@ extension CourseArt {
                 // Where strokes meet, one star does for both.
                 if stars.contains(where: { hypot($0.center.x - p.x, $0.center.y - p.y) < spacing * 0.6 }) { continue }
                 stars.append(Star(center: CGPoint(x: p.x + rng.range(-nudge, nudge), y: p.y + rng.range(-nudge, nudge)),
-                                  radius: rng.range(0.3, 0.9), alpha: rng.range(0.4, 0.95)))
+                                  radius: rng.range(0.3, 0.9), alpha: rng.range(0.4, 0.95), gap: pattern.gap))
             }
         }
         return stars
