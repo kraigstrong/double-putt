@@ -1,11 +1,11 @@
-Double Putt is mini golf with a twist: every swing plays two holes at once.
+Double Putt is mini golf with a twist: every swing plays two greens at once.
 
-Line up one putt and both balls roll. Choose Same to send them the same way, or Mirror to flip the second ball's shot left to right. Each pair of holes is a little puzzle: find the one swing that drops both balls for a double ace.
+Line up one putt and both balls roll. Choose Same to send them the same way, or Mirror to flip the second ball's shot left to right. Each hole is a little puzzle: find the one swing that drops both balls for a double ace.
 
-• 81 pairs of holes across nine courses, from a spring meadow and a castle moat to a desert canyon, a winter village, a funfair at night, a seaside links, a stadium course and a space station
+• 81 holes across nine courses, from a spring meadow and a castle moat to a desert canyon, a winter village, a funfair at night, a seaside links, a stadium course and a space station
 • Windmills, sliding gates, tunnels, slopes, springboards, spinning carousels, patrol robots and force fields, all moving in real time
 • An aim guide that shows your line and first bounce, but never where the ball stops
-• Rounds with scorecards and medals, Free Play to practice any pair, and a trophy shelf for every double ace
+• Rounds with scorecards and medals, Free Play to practice any hole, and a trophy shelf for every double ace
 • No ads, no accounts, and no internet needed to play
 
 Easy to pick up and tricky to master. Pass the phone around and see who finds the double ace first.
