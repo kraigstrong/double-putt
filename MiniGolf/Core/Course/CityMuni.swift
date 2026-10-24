@@ -6,8 +6,8 @@ import Foundation
 // hollow, or banked off the chain-link fence. Designed with Tools/solver against Tools/levels/BRIEF.md (course 8
 // targets).
 extension Levels {
-    /// Pair 1, the warm-up. A's tee box sits at the bottom left, and a cart path bows out to the left and sweeps up
-    /// and round to the right, past a bunker, to a green at the top right. The whole hole leans hard right (170) and
+    /// Hole 1, the warm-up. A's tee box sits at the bottom left, and a cart path bows out to the left and sweeps up
+    /// and round to the right, past a bunker, to a green at the top right. The whole side leans hard right (170) and
     /// the path is laid along the curve that lean puts on a putt: aim up the path, about 14° left of the cup, and the
     /// slope carries the ball round the bend and onto the green, where a big, steep bowl gathers it into the cup. Off
     /// the path it dies in the rough. B is a long, thin green that climbs to its cup, with a bank just behind the cup
@@ -40,7 +40,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. B's cart path winds up from the tee box between two grassy mounds, the first on its left and the second
+    /// Hole 2. B's cart path winds up from the tee box between two grassy mounds, the first on its left and the second
     /// on its right, so it bends right and then back left; each mound sheds the ball the way the path goes, and it
     /// rolls off the end onto the top green and into a big bowl round the cup. Off the path it dies in the rough. A is
     /// a long green leaning hard down and to the left (180): its ball starts about 8° right of the cup and curls back
@@ -73,7 +73,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 3. A's cart path runs from the tee box up and right to the middle fence, touches it, and doubles back up
+    /// Hole 3. A's cart path runs from the tee box up and right to the middle fence, touches it, and doubles back up
     /// and left to a green at the top: A's ball rides it to the fence, banks off the chain link and rides the second
     /// leg onto the green and into a dish round the cup, about 15° off the straight line. Off the path it dies in the
     /// rough. B is a long green running up and right, leaning left (200), with a false front: a broad bank (400, too
@@ -106,7 +106,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 4. B's cart path sweeps up from the tee box and bends right round a hollow, a broad dip with a bunker in
+    /// Hole 4. B's cart path sweeps up from the tee box and bends right round a hollow, a broad dip with a bunker in
     /// its bottom, to a green at the top. The ball rides it the whole way: the hollow's slope carries it round the
     /// bend, the path's pace gets it to the green, and a steep bank behind the cup sends a firm one back. Off the
     /// path it dies in the rough. A is a hog's back: a long green along a ridge, so the putt has to run straight
@@ -143,7 +143,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 5, the showpiece. A's cart path winds out of the tee box, across the rough to the left fence, up beside the
+    /// Hole 5, the showpiece. A's cart path winds out of the tee box, across the rough to the left fence, up beside the
     /// chain link and round behind the top green. A's ball rides it: along the path to the fence, a glancing bank off
     /// the chain link, then on up beside the fence until it rolls off onto the top green and into the cup, about 11°
     /// off the straight line. Off the path it dies in the rough. B's ball stays on its green, which leans hard left,
@@ -175,7 +175,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. B is two greens, one above the other, with a false front between them: a fringe bank too steep to
+    /// Hole 6. B is two greens, one above the other, with a false front between them: a fringe bank too steep to
     /// hold a ball, so a putt that runs out of pace on it rolls back down. The cart path is the way up. B's green
     /// leans left, so its ball starts up the right side about 12° right of the cup; at the bank it rides the path,
     /// which climbs and bends left with the slope, and comes off the top onto the upper green and into a dish, a bank
@@ -214,7 +214,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A is a long, thin green toward the skyline, leaning hard right: its ball starts well left of the cup,
+    /// Hole 7. A is a long, thin green toward the skyline, leaning hard right: its ball starts well left of the cup,
     /// about 17° off the line, and curls back into a dish. B tees off a high green; its cart path winds down a bank
     /// and swings out to the right fence, then curls back left across the lower green, which falls away left. B's
     /// ball rides it: the bank speeds it up (the asphalt can't hold it on that slope), the chain link turns it, and
@@ -249,7 +249,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 8. A's cart path leaves the tee green and runs up and right between two bunkers to the middle fence,
+    /// Hole 8. A's cart path leaves the tee green and runs up and right between two bunkers to the middle fence,
     /// touches it, and swings back up and left to the top green. A's ball rides it: a bank off the chain link turns it
     /// about 28° and sends it back across onto the green and into the cup, about 14° off the straight line. Off the
     /// path it dies in the rough or a bunker. B is the practice green, a long, narrow green that climbs gently from
@@ -287,7 +287,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9, the finale. A is a long, narrow green that climbs gently from the tee to a false front: a steep bank
+    /// Hole 9, the finale. A is a long, narrow green that climbs gently from the tee to a false front: a steep bank
     /// across the green just below the cup, too steep to hold a ball, with the cup on the shelf above it. A short putt
     /// stalls on the bank and rolls back down; a firm one tops it and dies in the dish round the cup. B's cart path
     /// leaves the tee green and runs up and left past a fairway bunker to the middle fence, touches it and swings

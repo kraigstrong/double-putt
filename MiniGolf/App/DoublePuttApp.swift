@@ -64,14 +64,14 @@ final class AppState {
         #endif
     }
 
-    /// A single pair from the course map (outside the round).
+    /// A single hole from the course map (outside the round).
     func play(level: Int) {
         game.leaveRound()
         game.start(level: level)
         screen = .game
     }
 
-    /// Back to Free Play from a pair, with that pair in view.
+    /// Back to Free Play from a hole, with that hole in view.
     func backToFreePlay() {
         freePlay.reveal(game.levelIndex, in: game.nines)
         screen = .levels

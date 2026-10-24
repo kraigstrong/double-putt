@@ -14,15 +14,15 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
   Store Connect record exists. A phone that ran the old `com.kraig.minigolf` builds gets this as a separate app,
   so its local progress doesn't carry over.
 - [x] **Debug tools in Debug builds only**: dev mode (long-press the logo: every course open, Show Ace, full-path
-  guide, Reset), the debug launch arguments and the mechanic test pairs. TestFlight and App Store builds don't
+  guide, Reset), the debug launch arguments and the mechanic test holes. TestFlight and App Store builds don't
   have them.
 - **Every course open in the beta** (`GameModel.betaOpensEveryCourse`), so testers can explore without earning
   medals first. Turn it off before the App Store release to bring the unlocks back.
 - [x] **The screen stays awake while playing** (aiming can take longer than auto-lock), and sleeps normally on
   the menus.
-- [x] **Coming back to the app shows the pause menu** if a pair was in play.
+- [x] **Coming back to the app shows the pause menu** if a hole was in play.
 - [x] **Settings screen** from the title's gear: Sound, Privacy Policy, Support, and the version.
-- [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-pair difficulty and the course funnel, no
+- [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-hole difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
 - Version 0.1, build 3. Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each upload.
@@ -79,14 +79,14 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
 - The title shows; How to Play runs on Twins for a first-time player.
 - Courses lists every course but City Muni (Debug builds only), all open while the beta switch is on. With it off, Daybreak and Nightfall are open
   and the rest locked until the previous course has a medal. Long-pressing the logo does nothing (no dev mode).
-- Play a few pairs in a round: strokes show as numbers when balls drop; the result card shows the pair's verdict;
+- Play a few holes in a round: strokes show as numbers when balls drop; the result card shows the hole's verdict;
   finishing a round shows the scorecard and medal, and (beta switch off) a medal on Nightfall unlocks Thunderhead.
 - Free Play shows a row per course that swipes sideways, and keeps each row where you left it until the app quits.
-  It plays any open pair; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
-- A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Pair.
+  It plays any open hole; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
+- A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Hole.
 - Progress survives force-quitting and reopening.
 - The screen doesn't dim while aiming; it sleeps normally on the title screen.
-- Background the app mid-pair: on return the pause menu is up and nothing moved while away.
+- Background the app mid-hole: on return the pause menu is up and nothing moved while away.
 - Sound off in Settings and the pause menu is remembered; with the phone on silent there's no sound.
 - Settings shows the version, and Privacy Policy and Support open in Safari.
 - The Links: the slope grid and its dots show on green and fringe only; on Two Tiers a soft putt up the false

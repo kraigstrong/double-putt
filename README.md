@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/kraigstrong/double-putt/actions/workflows/ci.yml/badge.svg)](https://github.com/kraigstrong/double-putt/actions/workflows/ci.yml)
 
-Two mini golf holes, one swing. Every swing hits both balls with the same shot — or, with **Mirror**,
-hole B's ball gets the shot flipped left-to-right.
+Mini golf where one swing plays two greens. Every swing hits both balls with the same shot — or, with **Mirror**,
+green B's ball gets the shot flipped left-to-right.
 
 ## Run it
 
@@ -15,22 +15,22 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 
 ## How to play
 
-- **Courses** lists the nine-pair courses: Daybreak, Nightfall, Thunderhead, then the Funfair set (Midway, Big Top,
+- **Courses** lists the nine-hole courses: Daybreak, Nightfall, Thunderhead, then the Funfair set (Midway, Big Top,
   Fireworks), then the putting courses of slopes and surfaces (The Links, City Muni, The Stadium), then Starbase, a
   space station of patrol robots and force fields, each harder than the last. A round shows a running score vs par
   and ends with a scorecard and a medal: bronze at par or better, silver 4 under, gold 8 under (best round per course
   saved; a round in progress survives relaunches). A medal unlocks the next course; for now, in the beta, every course
   is open.
-- **Free Play** plays any pair on its own: each course is a row you swipe to pick a pair. A double ace on a pair, in
-  a round or not, wins its trophy on the **Trophy Shelf** (one per pair).
+- **Free Play** plays any hole on its own: each course is a row you swipe to pick a hole. A double ace on a hole, in
+  a round or not, wins its trophy on the **Trophy Shelf** (one per hole).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
 - **‹ ›** nudge the aim (hold to repeat). Drag the **power bar** or use its **+ / −**.
-- **Same / Mirror** picks how the swing maps onto hole B's ball. **Putt** fires — nothing fires by accident.
+- **Same / Mirror** picks how the swing maps onto green B's ball. **Putt** fires — nothing fires by accident.
 - The guide shows each ball's direction and first bounce (or tunnel) only — never where it stops. It runs straight
   over slopes (reading them is your job) and reaches further the firmer you putt.
 - Any ball can drop in any cup (one ball per cup). Water = +1 and the ball goes back.
-- Per-hole scoring; each pair's par is the sum of its two holes (2 or 3 each).
-- A round is played as it lies: there's no restarting a pair. Free Play has Retry and Restart Pair.
+- Each green is scored on its own; a hole's par is the sum of its two greens' pars (2 or 3 each).
+- A round is played as it lies: there's no restarting a hole. Free Play has Retry and Restart Hole.
 
 Mechanics: walls and planters, bumpers, water, gaps/shared greens, two-way **tunnels** (color-coded mouths,
 optional exit direction), **slopes** and round **hills / bowls**, smooth **contours** (tilts, tiers, humps and
@@ -47,11 +47,11 @@ In Debug (Xcode) builds, long-press the title logo to toggle **dev mode** (every
 full-path guide toggle, Show Ace and Reset). TestFlight and App Store builds don't have it.
 
 The title's gear opens **Settings**: sound, the privacy policy and support pages, and the version. The game sends
-anonymous gameplay counts (pair difficulty and the course funnel; no names or device IDs) to brightbench.app, as
+anonymous gameplay counts (hole difficulty and the course funnel; no names or device IDs) to brightbench.app, as
 described in `docs/analytics.md`. `docs/testflight.md` is the beta checklist and upload guide.
 Show Ace waits (fast-forwarding a long wait) for the movers to reach the stored solution's timing.
 
-Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to Play** replays the tips on the pair you're on.
+Tap the hole name (the 💡) to bring the hole's hint back; Pause → **How to Play** replays the tips on the hole you're on.
 
 ## Layout
 
@@ -68,8 +68,8 @@ Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to P
 
 ## The courses
 
-Each course is nine pairs played as a round. Daybreak and Nightfall are open from the start; each later course unlocks
-with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse` opens them all). In the app each course numbers its pairs 1–9. The tables come from
+Each course is nine holes played as a round. Daybreak and Nightfall are open from the start; each later course unlocks
+with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse` opens them all). In the app each course numbers its holes 1–9. The tables come from
 `Tools/solve.sh --readme`.
 
 City Muni is still in development: it's in the lineup and the solver checks it, but only Debug builds play it
@@ -77,7 +77,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### Daybreak (par 40)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Twins | Spring Meadow | 4 | Same | — |
 | 2 | Reflection | Spring Meadow | 4 | Mirror | — |
@@ -91,7 +91,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### Nightfall (par 46)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Carom | Autumn Grove | 4 | Mirror | — |
 | 2 | Hollow | Autumn Grove | 4 | Same | hills, bowls |
@@ -105,7 +105,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### Thunderhead (par 48)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Breakwater | Seaside Boardwalk | 5 | Mirror | bumpers, bowls |
 | 2 | Tide Pools | Seaside Boardwalk | 5 | Same | water, slopes |
@@ -119,7 +119,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### Midway (par 47)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Ring Toss | Midway | 5 | Mirror | water, bumpers |
 | 2 | Springboard | Midway | 5 | Mirror | water, kickers |
@@ -133,7 +133,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### Big Top (par 47)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Ringmaster | Big Top | 5 | Mirror | bowls, kickers |
 | 2 | Juggler | Big Top | 5 | Same | bumpers, carousels |
@@ -147,7 +147,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### Fireworks (par 50)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Sparkler | Fireworks | 5 | Mirror | kickers |
 | 2 | Ferris Wheel | Fireworks | 5 | Same | water, bumpers, rotors |
@@ -161,7 +161,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### The Links (par 40)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Fescue | Seaside Links | 4 | Same | contours, fringe, rough |
 | 2 | Pot Bunker | Seaside Links | 4 | Same | contours, fringe, rough, sand |
@@ -175,7 +175,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### City Muni (par 40)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Clubhouse | City Muni | 5 | Same | contours, fringe, rough, sand, cart paths |
 | 2 | Cart Path | City Muni | 4 | Mirror | contours, fringe, rough, cart paths |
@@ -189,7 +189,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### The Stadium (par 48)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | First Tee | Stadium Course | 6 | Same | contours, fringe, rough, ponds |
 | 2 | Pine Straw | Stadium Course | 6 | Mirror | contours, fringe, rough, sand |
@@ -203,7 +203,7 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 
 ### Starbase (par 44)
 
-| # | Pair | Setting | Par | Double ace needs | Mechanics |
+| # | Hole | Setting | Par | Double ace needs | Mechanics |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Docking Bay | Starbase | 4 | Mirror | robots |
 | 2 | Airlock | Starbase | 5 | Same | water, force fields |
@@ -215,19 +215,19 @@ City Muni is still in development: it's in the lineup and the solver checks it, 
 | 8 | Laser Grid | Starbase | 5 | Mirror | water, force fields |
 | 9 | Mothership | Starbase | 5 | Same | water, tunnels, slopes, robots, force fields |
 
-The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; pairs live there and in `MiniGolf/Core/Course/`. To add a
+The lineup is `Levels.lineup` in `MiniGolf/Core/Levels.swift`; holes live there and in `MiniGolf/Core/Course/`. To add a
 course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty targets, asymmetry, solver workflow).
 
 ## Solver
 
 ```bash
-Tools/solve.sh              # double-ace / single-ace / water stats for every pair
-Tools/solve.sh moat         # one pair
-Tools/solve.sh --verify     # stored solutions still double-ace; tees clear; 9 pairs per course; unique names
-Tools/solve.sh --report --course thunderhead   # one line per pair: difficulty, window, par check, mechanics
+Tools/solve.sh              # double-ace / single-ace / water stats for every hole
+Tools/solve.sh moat         # one hole
+Tools/solve.sh --verify     # stored solutions still double-ace; tees clear; 9 holes per course; unique names
+Tools/solve.sh --report --course thunderhead   # one line per hole: difficulty, window, par check, mechanics
 Tools/solve.sh --readme     # the course tables below, as markdown
 Tools/solve.sh twins --probe 90         # outcome at every power for one angle
-Tools/solve.sh --timing                 # mover pairs: how exact the putt's timing must be
+Tools/solve.sh --timing                 # mover holes: how exact the putt's timing must be
 LEVELS=Tools/levels/draft.swift Tools/solve.sh --drafts   # a scratch file defining `Levels.drafts`
 ```
 

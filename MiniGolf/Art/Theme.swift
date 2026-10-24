@@ -1,6 +1,6 @@
 import UIKit
 
-/// Visual setting for a hole pair. Everything is drawn in code from these values.
+/// Visual setting for a hole. Everything is drawn in code from these values.
 struct Theme {
     enum Border { case wood, stone, painted, chainLink, ties }
     enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust, confetti, sparks, mist }
@@ -279,9 +279,9 @@ struct Theme {
 }
 
 enum Palette {
-    static let holeA = UIColor(hex: 0xFF8A3D)
-    static let holeB = UIColor(hex: 0x8F6BFF)
-    static func hole(_ i: Int) -> UIColor { i == 0 ? holeA : holeB }
+    static let sideA = UIColor(hex: 0xFF8A3D)
+    static let sideB = UIColor(hex: 0x8F6BFF)
+    static func side(_ i: Int) -> UIColor { i == 0 ? sideA : sideB }
     static let ink = UIColor(hex: 0x10231A)
 }
 

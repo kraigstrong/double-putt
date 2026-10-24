@@ -617,7 +617,7 @@ struct World {
     }
 
     /// The downhill pull at `p` when it's too strong for `surface` to hold a resting ball, after anything a wall the
-    /// ball is leaning on takes up; nil when the ground holds it. Only contours can be that steep, so pairs without
+    /// ball is leaning on takes up; nil when the ground holds it. Only contours can be that steep, so holes without
     /// them never ask (and simulate exactly as before).
     func tooSteep(at p: Vec, on surface: Surface, leaning wall: Vec?) -> Vec? {
         guard !terrain.isEmpty else { return nil }

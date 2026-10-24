@@ -1,6 +1,6 @@
 import Foundation
 
-/// Course space: 400 x 800, y up. Hole A is x 0...200, hole B is x 200...400.
+/// Course space: 400 x 800, y up. Side A is x 0...200, side B is x 200...400.
 enum Course {
     static let width = 400.0
     static let height = 800.0
@@ -17,7 +17,7 @@ enum Side: Int {
 struct Shot: Equatable {
     var angle: Double   // degrees, 0 = right, 90 = up
     var power: Double   // 0...1
-    var mirrored = false  // hole B's ball gets the shot flipped left-to-right
+    var mirrored = false  // side B's ball gets the shot flipped left-to-right
 
     var velocity: Vec { .shot(degrees: angle, speed: power * Tuning.maxShotSpeed) }
 }
@@ -58,14 +58,14 @@ struct Level {
     var terrain = Terrain()
     /// Painted surfaces (green, fringe, rough, sand, water) in order; none means green felt throughout. See Surfaces.swift.
     var patches: [Patch] = []
-    /// Bandon, a cream long-haired dachshund, naps beside this pair (outside the play area, on a few Links holes).
+    /// Bandon, a cream long-haired dachshund, naps beside this hole (outside the play area, on a few Links holes).
     var bandon = false
     /// Grandstands (the Stadium): solid blocks the ball banks off like any wall.
     var stands: [Stand] = []
     var movers: [Mover] = []
     /// A known double ace, found by Tools/solver.
     var solution: Shot?
-    /// Where the movers' clock must be when `solution` is struck (the clock starts at 0 when the pair loads).
+    /// Where the movers' clock must be when `solution` is struck (the clock starts at 0 when the hole loads).
     var solutionTime = 0.0
 
     init(_ name: String, par: [Int], hint: String) {
@@ -91,7 +91,7 @@ struct Level {
         return rails + outlines.flatMap { c in (0..<4).map { Wall(a: c[$0], b: c[($0 + 1) % 4], radius: Course.blockRadius) } }
     }
 
-    // MARK: Builders (x/y are local to the side's hole)
+    // MARK: Builders (x/y are local to the side)
 
     /// Outer fence plus the shared middle wall. `gaps` are y-ranges where the middle wall is open.
     mutating func frame(gaps: [ClosedRange<Double>] = []) {
@@ -135,7 +135,7 @@ struct Level {
         water.append(Box(minX + s.offset, minY, maxX + s.offset, maxY))
     }
 
-    /// A pipe between two mouths (each on either hole). A ball rolling over one mouth pops out of the other.
+    /// A pipe between two mouths (each on either side). A ball rolling over one mouth pops out of the other.
     /// `exitA` / `exitB`: direction in degrees a ball leaves that mouth; nil keeps its incoming direction.
     mutating func tunnel(_ sa: Side, _ ax: Double, _ ay: Double, _ sb: Side, _ bx: Double, _ by: Double,
                          exitA: Double? = nil, exitB: Double? = nil) {
@@ -165,7 +165,7 @@ struct Level {
         mounds.append(Mound(center: Vec(x + s.offset, y), radius: radius, strength: -min(strength, 200)))
     }
 
-    /// A windmill-style spinner. rpm > 0 spins counter-clockwise; blades are at `phase` degrees when the pair loads.
+    /// A windmill-style spinner. rpm > 0 spins counter-clockwise; blades are at `phase` degrees when the hole loads.
     mutating func rotor(_ s: Side, _ x: Double, _ y: Double, blades: Int = 2, length: Double, rpm: Double, phase: Double = 0) {
         movers.append(Mover(kind: .rotor(pivot: Vec(x + s.offset, y), blades: blades, length: length,
                                          omega: rpm * 2 * .pi / 60, phase: phase * .pi / 180)))
@@ -179,14 +179,14 @@ struct Level {
 
     /// A round robot, a moving bumper `radius` across, driving a closed loop through `points` once every `period`
     /// seconds: a smooth curve through three or more points, or with two, straight there and back. It starts at the
-    /// first point when the pair loads. Points are local to the side, or course coordinates with nil.
+    /// first point when the hole loads. Points are local to the side, or course coordinates with nil.
     mutating func robot(_ s: Side?, _ points: [(Double, Double)], period: Double, radius: Double = 13) {
         let pts = points.map { Vec($0.0 + (s?.offset ?? 0), $0.1) }
         movers.append(Mover(kind: .robot(loop: Loop(through: pts), period: period), radius: radius))
     }
 
     /// A force field from (x1, y1) to (x2, y2): a wall while it's lit, open while it's dark. It's lit for `on`
-    /// seconds of every `period`, starting `start` seconds after the pair loads (and again every period).
+    /// seconds of every `period`, starting `start` seconds after the hole loads (and again every period).
     mutating func field(_ s: Side?, _ x1: Double, _ y1: Double, _ x2: Double, _ y2: Double,
                         period: Double, on: Double, start: Double = 0) {
         let o = s?.offset ?? 0
@@ -194,7 +194,7 @@ struct Level {
                             radius: 3))
     }
 
-    /// A block that slides by (dx, dy) and back every `period` seconds, starting from this rect when the pair loads.
+    /// A block that slides by (dx, dy) and back every `period` seconds, starting from this rect when the hole loads.
     mutating func slider(_ s: Side, _ minX: Double, _ minY: Double, _ maxX: Double, _ maxY: Double,
                          dx: Double, dy: Double, period: Double) {
         movers.append(Mover(kind: .slider(box: Box(minX + s.offset, minY, maxX + s.offset, maxY),
@@ -202,18 +202,18 @@ struct Level {
     }
 }
 
-/// A nine-pair course: played as a round, one cabinet on the trophy shelf, one section in Free Play.
+/// A nine-hole course: played as a round, one cabinet on the trophy shelf, one section in Free Play.
 struct Nine: Identifiable, Equatable {
     let id: String
     let name: String
-    /// Indices into the pairs being played (`Levels.playable.course`, or `Levels.course` for the solver).
-    let pairs: Range<Int>
+    /// Indices into the holes being played (`Levels.playable.course`, or `Levels.course` for the solver).
+    let holes: Range<Int>
 }
 
 enum Levels {
-    /// The courses, in order (each later one a little harder). To add one, write its nine pairs in
+    /// The courses, in order (each later one a little harder). To add one, write its nine holes in
     /// `Course/<Name>.swift` and add a line here; see Tools/levels/BRIEF.md.
-    private static let lineup: [(id: String, name: String, pairs: [Level])] = [
+    private static let lineup: [(id: String, name: String, holes: [Level])] = [
         ("daybreak", "Daybreak", [
             twins(), reflection(), bankShot(),       // Spring Meadow
             backboard(), hedgerow(),                 // Walled Garden
@@ -269,8 +269,8 @@ enum Levels {
         ]),
     ]
 
-    /// The course content's revision, sent with analytics so counts never mix two versions of a pair. Bump it
-    /// whenever any pair's layout, par or order changes.
+    /// The course content's revision, sent with analytics so counts never mix two versions of a hole. Bump it
+    /// whenever any hole's layout, par or order changes.
     static let revision = "2026-10-19.1"
 
     /// Display names of the visual settings (`Level.setting`).
@@ -281,8 +281,8 @@ enum Levels {
         "muni": "City Muni", "stadium": "Stadium Course", "starbase": "Starbase",
     ]
 
-    /// Every pair, in course order.
-    static let course: [Level] = lineup.flatMap(\.pairs)
+    /// Every hole, in course order.
+    static let course: [Level] = lineup.flatMap(\.holes)
 
     static let nines: [Nine] = ninesOf(lineup)
 
@@ -290,7 +290,7 @@ enum Levels {
     /// builds play them: TestFlight and App Store builds leave them out.
     static let inDevelopment: Set<String> = ["muni"]
 
-    /// The pairs and nines a player gets: the whole lineup in Debug builds, and without the courses still in
+    /// The holes and nines a player gets: the whole lineup in Debug builds, and without the courses still in
     /// development otherwise. (`course` and `nines` are always the whole lineup, for the solver.)
     static let playable: (course: [Level], nines: [Nine]) = {
         #if DEBUG
@@ -298,19 +298,19 @@ enum Levels {
         #else
         let shown = lineup.filter { !inDevelopment.contains($0.id) }
         #endif
-        return (shown.flatMap(\.pairs), ninesOf(shown))
+        return (shown.flatMap(\.holes), ninesOf(shown))
     }()
 
-    private static func ninesOf(_ courses: [(id: String, name: String, pairs: [Level])]) -> [Nine] {
+    private static func ninesOf(_ courses: [(id: String, name: String, holes: [Level])]) -> [Nine] {
         var start = 0
         return courses.map { c in
-            defer { start += c.pairs.count }
-            return Nine(id: c.id, name: c.name, pairs: start..<start + c.pairs.count)
+            defer { start += c.holes.count }
+            return Nine(id: c.id, name: c.name, holes: start..<start + c.holes.count)
         }
     }
 
     static func twins() -> Level {
-        var l = Level("Twins", par: [2, 2], hint: "Same hole twice. Warm up.")
+        var l = Level("Twins", par: [2, 2], hint: "Same green twice. Warm up.")
         l.setting = "meadow"
         l.frame()
         l.tee(.a, 100, 110); l.tee(.b, 100, 110)
@@ -320,7 +320,7 @@ enum Levels {
     }
 
     static func reflection() -> Level {
-        var l = Level("Reflection", par: [2, 2], hint: "Mirror-image holes. Try Mirror.")
+        var l = Level("Reflection", par: [2, 2], hint: "Mirror-image greens. Try Mirror.")
         l.setting = "meadow"
         l.frame()
         l.tee(.a, 50, 110); l.tee(.b, 150, 110)
@@ -389,7 +389,7 @@ enum Levels {
     }
 
     static func carom() -> Level {
-        var l = Level("Carom", par: [2, 2], hint: "The holes share a green. Balls can hit each other.")
+        var l = Level("Carom", par: [2, 2], hint: "Both balls share one green. They can hit each other.")
         l.setting = "autumn"
         l.frame()
         l.rails.removeLast()

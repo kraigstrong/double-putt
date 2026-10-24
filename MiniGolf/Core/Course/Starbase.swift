@@ -2,13 +2,13 @@ import Foundation
 
 // Starbase (course 10): a space station deck, and the last course. Back to mechanical mini golf after the putting
 // courses: patrol robots (moving bumpers on a loop) and force fields (walls while lit, open while dark), with
-// teleporter pads, gravity wells, conveyors, boost pads, machinery and open hatches to space. The pairs run in order
+// teleporter pads, gravity wells, conveyors, boost pads, machinery and open hatches to space. The holes run in order
 // of their double-ace odds, with Mothership as the finale. Designed with Tools/solver against Tools/levels/BRIEF.md.
 extension Levels {
-    /// Pair 1. The warm-up. A cargo drone crosses A's bay slowly, back and forth, just short of the cup, so A's putt
+    /// Hole 1. The warm-up. A cargo drone crosses A's bay slowly, back and forth, just short of the cup, so A's putt
     /// is straight at the cup but has to cross the drone's line while it's clear: ahead of it or behind it. B's cup is
     /// nearly straight up from its tee, which matches nothing in A; but bank up-right off the machinery block and B's
-    /// ball comes back up-left into the cup, the mirror of A's line. Mirror. When the pair loads the drone is heading
+    /// ball comes back up-left into the cup, the mirror of A's line. Mirror. When the hole loads the drone is heading
     /// for A's line and takes the softer putts (0.058% without it, 0.030% with it); it blocks A's line for about a
     /// second of every four.
     static func dockingBay() -> Level {
@@ -28,7 +28,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. The force field. B's cup hides behind a bulkhead, under the airlock door, a force field across the gap
+    /// Hole 2. The force field. B's cup hides behind a bulkhead, under the airlock door, a force field across the gap
     /// between a bulkhead and the fence, with an open hatch to space beyond it. The only way in is up past the
     /// bulkhead and off the door, which works only while it's lit: while it's dark the ball sails out into space. A's
     /// long putt runs through a hatchway in a bulkhead to a cup near the far wall, on the same line as B's: Same, firm
@@ -54,10 +54,10 @@ extension Levels {
         return l
     }
 
-    /// Pair 3. Robots on loops. A machinery pillar hides A's cup from the tee, and a robot circles it: A's ball banks
-    /// off the wall between the holes, past the pillar's right side, while the robot is round the far side. B's cup
+    /// Hole 3. Robots on loops. A machinery pillar hides A's cup from the tee, and a robot circles it: A's ball banks
+    /// off the middle wall, past the pillar's right side, while the robot is round the far side. B's cup
     /// sits off-centre inside the ring a guard robot drives round it, every three seconds; B's ball banks off the
-    /// left fence and slips into the ring ahead of the guard. A goes up-right and B up-left: Mirror. When the pair
+    /// left fence and slips into the ring ahead of the guard. A goes up-right and B up-left: Mirror. When the hole
     /// loads the guard cuts the double ace from 0.056% to 0.022%; A's robot is clear of A's line then, but blocks it
     /// for over two seconds of every six, and keeps a full-power bank off the far wall shut.
     static func patrolRoute() -> Level {
@@ -80,7 +80,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 4. A's cup is sealed in the bay behind a bulkhead, and the only way in is the teleporter pad, behind a door
+    /// Hole 4. A's cup is sealed in the bay behind a bulkhead, and the only way in is the teleporter pad, behind a door
     /// a force field shuts for most of every two seconds. The pad in the bay fires the ball straight up at the cup, so
     /// A only has to reach the pad while the field is dark, at a pace the cup will take. B banks off the middle wall
     /// round a machinery block. Both go up-left: Same.
@@ -107,9 +107,9 @@ extension Levels {
         return l
     }
 
-    /// Pair 5. A's ball goes through a hatch in the bulkhead and up a conveyor belt that runs back toward the tee, so
+    /// Hole 5. A's ball goes through a hatch in the bulkhead and up a conveyor belt that runs back toward the tee, so
     /// only a firm putt climbs it; the firmest run past the cup, come back off the back wall and drop. B's belt runs
-    /// with the ball, up to a force field across the gap in B's bulkhead: it's lit as the pair starts and goes dark a
+    /// with the ball, up to a force field across the gap in B's bulkhead: it's lit as the hole starts and goes dark a
     /// moment later, so a putt that firm reaches it too soon and bounces back. Mirror: A a touch right of straight up,
     /// B a touch left, firm enough for A's belt and just late enough for B's field. Take the field away and the double
     /// ace is twice as common.
@@ -135,7 +135,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. Short vs long, both soft. B's tee sits high on a ledge above the machinery, and its cup sits in a gravity
+    /// Hole 6. Short vs long, both soft. B's tee sits high on a ledge above the machinery, and its cup sits in a gravity
     /// well that only catches a slow ball: putt just hard enough to creep through the door and the well pulls it in,
     /// if the robot driving across in front of it isn't in the way. A's boost pad fires anything that reaches it up to
     /// the cup, so A just has to find it through a narrow door. A goes up-right and B up-left: Mirror.
@@ -164,7 +164,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A's reactor core spins in the middle of the deck, ringed by four repulsors, with the cup beyond it and a
+    /// Hole 7. A's reactor core spins in the middle of the deck, ringed by four repulsors, with the cup beyond it and a
     /// machinery shelf closing the way round its left side: the ball goes up its right side, between the blades, and
     /// the repulsors steer it back toward the cup. B's cup hides behind machinery, and the only way in is a bank off
     /// the force field across the gap in the left-hand bulkhead, over an open hatch; it lights just after the putt, so
@@ -198,7 +198,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 8. A's ball runs a straight line through three doors, each shut by a force field on its own beat: lit for
+    /// Hole 8. A's ball runs a straight line through three doors, each shut by a force field on its own beat: lit for
     /// one second in two, each a little later than the one below, so only a putt struck as the wave of dark doors
     /// starts gets through all three. B's cup sits just above a machinery block that hides it from the tee: its ball
     /// has to bank down off the field across the top while it's lit, or it sails on into the open hatch. Mirror.
@@ -229,7 +229,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9. The finale. A's teleporter waits in a bay behind a narrow door; it lifts the ball through the hangar
+    /// Hole 9. The finale. A's teleporter waits in a bay behind a narrow door; it lifts the ball through the hangar
     /// bulkhead to the bridge, where a belt runs back against it and a patrol robot crosses its way to the cup, so only
     /// a few putts are both firm enough and on time. B is a short putt: machinery hides its cup, and the only way in is
     /// a bank off the force field across a gap in the ceiling, over an open airlock. Same, a touch left of straight up,

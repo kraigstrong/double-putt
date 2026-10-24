@@ -1,13 +1,13 @@
 import Foundation
 
 // Brute-force every first swing (angle x power x same/mirror) for each level and report what happens.
-// Usage: Tools/solve.sh [pair name filter] [--course <name>] [--fine] [--candidates] [--drafts]
+// Usage: Tools/solve.sh [hole name filter] [--course <name>] [--fine] [--candidates] [--drafts]
 //        [--report | --readme | --verify | --timing | --probe <angle>]
-//   (default)  full stats per pair: double-ace %, regions, per-hole ace % and a suggested par, the most robust ace
-//   --report   one line per pair (difficulty, window, par check, mechanics) plus a summary per course
+//   (default)  full stats per hole: double-ace %, regions, per-side ace % and a suggested par, the most robust ace
+//   --report   one line per hole (difficulty, window, par check, mechanics) plus a summary per course
 //   --readme   the README's course tables, as markdown
-//   --verify   every stored solution still double-aces; tees clear of movers; nine pairs per course; unique names
-//   --timing   mover pairs: how exact the putt's timing has to be
+//   --verify   every stored solution still double-aces; tees clear of movers; nine holes per course; unique names
+//   --timing   mover holes: how exact the putt's timing has to be
 // Movers never stop, so every search strikes at the movers' start pose (clock 0) unless noted.
 //        LEVELS=Tools/levels/x.swift Tools/solve.sh --drafts   (levels in a scratch file's `Levels.drafts`)
 
@@ -52,7 +52,7 @@ func parallel(_ n: Int, _ body: (Int) -> Void) {
     }
 }
 
-/// Grid of results, bit 0 = A sank, bit 1 = B sank, bit 2 = balls touched, bit 3 = a ball used the other hole's cup.
+/// Grid of results, bit 0 = A sank, bit 1 = B sank, bit 2 = balls touched, bit 3 = a ball used the other side's cup.
 /// Also returns how many shots found water.
 func solve(_ level: Level, mirrored: Bool) -> (grid: [UInt8], splashes: Int) {
     let world = World(level: level)
@@ -142,7 +142,7 @@ func aimOff(_ l: Level) -> [Double?]? {
     }
 }
 
-/// The mechanics a pair uses, for reports and the README.
+/// The mechanics a hole uses, for reports and the README.
 func mechanics(_ l: Level) -> String {
     var m: [String] = []
     if !l.water.isEmpty { m.append("water") }
@@ -176,10 +176,10 @@ let levels = args.contains("--drafts") ? drafts
     : args.contains("--candidates") ? Candidates.all
     : Levels.course
 
-/// The course a pair belongs to (nil for drafts and candidates).
-func course(of index: Int) -> Nine? { shipped ? Levels.nines.first { $0.pairs.contains(index) } : nil }
+/// The course a hole belongs to (nil for drafts and candidates).
+func course(of index: Int) -> Nine? { shipped ? Levels.nines.first { $0.holes.contains(index) } : nil }
 
-/// The pairs chosen by the name filter and --course, with their index in `levels`.
+/// The holes chosen by the name filter and --course, with their index in `levels`.
 let picked: [(index: Int, level: Level)] = levels.enumerated().compactMap { i, level in
     if let filter, !level.name.lowercased().contains(filter) { return nil }
     if let courseFilter {
@@ -227,12 +227,12 @@ if args.contains("--verify") {
               + (roomy ? "" : String(format: "  ✗ a green comes within %.0f of a wall (needs %.0f)", level.greenClearance, Level.greenMargin))
               + (teesHold ? "" : "  ✗ a tee is on a bank too steep to hold a ball"))
     }
-    // Bests and trophies are saved by pair name, and a round is nine pairs.
+    // Bests and trophies are saved by hole name, and a round is nine holes.
     if shipped && filter == nil && courseFilter == nil {
         let names = Dictionary(grouping: Levels.course, by: \.name).filter { $0.value.count > 1 }.keys.sorted()
-        for name in names { print("✗ more than one pair is called \(name)"); failed = true }
-        for nine in Levels.nines where nine.pairs.count != 9 {
-            print("✗ \(nine.name) has \(nine.pairs.count) pairs, not 9"); failed = true
+        for name in names { print("✗ more than one hole is called \(name)"); failed = true }
+        for nine in Levels.nines where nine.holes.count != 9 {
+            print("✗ \(nine.name) has \(nine.holes.count) holes, not 9"); failed = true
         }
     }
     exit(failed ? 1 : 0)
@@ -241,15 +241,15 @@ if args.contains("--verify") {
 // --readme: the README's course tables.
 if args.contains("--readme") {
     for nine in shipped ? Levels.nines : [] {
-        let pairs = picked.filter { nine.pairs.contains($0.index) }
-        guard !pairs.isEmpty else { continue }
-        let par = nine.pairs.reduce(0) { $0 + Levels.course[$1].par.reduce(0, +) }
+        let holes = picked.filter { nine.holes.contains($0.index) }
+        guard !holes.isEmpty else { continue }
+        let par = nine.holes.reduce(0) { $0 + Levels.course[$1].par.reduce(0, +) }
         print("### \(nine.name) (par \(par))\n")
-        print("| # | Pair | Setting | Par | Double ace needs | Mechanics |")
+        print("| # | Hole | Setting | Par | Double ace needs | Mechanics |")
         print("| --- | --- | --- | --- | --- | --- |")
-        for (i, l) in pairs {
+        for (i, l) in holes {
             let needs = l.solution.map { $0.mirrored ? "Mirror" : "Same" } ?? "—"
-            print("| \(i - nine.pairs.lowerBound + 1) | \(l.name) | \(Levels.settingNames[l.setting] ?? l.setting) | "
+            print("| \(i - nine.holes.lowerBound + 1) | \(l.name) | \(Levels.settingNames[l.setting] ?? l.setting) | "
                   + "\(l.par.reduce(0, +)) | \(needs) | \(mechanics(l)) |")
         }
         print("")
@@ -257,7 +257,7 @@ if args.contains("--readme") {
     exit(0)
 }
 
-// --timing: for pairs with movers, how forgiving the putt's timing is. For the stored solution, the window of
+// --timing: for holes with movers, how forgiving the putt's timing is. For the stored solution, the window of
 // strike times around its clock time that still double-ace; then across the whole mover cycle (coarse grid),
 // how often some double ace exists and the double ace with the widest timing window.
 if args.contains("--timing") {
@@ -307,26 +307,26 @@ if args.contains("--timing") {
     exit(0)
 }
 
-// --report: one line per pair, then a summary per course. "Double ace" is the share of all first swings that
+// --report: one line per hole, then a summary per course. "Double ace" is the share of all first swings that
 // double-ace in the better of Same / Mirror; "window" is the most forgiving ace's angle x power window.
 if args.contains("--report") {
     func pad(_ s: String, _ n: Int) -> String { s.count >= n ? s : s + String(repeating: " ", count: n - s.count) }
-    print(pad("#", 4) + pad("Course", 13) + pad("Pair", 18) + pad("Par", 6) + pad("Sugg", 6) + pad("Dbl ace", 9)
+    print(pad("#", 4) + pad("Course", 13) + pad("Hole", 18) + pad("Par", 6) + pad("Sugg", 6) + pad("Dbl ace", 9)
           + pad("Needs", 8) + pad("Window", 13) + pad("Aim off", 10) + pad("Ace A/B %", 12) + pad("Water", 7) + pad("Timing", 9)
           + "Mechanics")
     var summary: [(course: String, par: Int, aces: [Double])] = []
     for (i, level) in picked {
         var best: Best?
         var both = [0, 0]
-        var holeAce = [0.0, 0.0]
+        var sideAce = [0.0, 0.0]
         var water = 0.0
         for (m, mirrored) in [false, true].enumerated() {
             let (grid, splashes) = solve(level, mirrored: mirrored)
             let total = Double(grid.count)
             func count(_ v: UInt8) -> Int { grid.reduce(0) { $0 + ($1 & 3 == v ? 1 : 0) } }
             both[m] = count(3)
-            holeAce[0] = max(holeAce[0], Double(count(1) + count(3)) / total * 100)
-            holeAce[1] = max(holeAce[1], Double(count(2) + count(3)) / total * 100)
+            sideAce[0] = max(sideAce[0], Double(count(1) + count(3)) / total * 100)
+            sideAce[1] = max(sideAce[1], Double(count(2) + count(3)) / total * 100)
             water = max(water, Double(splashes) / total * 100)
             best = mostRobust(grid, mirrored: mirrored, beating: best)
         }
@@ -340,10 +340,10 @@ if args.contains("--report") {
         }
         let off = aimOff(level).map { $0.map { $0.map { String(format: "%.0f", $0) } ?? "?" }.joined(separator: "/") + "°" } ?? "—"
         let c = course(of: i)
-        let n = c.map { i - $0.pairs.lowerBound + 1 } ?? i + 1
+        let n = c.map { i - $0.holes.lowerBound + 1 } ?? i + 1
         print(pad("\(n)", 4) + pad(c?.name ?? "draft", 13) + pad(level.name, 18) + pad("\(level.par[0])/\(level.par[1])", 6)
-              + pad("\(holeAce[0] >= 0.25 ? 2 : 3)/\(holeAce[1] >= 0.25 ? 2 : 3)", 6) + pad(String(format: "%.3f%%", ace), 9)
-              + pad(needs, 8) + pad(window, 13) + pad(off, 10) + pad(String(format: "%.2f/%.2f", holeAce[0], holeAce[1]), 12)
+              + pad("\(sideAce[0] >= 0.25 ? 2 : 3)/\(sideAce[1] >= 0.25 ? 2 : 3)", 6) + pad(String(format: "%.3f%%", ace), 9)
+              + pad(needs, 8) + pad(window, 13) + pad(off, 10) + pad(String(format: "%.2f/%.2f", sideAce[0], sideAce[1]), 12)
               + pad(String(format: "%.0f%%", water), 7) + pad(timing, 9) + mechanics(level))
         let name = c?.name ?? "draft"
         if summary.last?.course == name {
@@ -356,7 +356,7 @@ if args.contains("--report") {
     print("")
     for s in summary {
         let ramp = s.aces.map { String(format: "%.3f", $0) }.joined(separator: " → ")
-        print("\(s.course): par \(s.par) over \(s.aces.count) pairs · double ace % by pair: \(ramp)")
+        print("\(s.course): par \(s.par) over \(s.aces.count) holes · double ace % by hole: \(ramp)")
     }
     exit(0)
 }
@@ -364,7 +364,7 @@ if args.contains("--report") {
 for (index, level) in picked {
     print("[\(index + 1)] \(level.name)  (\(level.setting), par \(level.par[0])/\(level.par[1]))")
     var best: Best?
-    var holeAce = [0.0, 0.0]
+    var sideAce = [0.0, 0.0]
 
     for mirrored in [false, true] {
         let start = Date()
@@ -374,8 +374,8 @@ for (index, level) in picked {
         let caroms = grid.reduce(0) { $0 + ($1 & 3 == 3 && $1 & 4 != 0 ? 1 : 0) }
         let swaps = grid.reduce(0) { $0 + ($1 & 3 == 3 && $1 & 8 != 0 ? 1 : 0) }
         let tunnelAces = grid.reduce(0) { $0 + ($1 & 3 == 3 && $1 & 16 != 0 ? 1 : 0) }
-        holeAce[0] = max(holeAce[0], Double(count(1) + count(3)) / Double(total) * 100)
-        holeAce[1] = max(holeAce[1], Double(count(2) + count(3)) / Double(total) * 100)
+        sideAce[0] = max(sideAce[0], Double(count(1) + count(3)) / Double(total) * 100)
+        sideAce[1] = max(sideAce[1], Double(count(2) + count(3)) / Double(total) * 100)
         func pct(_ n: Int) -> String { String(format: "%.3f%%", Double(n) / Double(total) * 100) }
         let both = count(3)
         print("  \(mirrored ? "MIRROR" : "SAME  ")  double ace \(pct(both)) (\(both))   A only \(pct(count(1)))   B only \(pct(count(2)))   water \(pct(splashes))   ball-hit aces \(caroms)   swapped-cup aces \(swaps)   tunnel aces \(tunnelAces)   [\(String(format: "%.1fs", Date().timeIntervalSince(start)))]")
@@ -394,9 +394,9 @@ for (index, level) in picked {
         best = mostRobust(grid, mirrored: mirrored, beating: best)
     }
 
-    // Rough par guide: a hole you can ace from the tee fairly often is a par 2.
-    print(String(format: "  hole A ace %.2f%% → suggested par %d    hole B ace %.2f%% → suggested par %d",
-                 holeAce[0], holeAce[0] >= 0.25 ? 2 : 3, holeAce[1], holeAce[1] >= 0.25 ? 2 : 3))
+    // Rough par guide: a side you can ace from the tee fairly often is a par 2.
+    print(String(format: "  side A ace %.2f%% → suggested par %d    side B ace %.2f%% → suggested par %d",
+                 sideAce[0], sideAce[0] >= 0.25 ? 2 : 3, sideAce[1], sideAce[1] >= 0.25 ? 2 : 3))
     if let b = best {
         print(String(format: "  best: window %.2f° x %.0f%% power (neighbourhood %d/81)", b.angleWindow, b.powerWindow * 100, b.score))
         print(String(format: "  level.solution = Shot(angle: %.2f, power: %.3f, mirrored: %@)",

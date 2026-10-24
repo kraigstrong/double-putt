@@ -116,7 +116,7 @@ extension Painter {
     }
 
     /// Water as an open hatch to space: black, full of stars, with a glowing rim and hazard-striped edge. `hidden`
-    /// adds a pair's hidden stars (`CourseArt.hiddenStars`) to those that fall in this hatch.
+    /// adds a hole's hidden stars (`CourseArt.hiddenStars`) to those that fall in this hatch.
     func voidPond(_ water: CourseArt.Pond, _ t: Theme, _ rng: inout SeededRandom, hidden: [CourseArt.Star] = []) {
         let pond = water.path, b = water.bounds
         stroke(pond.copy(dashingWithPhase: 0, lengths: [5, 5]), Neon.amber, 5)
@@ -283,9 +283,9 @@ extension CourseArt {
         ]),
     ]
 
-    /// A pair's hidden stars: spaced about evenly along its pattern's strokes, each nudged a little off its line, and
-    /// as varied in size and brightness as the rest. None on a pair without a pattern. They draw on their own random
-    /// numbers, so the rest of the pair's art stays as it was.
+    /// A hole's hidden stars: spaced about evenly along its pattern's strokes, each nudged a little off its line, and
+    /// as varied in size and brightness as the rest. None on a hole without a pattern. They draw on their own random
+    /// numbers, so the rest of the hole's art stays as it was.
     static func hiddenStars(_ level: Level) -> [Star] {
         guard let pattern = starPatterns[level.name] else { return [] }
         var rng = SeededRandom(seed: stableSeed(level.name) &+ 1)

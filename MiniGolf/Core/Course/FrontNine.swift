@@ -1,7 +1,7 @@
-// Front nine additions: pairs 5, 7, 9 (designed with Tools/solver).
+// Front nine additions: holes 5, 7, 9 (designed with Tools/solver).
 extension Levels {
 
-    /// Pair 5. Each hole has one hedgerow with a gap at one end: A's low on the left, B's high on the right.
+    /// Hole 5. Each side has one hedgerow with a gap at one end: A's low on the left, B's high on the right.
     /// Straight shots are hedged off, so both balls bank off a side fence: A's off the left, B's off the right,
     /// which makes it a Mirror swing even though the tees and cups don't mirror. B's hedge clips the top of
     /// A's bank window, so the angle has to thread both gaps. Angled hedges behind the cups catch firm putts.
@@ -19,7 +19,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A is a long putt over the moat to a cup under a tower wall. B's cup sits in front of the castle
+    /// Hole 7. A is a long putt over the moat to a cup under a tower wall. B's cup sits in front of the castle
     /// gate, which a drawbridge block keeps sliding open and shut. A needs more pace than B can take, so B's ball
     /// must reach the gate while it is shut and bounce back into the cup: putt while the gate is open and the
     /// ball arrives as it closes. Too soft and A falls short; too firm (the "A has a backboard, just hit it"
@@ -39,7 +39,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9. Identical tees; A's dune slopes right, B's slopes left. The cups are not mirror images
+    /// Hole 9. Identical tees; A's dune slopes right, B's slopes left. The cups are not mirror images
     /// (A's well right, B's just right of centre), so Mirror can't work: swing Same, aim a little right of
     /// both, and let the dunes split the balls — A's carried further right, B's pulled back left. Softer
     /// putts curve more, so angle and pace have to agree.

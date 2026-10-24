@@ -48,7 +48,7 @@ struct TitleView: View {
                     VStack(spacing: 12) {
                         let continuing = game.round.map { !$0.isFinished } ?? false
                         if continuing, let round = game.round, let nine = game.roundNine {
-                            PillButton(title: "Continue \(nine.name) · Pair \(round.current + 1)", symbol: "play.fill", fill: .putt) {
+                            PillButton(title: "Continue \(nine.name) · Hole \(round.current + 1)", symbol: "play.fill", fill: .putt) {
                                 app.continueRound()
                             }
                         }
@@ -105,7 +105,7 @@ struct TitleView: View {
                     .padding(.top, -26)
             }
             .shadow(color: Color.ink.opacity(0.6), radius: 0, x: 0, y: 5)
-            Text("One swing. Two holes.")
+            Text("One swing. Two greens.")
                 .font(.rounded(17, .semibold))
                 .foregroundStyle(.white.opacity(0.85))
                 .shadow(color: Color.ink.opacity(0.7), radius: 3, y: 1)
