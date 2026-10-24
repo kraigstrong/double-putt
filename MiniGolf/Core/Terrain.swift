@@ -15,7 +15,7 @@ struct Terrain {
             case mound(center: Vec, radius: Double, amplitude: Double)
         }
         var kind: Kind
-        /// Where the feature applies (usually its hole), so one hole's lean never leaks into the other.
+        /// Where the feature applies (usually its side), so one side's lean never leaks into the other.
         var area: Box
     }
 
@@ -74,21 +74,21 @@ struct Terrain {
 // MARK: - Builders
 
 extension Level {
-    // Contours take a hole (`.a` / `.b`, x local to it, staying in it) or nil for the whole course (x 0–400), e.g.
-    // on one green shared by both holes.
+    // Contours take a side (`.a` / `.b`, x local to it, staying in it) or nil for the whole course (x 0–400), e.g.
+    // on one green shared by both sides.
 
-    /// The whole hole leans toward `downhill` degrees (0 = right, 90 = up), pulling at `strength` units/s².
+    /// The whole side leans toward `downhill` degrees (0 = right, 90 = up), pulling at `strength` units/s².
     mutating func tilt(_ s: Side?, downhill: Double, strength: Double) {
         terrain.features.append(.init(kind: .tilt(.shot(degrees: downhill, speed: min(strength, Terrain.maxPull))),
-                                      area: Self.holeArea(s)))
+                                      area: Self.sideArea(s)))
     }
 
-    /// A bank across the hole through (x, y), falling toward `downhill` degrees: a step up to a higher tier.
+    /// A bank across the side through (x, y), falling toward `downhill` degrees: a step up to a higher tier.
     /// It pulls hardest (`strength`) on the line and fades out `width` either side.
     mutating func tier(_ s: Side?, _ x: Double, _ y: Double, downhill: Double, strength: Double, width: Double = 40) {
         terrain.features.append(.init(kind: .tier(origin: Vec(x + (s?.offset ?? 0), y), normal: .shot(degrees: downhill, speed: 1),
                                                   strength: min(strength, Terrain.maxPull), width: width),
-                                      area: Self.holeArea(s)))
+                                      area: Self.sideArea(s)))
     }
 
     /// A rounded hump that sheds balls outward, pulling hardest (`strength`) a little over halfway out and flat
@@ -106,10 +106,10 @@ extension Level {
         let pull = max(-Terrain.maxPull, min(strength, Terrain.maxPull))
         terrain.features.append(.init(kind: .mound(center: Vec(x + (s?.offset ?? 0), y), radius: radius,
                                                    amplitude: pull * radius / Terrain.moundPeak),
-                                      area: Self.holeArea(s)))
+                                      area: Self.sideArea(s)))
     }
 
-    private static func holeArea(_ s: Side?) -> Box {
+    private static func sideArea(_ s: Side?) -> Box {
         guard let s else { return Box(0, 0, Course.width, Course.height) }
         return Box(s.offset, 0, s.offset + Course.half, Course.height)
     }
@@ -121,7 +121,7 @@ extension Level {
     /// Whether anything tilts this pair's green.
     var hasGround: Bool { !slopes.isEmpty || !mounds.isEmpty || !terrain.isEmpty }
 
-    /// Whether `p` sits on sloped green or fringe: in a slope box, a mound, or a hole with terrain.
+    /// Whether `p` sits on sloped green or fringe: in a slope box, a mound, or a side with terrain.
     func isSloped(at p: Vec) -> Bool {
         guard patches.isEmpty || surface(at: p).isTurf else { return false }
         return slopes.contains { $0.box.contains(p) }

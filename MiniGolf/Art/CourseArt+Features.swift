@@ -9,7 +9,7 @@ enum TunnelColors {
 extension Painter {
     // MARK: Terrain
 
-    /// Sloped ground: a grid tinted by height, from blue at the low end of each hole to red at the high end. The
+    /// Sloped ground: a grid tinted by height, from blue at the low end of each side to red at the high end. The
     /// scene's dots (SlopeFlow) glide along its lines downhill, so the grid shows the shape and the dots the pull.
     func slopeGrid(_ level: Level, _ t: Theme) {
         guard level.hasGround else { return }
@@ -37,13 +37,13 @@ extension Painter {
         let r = Course.railRadius
         let felt = CGPath(rect: CGRect(x: r, y: r, width: Course.width - 2 * r, height: Course.height - 2 * r), transform: nil)
 
-        // A faint edge round each sloped patch (a contoured hole's edge sits under its rails).
+        // A faint edge round each sloped patch (a contoured side's edge sits under its rails).
         clipped(felt) { stroke(region, UIColor.white.withAlphaComponent(0.2), 1) }
 
         let gap = SlopeFlow.grid, step = 4.0, buckets = 24
         for side in [Side.a, .b] {
             let x0 = side.offset, x1 = side.offset + Course.half
-            // Each hole spans the whole blue-to-red scale over its own sloped ground.
+            // Each side spans the whole blue-to-red scale over its own sloped ground.
             var lo = Double.infinity, hi = -Double.infinity
             for y in stride(from: 2.0, to: Course.height, by: step) {
                 for x in stride(from: x0 + 2, to: x1, by: step) where level.isSloped(at: Vec(x, y)) {

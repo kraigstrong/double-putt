@@ -4,7 +4,7 @@ import Foundation
 /// faster where the ground is steeper and still where it's flat. They keep an even gap: where two flows meet in a
 /// dip the extra dots fade out, and where flows spread apart new ones fade in. A pure model; the scene draws it.
 struct SlopeFlow {
-    /// The grid square, five across a hole, in course units.
+    /// The grid square, five across a side, in course units.
     static let grid = Course.half / 5
     /// The gap the dots keep along a line: wider than a square, so the grid carries the shape and the dots stay sparse.
     static let dotGap = grid * 1.5

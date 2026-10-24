@@ -169,7 +169,7 @@ extension Levels {
         l.kicker(.a, 166, 382, toward: 90, speed: 640)
         l.kicker(.a, 163, 745, toward: 180, speed: 420)
         l.cup(.a, 40, 734)
-        // B: a short hole from the edge of the duck pond. The cup's booth opens to the left, one slider runs across
+        // B: a short side from the edge of the duck pond. The cup's booth opens to the left, one slider runs across
         // the way there and another slides up and down in the door.
         l.water(.b, 0, 95, 200, 280)
         l.tee(.b, 150, 320)

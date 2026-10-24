@@ -1,7 +1,7 @@
 // Front nine additions: pairs 5, 7, 9 (designed with Tools/solver).
 extension Levels {
 
-    /// Pair 5. Each hole has one hedgerow with a gap at one end: A's low on the left, B's high on the right.
+    /// Pair 5. Each side has one hedgerow with a gap at one end: A's low on the left, B's high on the right.
     /// Straight shots are hedged off, so both balls bank off a side fence: A's off the left, B's off the right,
     /// which makes it a Mirror swing even though the tees and cups don't mirror. B's hedge clips the top of
     /// A's bank window, so the angle has to thread both gaps. Angled hedges behind the cups catch firm putts.

@@ -1,7 +1,7 @@
 import Foundation
 
 // Big Top (course 5), the second Funfair course: the circus ring. Designed with Tools/solver against
-// Tools/levels/BRIEF.md (course 5 targets: narrower windows and no near-free holes, after Midway played easy).
+// Tools/levels/BRIEF.md (course 5 targets: narrower windows and no near-free sides, after Midway played easy).
 extension Levels {
 
     /// Pair 1. A's cup sits in the centre ring, whose front door faces the middle wall: bank in off the wall, gently,
@@ -89,7 +89,7 @@ extension Levels {
                       hint: "The cannon fires as hard as you putt. Mind the pond.")
         l.setting = "bigtop"
         l.frame()
-        // A: the long hole. A booth closes the ring; the cannon fires the ball over it, across to the cup.
+        // A: the long side. A booth closes the ring; the cannon fires the ball over it, across to the cup.
         l.tee(.a, 76, 155)
         l.block(.a, 0, 380, 200, 420)
         l.tunnel(.a, 150, 330, .a, 170, 520, exitB: 180)

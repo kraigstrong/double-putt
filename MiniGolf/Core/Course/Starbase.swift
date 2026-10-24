@@ -55,7 +55,7 @@ extension Levels {
     }
 
     /// Pair 3. Robots on loops. A machinery pillar hides A's cup from the tee, and a robot circles it: A's ball banks
-    /// off the wall between the holes, past the pillar's right side, while the robot is round the far side. B's cup
+    /// off the middle wall, past the pillar's right side, while the robot is round the far side. B's cup
     /// sits off-centre inside the ring a guard robot drives round it, every three seconds; B's ball banks off the
     /// left fence and slips into the ring ahead of the guard. A goes up-right and B up-left: Mirror. When the pair
     /// loads the guard cuts the double ace from 0.056% to 0.022%; A's robot is clear of A's line then, but blocks it

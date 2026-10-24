@@ -201,9 +201,9 @@ private struct ScoreChip: View {
         .padding(.leading, 6).padding(.trailing, 10)
         .frame(height: 34)
         .background {
-            Capsule().fill(sunk ? AnyShapeStyle(Color.hole(index)) : AnyShapeStyle(.ultraThinMaterial))
+            Capsule().fill(sunk ? AnyShapeStyle(Color.side(index)) : AnyShapeStyle(.ultraThinMaterial))
         }
-        .overlay(Capsule().strokeBorder(Color.hole(index).opacity(0.9), lineWidth: 2))
+        .overlay(Capsule().strokeBorder(Color.side(index).opacity(0.9), lineWidth: 2))
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: sunk)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: strokes)
     }

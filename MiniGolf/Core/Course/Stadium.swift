@@ -11,8 +11,8 @@ extension Levels {
     /// that arrives on that line. B is a long two-tier green: a bank falls back toward the tee halfway up, so a short
     /// putt rolls back off it, and the upper tier leans gently right into a dish round the cup, with a lake behind.
     /// Same, up and a little right: A's ball starts about 9° right of its cup, B's about 3° left of its. Take A's lean
-    /// away and the Same double ace is gone. The water keeps both holes honest: drain it and each hole aces three to
-    /// five times as often, off the fences. A burn down the middle swallows banks off the wall between the holes.
+    /// away and the Same double ace is gone. The water keeps both sides honest: drain it and each side aces three to
+    /// five times as often, off the fences. A burn down the middle swallows banks off the middle wall.
     static func firstTee() -> Level {
         var l = Level("First Tee", par: [3, 3], hint: "One green falls toward the lake. The other has a ledge.")
         l.setting = "stadium"
@@ -39,7 +39,7 @@ extension Levels {
         l.hollow(.b, 120, 640, radius: 30, strength: 220)
         l.tee(.b, 60, 125)
         l.cup(.b, 120, 640)
-        // A burn either side of the wall between the holes.
+        // A burn either side of the middle wall.
         l.paint(.water, nil, [(183, 170), (217, 170), (217, 480), (183, 480)])
         l.solution = Shot(angle: 86.25, power: 0.630, mirrored: false)
         return l
@@ -194,7 +194,7 @@ extension Levels {
     /// across the back, and a lagoon on its right. The cup sits on the bowl's right bank, a few yards off the lagoon.
     /// A straight putt falls into the bowl; the ace runs up the bowl's left side, banks off the back stand and comes
     /// down across the bank into the cup. Too firm and it carries on into the lagoon. A climbs a long bank (leaning
-    /// back toward the tee) to a dish on the upper tier, its ball banking off the wall between the holes on the way.
+    /// back toward the tee) to a dish on the upper tier, its ball banking off the middle wall on the way.
     /// Mirror: A up and to the right, B up and to the left. Take the back stand away and there's no double ace.
     static func amphitheater() -> Level {
         var l = Level("Amphitheater", par: [2, 2], hint: "The bowl swallows a straight putt. Play off the stands.")
@@ -223,7 +223,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A creek winds across both holes in a gentle S, under the wall between them (open there, inside the
+    /// Pair 7. A creek winds across both sides in a gentle S, under the wall between them (open there, inside the
     /// water), and stops short of each outer fence, so the straight line to either cup is wet: each ball has to go round
     /// the creek's end on its own side. Both balls start up and a little left. A's tee is by its end of the creek: its
     /// ball slips past it up the left, and the green, leaning right, curls it back across above the creek into a dish
@@ -260,12 +260,12 @@ extension Levels {
             let p = line[i] + normal * h, q = line[i] - normal * h
             left.append((p.x, p.y)); right.append((q.x, q.y))
         }
-        // The wall between the holes is open where the creek crosses it (wet from y 371.5 to 424.5 on the wall's
+        // The middle wall is open where the creek crosses it (wet from y 371.5 to 424.5 on the wall's
         // line), so its rounded ends stop at the banks; a ball has to clear an end by its own radius to get through,
         // which keeps it in the water.
         l.frame(gaps: [367.5...428.5])
         l.ground(.rough, nil)
-        // A long green in each hole, then the creek across both.
+        // A long green on each side, then the creek across both.
         l.green(.a, [(60, 105), (150, 105), (166, 250), (166, 500), (164, 690), (130, 735), (60, 735), (36, 650),
                      (34, 400), (40, 200)])
         l.green(.b, [(50, 105), (140, 105), (160, 200), (166, 400), (166, 650), (140, 735), (70, 735), (36, 690),
@@ -329,7 +329,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9, the finale. B is the island green: a lake right across the hole, a wide walkway out to the island, and
+    /// Pair 9, the finale. B is the island green: a lake right across the side, a wide walkway out to the island, and
     /// a grandstand at the back right of it, angled toward the cup on the island's far left. The island falls gently
     /// toward the walkway. The ball runs up the walkway and across the island, banks off the stand and comes back
     /// across to the cup: it starts about 17° right of the cup. A is a long uphill green leaning hard right, so its

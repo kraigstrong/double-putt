@@ -1,6 +1,6 @@
 import Foundation
 
-/// Course space: 400 x 800, y up. Hole A is x 0...200, hole B is x 200...400.
+/// Course space: 400 x 800, y up. Side A is x 0...200, side B is x 200...400.
 enum Course {
     static let width = 400.0
     static let height = 800.0
@@ -17,7 +17,7 @@ enum Side: Int {
 struct Shot: Equatable {
     var angle: Double   // degrees, 0 = right, 90 = up
     var power: Double   // 0...1
-    var mirrored = false  // hole B's ball gets the shot flipped left-to-right
+    var mirrored = false  // side B's ball gets the shot flipped left-to-right
 
     var velocity: Vec { .shot(degrees: angle, speed: power * Tuning.maxShotSpeed) }
 }
@@ -91,7 +91,7 @@ struct Level {
         return rails + outlines.flatMap { c in (0..<4).map { Wall(a: c[$0], b: c[($0 + 1) % 4], radius: Course.blockRadius) } }
     }
 
-    // MARK: Builders (x/y are local to the side's hole)
+    // MARK: Builders (x/y are local to the side)
 
     /// Outer fence plus the shared middle wall. `gaps` are y-ranges where the middle wall is open.
     mutating func frame(gaps: [ClosedRange<Double>] = []) {
@@ -135,7 +135,7 @@ struct Level {
         water.append(Box(minX + s.offset, minY, maxX + s.offset, maxY))
     }
 
-    /// A pipe between two mouths (each on either hole). A ball rolling over one mouth pops out of the other.
+    /// A pipe between two mouths (each on either side). A ball rolling over one mouth pops out of the other.
     /// `exitA` / `exitB`: direction in degrees a ball leaves that mouth; nil keeps its incoming direction.
     mutating func tunnel(_ sa: Side, _ ax: Double, _ ay: Double, _ sb: Side, _ bx: Double, _ by: Double,
                          exitA: Double? = nil, exitB: Double? = nil) {

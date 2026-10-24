@@ -44,7 +44,7 @@ enum DebugLevels {
     }
 
     /// The Stadium: an island green in a tie-walled pond, a grandstand behind it, a waste bunker and a stand on the
-    /// other hole angled across a corner.
+    /// other side angled across a corner.
     static func stadiumTest() -> Level {
         var l = Level("stadiumTest", par: [2, 2], hint: "")
         l.setting = "stadium"
@@ -115,7 +115,7 @@ enum DebugLevels {
         return l
     }
 
-    /// Painted surfaces: rough round a waisted green with a bunker and a wide fringe apron on one hole; a green with a
+    /// Painted surfaces: rough round a waisted green with a bunker and a wide fringe apron on one side; a green with a
     /// pond and a bunker on the other. Only for looking at surfaces, not solved for a double ace.
     static func surfaceTest() -> Level {
         var l = Level("surfaceTest", par: [2, 2], hint: "")

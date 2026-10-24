@@ -38,7 +38,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. Short vs long: A is a short hole whose straight line runs through a round pot bunker in front of the
+    /// Pair 2. Short vs long: A is a short side whose straight line runs through a round pot bunker in front of the
     /// cup; B is a long haul up a green leaning hard left (150), so B's ball starts out well right, about 8° off the
     /// straight line, and curls back; a small hollow below and right of B's cup catches it on that line. Same, up and
     /// to the right, firm enough for the long one: A's ball crosses the sand, which eats the extra pace and drops it in.
@@ -72,7 +72,7 @@ extension Levels {
     /// pull takes the pace off: without the bowl the same putt runs 40 units past. Come up short and the bank (over
     /// 240, more than the green holds) sends it back down into the bowl. B's cup is the low point of a shallow dish
     /// on a gentle lean: a near-straight putt. Same, up and a little left. The burn swallows banks off the middle
-    /// wall, which would otherwise make both holes easy to ace.
+    /// wall, which would otherwise make both sides easy to ace.
     static func punchbowl() -> Level {
         var l = Level("Punchbowl", par: [3, 3], hint: "Two bowls. One cup sits up the bank: short putts roll back.")
         l.setting = "links"
@@ -93,7 +93,7 @@ extension Levels {
         l.hollow(.b, 110.5, 604, radius: 45, strength: 70)
         l.tee(.b, 140, 125)
         l.cup(.b, 121, 604)
-        // A burn down the middle, either side of the wall between the holes.
+        // A burn down the middle, either side of the middle wall.
         l.paint(.water, nil, [(182, 180), (218, 180), (218, 480), (182, 480)])
         l.solution = Shot(angle: 94.25, power: 0.610, mirrored: false)
         return l
@@ -197,11 +197,11 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. One double green across the top of both holes, open through the middle wall, with the two cups close
-    /// together near its middle. Each hole leans in toward the middle (A's right at 146.5, B's left at 102), and a
+    /// Pair 7. One double green across the top of both sides, open through the middle wall, with the two cups close
+    /// together near its middle. Each side leans in toward the middle (A's right at 146.5, B's left at 102), and a
     /// big steep hump (380) stands on the outside of each lane where it opens onto the double green. A putt up either
     /// lane rides the inner flank of its hump, which sheds it in across the middle; the lean keeps it curling, so each
-    /// ball crosses into the other hole's cup. B's cup sits in a dish that gathers A's ball as it arrives. Same: both
+    /// ball crosses into the other side's cup. B's cup sits in a dish that gathers A's ball as it arrives. Same: both
     /// start up and a little left, A's ball about 18° left of the cup it drops in, B's about 12° right of its; B's
     /// ball goes through first, so they cross without meeting. A pot bunker on the inside of A's lane catches the
     /// straighter line across, and a burn either side of the wall between the tee lanes swallows banks off it.
@@ -217,7 +217,7 @@ extension Levels {
         // A pot bunker on the inside of A's lane, where it opens onto the double green.
         l.paint(.sand, nil, [(168, 387.5), (157.16, 413.66), (131, 424.5), (104.84, 413.66), (94, 387.5), (104.84, 361.34), (131, 350.5), (157.16, 361.34)],
                 smooth: true)
-        // Each hole leans in toward the middle; a steep hump on the outside of each lane sheds its ball across.
+        // Each side leans in toward the middle; a steep hump on the outside of each lane sheds its ball across.
         l.tilt(.a, downhill: 0, strength: 146.5)
         l.tilt(.b, downhill: 180, strength: 102)
         l.hump(nil, 60, 439, radius: 144, strength: 380)

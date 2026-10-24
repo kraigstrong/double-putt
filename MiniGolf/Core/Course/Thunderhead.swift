@@ -160,13 +160,13 @@ extension Levels {
         var l = Level("Ice Bridge", par: [3, 3], hint: "Two ways over the river. Only one suits both greens.")
         l.setting = "winter"
         l.frame()
-        // A: a long hole. A narrow ice bridge crosses the river on the left; a pipe runs under it on the right.
+        // A: a long side. A narrow ice bridge crosses the river on the left; a pipe runs under it on the right.
         l.tee(.a, 100, 115)
         l.water(.a, 0, 400, 40, 460)
         l.water(.a, 66, 400, 200, 460)
         l.tunnel(.a, 150, 290, .a, 134, 496)
         l.cup(.a, 175, 661)
-        // B: a short hole up top; a windmill turns in the door of the cup's snow house.
+        // B: a short side up top; a windmill turns in the door of the cup's snow house.
         l.tee(.b, 52, 388)
         l.block(.b, 0, 560, 84, 590)
         l.block(.b, 120, 560, 200, 590)

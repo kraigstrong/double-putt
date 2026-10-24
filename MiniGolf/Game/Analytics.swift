@@ -16,20 +16,20 @@ struct PairContext: Codable, Equatable {
 struct AnalyticsEvent: Codable, Equatable {
     enum Kind: String, Codable { case milestone, pair, round }
 
-    /// A pair attempt's strokes per hole, or a finished round's total.
+    /// A pair attempt's strokes per side, or a finished round's total.
     enum Strokes: Codable, Equatable {
-        case holes([Int])
+        case sides([Int])
         case total(Int)
 
         init(from decoder: Decoder) throws {
             let c = try decoder.singleValueContainer()
-            if let holes = try? c.decode([Int].self) { self = .holes(holes) } else { self = .total(try c.decode(Int.self)) }
+            if let sides = try? c.decode([Int].self) { self = .sides(sides) } else { self = .total(try c.decode(Int.self)) }
         }
 
         func encode(to encoder: Encoder) throws {
             var c = encoder.singleValueContainer()
             switch self {
-            case .holes(let holes): try c.encode(holes)
+            case .sides(let sides): try c.encode(sides)
             case .total(let total): try c.encode(total)
             }
         }
@@ -259,7 +259,7 @@ final class Analytics {
         event.outcome = outcome
         event.replay = replay
         event.attempt = number
-        event.strokes = .holes(strokes)
+        event.strokes = .sides(strokes)
         event.par = min(12, max(2, a.par))
         event.swings = swings
         event.mirrorSwings = min(swings, a.mirrorSwings)

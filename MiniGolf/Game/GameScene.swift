@@ -56,7 +56,7 @@ final class GameScene: SKScene {
     private var textureCache: [String: SKTexture] = [:]
 
     private var dragStart: CGPoint?
-    /// Which hole the current drag started over (0 = A, 1 = B).
+    /// Which side the current drag started over (0 = A, 1 = B).
     private var dragSide = 0
     private var tickBucket = -1
     private var drawnGuide: (aim: Shot?, canAim: Bool, full: Bool, side: Int)?
@@ -716,7 +716,7 @@ final class GameScene: SKScene {
             // The stripe, cap spots and dimples are painted on a turning sphere (see ballPaint), so they roll.
             let stripe = SKSpriteNode(texture: texture("white") { CourseArt.softDot(pixels: 4, hardness: 1) }, size: d)
             let spin = SKUniform(name: "u_rot", matrixFloat3x3: matrix_identity_float3x3)
-            let color = Palette.hole(i), sheen = color.lighter(0.18)
+            let color = Palette.side(i), sheen = color.lighter(0.18)
             stripe.shader = SKShader(source: Self.ballPaint, uniforms: [
                 spin, SKUniform(name: "u_color", vectorFloat4: color.simd), SKUniform(name: "u_sheen", vectorFloat4: sheen.simd),
             ])
@@ -1140,7 +1140,7 @@ final class GameScene: SKScene {
 
         let paths = world.guide(shot: aim.velocity, mirrored: aim.mirrored, fullPath: model.fullPathGuide, lead: Self.swing)
         for (i, g) in paths.enumerated() where world.balls[i].sunkIn == nil {
-            let color = Palette.hole(i)
+            let color = Palette.side(i)
             for (k, piece) in g.pieces.enumerated() where piece.points.count > 1 {
                 let pts = resample(piece.points, spacing: 8, skip: k == 0 ? Tuning.ballRadius + 4 : 6)
                 guard !pts.isEmpty else { continue }
@@ -1206,12 +1206,12 @@ final class GameScene: SKScene {
         ]))
         node.childNode(withName: "shadow")?.run(.fadeOut(withDuration: 0.1))
         let strokes = model.strokes[i]
-        // Just the hole's strokes: par words only make sense for the whole pair, on the result card.
+        // Just the side's strokes: par words only make sense for the whole pair, on the result card.
         let text = strokes == 1 ? "ACE!" : "\(strokes)"
         if strokes == 1, model.strokes != [1, 1] || world.balls.contains(where: { $0.sunkIn == nil }) {
             run(.sequence([.wait(forDuration: 0.25), .run { SoundFX.shared.ace() }]))
         }
-        popText(text, at: CGPoint(x: target.x, y: target.y + 18), color: Palette.hole(i), big: strokes == 1)
+        popText(text, at: CGPoint(x: target.x, y: target.y + 18), color: Palette.side(i), big: strokes == 1)
         let ring = SKShapeNode(circleOfRadius: Tuning.cupRadius)
         ring.position = target
         ring.strokeColor = .white

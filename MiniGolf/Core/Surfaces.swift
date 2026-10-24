@@ -1,6 +1,6 @@
 import Foundation
 
-/// What the ground is made of. Inside the usual frame a hole can be painted with shapes of each, so a green's shape
+/// What the ground is made of. Inside the usual frame a side can be painted with shapes of each, so a green's shape
 /// comes from what surrounds it, and a ball can roll from one to the next, losing pace as it goes.
 enum Surface: UInt8 {
     case green, fringe, rough, sand, water
@@ -113,14 +113,14 @@ struct SurfaceMap {
 // MARK: - Builders
 
 extension Level {
-    /// Paints `surface` in a shape on one hole (points local to it, x 0–200) or, with nil, anywhere on the course
+    /// Paints `surface` in a shape on one side (points local to it, x 0–200) or, with nil, anywhere on the course
     /// (x 0–400). Later paint covers earlier. `smooth` runs a curve through the points; otherwise edges are straight.
     mutating func paint(_ surface: Surface, _ s: Side?, _ points: [(Double, Double)], smooth: Bool = false, pad: Double = 0) {
         let pts = points.map { Vec($0.0 + (s?.offset ?? 0), $0.1) }
         patches.append(Patch(surface: surface, outline: smooth ? Patch.curve(through: pts) : pts, pad: pad))
     }
 
-    /// A cart path `width` wide running along `points` (a smooth curve through them, open at both ends), on one hole
+    /// A cart path `width` wide running along `points` (a smooth curve through them, open at both ends), on one side
     /// or, with nil, across the course. Paint it after the ground it crosses and before anything that should cover it.
     mutating func cartPath(_ s: Side?, _ points: [(Double, Double)], width: Double = 22) {
         let pts = points.map { Vec($0.0 + (s?.offset ?? 0), $0.1) }
@@ -147,7 +147,7 @@ extension Level {
         patches.append(Patch(surface: .path, outline: left + right.reversed()))
     }
 
-    /// Covers a whole hole (or, with nil, the course) in `surface`: the ground a green sits in.
+    /// Covers a whole side (or, with nil, the course) in `surface`: the ground a green sits in.
     mutating func ground(_ surface: Surface, _ s: Side?) {
         let w = s == nil ? Course.width : Course.half
         paint(surface, s, [(0, 0), (w, 0), (w, Course.height), (0, Course.height)])

@@ -17,7 +17,7 @@ extension Levels {
         for a in [321.0, 21, 81, 141, 201] {
             l.bumper(.a, 130 + 38 * cos(a * .pi / 180), 640 + 38 * sin(a * .pi / 180), r: 13)
         }
-        // B: a short hole up on a booth; the ring opens at the back, toward the top fence. A duck pond along the
+        // B: a short side up on a booth; the ring opens at the back, toward the top fence. A duck pond along the
         // right fence closes the way round that side.
         l.block(.b, 0, 95, 200, 440)
         l.tee(.b, 150, 470)
@@ -130,7 +130,7 @@ extension Levels {
         l.cup(.a, 70, 690)
         l.water(.a, 50, 360, 200, 540)
         l.water(.a, 110, 540, 200, 640)
-        // B: a short hole, the carousel between tee and cup.
+        // B: a short side, the carousel between tee and cup.
         l.tee(.b, 40, 235)
         l.carousel(.b, 92, 410, radius: 60, rpm: 40)
         l.cup(.b, 134, 562)

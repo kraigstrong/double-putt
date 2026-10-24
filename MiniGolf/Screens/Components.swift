@@ -3,9 +3,9 @@ import SwiftUI
 extension Color {
     init(_ ui: UIColor) { self.init(uiColor: ui) }
     static let ink = Color(Palette.ink)
-    static let holeA = Color(Palette.holeA)
-    static let holeB = Color(Palette.holeB)
-    static func hole(_ i: Int) -> Color { i == 0 ? .holeA : .holeB }
+    static let sideA = Color(Palette.sideA)
+    static let sideB = Color(Palette.sideB)
+    static func side(_ i: Int) -> Color { i == 0 ? .sideA : .sideB }
     static let cream = Color(UIColor(hex: 0xFFF8E7))
     static let putt = Color(UIColor(hex: 0xFFC94A))
 }
@@ -187,7 +187,7 @@ private struct TrophyHandles: Shape {
     }
 }
 
-/// Small golf ball glyph in a hole's color, stripe pointing up the line like the in-game balls.
+/// Small golf ball glyph in a side's color, stripe pointing up the line like the in-game balls.
 struct BallGlyph: View {
     let index: Int
     var size: CGFloat = 16
@@ -196,7 +196,7 @@ struct BallGlyph: View {
         ZStack {
             Circle().fill(RadialGradient(colors: [.white, Color(UIColor(hex: 0xC4CAD1))], center: .init(x: 0.35, y: 0.3),
                                          startRadius: 0, endRadius: size * 0.7))
-            Rectangle().fill(Color.hole(index)).frame(width: size * 0.32)
+            Rectangle().fill(Color.side(index)).frame(width: size * 0.32)
             Circle().fill(RadialGradient(colors: [.clear, .clear, .black.opacity(0.28)], center: .init(x: 0.35, y: 0.3),
                                          startRadius: 0, endRadius: size * 0.7))
             Ellipse().fill(.white.opacity(0.85))

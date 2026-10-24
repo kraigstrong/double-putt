@@ -7,7 +7,7 @@ import Foundation
 // targets).
 extension Levels {
     /// Pair 1, the warm-up. A's tee box sits at the bottom left, and a cart path bows out to the left and sweeps up
-    /// and round to the right, past a bunker, to a green at the top right. The whole hole leans hard right (170) and
+    /// and round to the right, past a bunker, to a green at the top right. The whole side leans hard right (170) and
     /// the path is laid along the curve that lean puts on a putt: aim up the path, about 14° left of the cup, and the
     /// slope carries the ball round the bend and onto the green, where a big, steep bowl gathers it into the cup. Off
     /// the path it dies in the rough. B is a long, thin green that climbs to its cup, with a bank just behind the cup
