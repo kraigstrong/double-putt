@@ -88,7 +88,7 @@ struct ScorecardView: View {
     private var header: some View {
         HStack {
             Text("#").frame(width: 26, alignment: .leading)
-            Text("PAIR").frame(maxWidth: .infinity, alignment: .leading)
+            Text("HOLE").frame(maxWidth: .infinity, alignment: .leading)
             Text("PAR").frame(width: 40)
             Text("SCORE").frame(width: 56)
         }

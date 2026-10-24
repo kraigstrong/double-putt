@@ -310,7 +310,7 @@ enum Levels {
     }
 
     static func twins() -> Level {
-        var l = Level("Twins", par: [2, 2], hint: "Same hole twice. Warm up.")
+        var l = Level("Twins", par: [2, 2], hint: "Same green twice. Warm up.")
         l.setting = "meadow"
         l.frame()
         l.tee(.a, 100, 110); l.tee(.b, 100, 110)
@@ -320,7 +320,7 @@ enum Levels {
     }
 
     static func reflection() -> Level {
-        var l = Level("Reflection", par: [2, 2], hint: "Mirror-image holes. Try Mirror.")
+        var l = Level("Reflection", par: [2, 2], hint: "Mirror-image greens. Try Mirror.")
         l.setting = "meadow"
         l.frame()
         l.tee(.a, 50, 110); l.tee(.b, 150, 110)
@@ -389,7 +389,7 @@ enum Levels {
     }
 
     static func carom() -> Level {
-        var l = Level("Carom", par: [2, 2], hint: "The holes share a green. Balls can hit each other.")
+        var l = Level("Carom", par: [2, 2], hint: "Both balls share one green. They can hit each other.")
         l.setting = "autumn"
         l.frame()
         l.rails.removeLast()

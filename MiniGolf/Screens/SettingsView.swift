@@ -44,7 +44,7 @@ struct SettingsView: View {
 
                     VStack(spacing: 6) {
                         Text(version).font(.rounded(13, .bold)).foregroundStyle(.white.opacity(0.7))
-                        Text("Double Putt sends anonymous gameplay counts, like which pairs were finished and in how many strokes, to help tune the courses. No names or device IDs.")
+                        Text("Double Putt sends anonymous gameplay counts, like which holes were finished and in how many strokes, to help tune the courses. No names or device IDs.")
                             .font(.rounded(12, .semibold))
                             .foregroundStyle(.white.opacity(0.5))
                             .multilineTextAlignment(.center)

@@ -48,7 +48,7 @@ struct TitleView: View {
                     VStack(spacing: 12) {
                         let continuing = game.round.map { !$0.isFinished } ?? false
                         if continuing, let round = game.round, let nine = game.roundNine {
-                            PillButton(title: "Continue \(nine.name) · Pair \(round.current + 1)", symbol: "play.fill", fill: .putt) {
+                            PillButton(title: "Continue \(nine.name) · Hole \(round.current + 1)", symbol: "play.fill", fill: .putt) {
                                 app.continueRound()
                             }
                         }

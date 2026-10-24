@@ -95,7 +95,7 @@ struct GameView: View {
     }
 
     private var subtitle: String {
-        var s = "PAIR \(game.pairNumber(game.levelIndex)) · PAR \(game.par)"
+        var s = "HOLE \(game.pairNumber(game.levelIndex)) · PAR \(game.par)"
         if game.inRound { s += " · " + (game.roundToPar.map { "ROUND \(GameModel.toPar($0))" } ?? "ROUND E") }
         return s
     }
@@ -491,7 +491,7 @@ private struct PauseMenu: View {
                 Text("Paused").font(.rounded(30, .black)).padding(.bottom, 4)
                 PillButton(title: "Resume", symbol: "play.fill", fill: .putt) { game.paused = false }
                 if !game.inRound {
-                    PillButton(title: "Restart Pair", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 50) { game.restart() }
+                    PillButton(title: "Restart Hole", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 50) { game.restart() }
                 }
                 if game.inRound {
                     PillButton(title: "Scorecard", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 50) {

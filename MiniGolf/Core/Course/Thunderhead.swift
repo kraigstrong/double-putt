@@ -27,7 +27,7 @@ extension Levels {
     /// and its cup is dead ahead. So B must start left too: Same lets the dune carry it back to the cup, while
     /// Mirror starts B right and the dune pushes it further off.
     static func tidePools() -> Level {
-        var l = Level("Tide Pools", par: [3, 2], hint: "Only one hole has a dune. Read which way it leans.")
+        var l = Level("Tide Pools", par: [3, 2], hint: "Only one green has a dune. Read which way it leans.")
         l.setting = "seaside"
         l.frame()
         l.tee(.a, 140, 110)
@@ -135,7 +135,7 @@ extension Levels {
     /// banks it back to the cup. Only while the plough is low, though: miss it and the fence banks the ball too late,
     /// wide of the cup.
     static func avalanche() -> Level {
-        var l = Level("Avalanche", par: [3, 3], hint: "Both holes need a bank. One bank keeps moving.")
+        var l = Level("Avalanche", par: [3, 3], hint: "Both greens need a bank. One bank keeps moving.")
         l.setting = "winter"
         l.frame()
         // A: an icy pond fills the right of the lane; the cup is beyond it.
@@ -157,7 +157,7 @@ extension Levels {
     /// river makes A short too: aim the same way (A's ball at the pipe, B's at the door) at B's soft pace, when the
     /// door is clear.
     static func iceBridge() -> Level {
-        var l = Level("Ice Bridge", par: [3, 3], hint: "Two ways over the river. Only one suits both holes.")
+        var l = Level("Ice Bridge", par: [3, 3], hint: "Two ways over the river. Only one suits both greens.")
         l.setting = "winter"
         l.frame()
         // A: a long hole. A narrow ice bridge crosses the river on the left; a pipe runs under it on the right.

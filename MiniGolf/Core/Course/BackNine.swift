@@ -45,7 +45,7 @@ extension Levels {
     /// lantern on A's, so the balls swap holes; B's right lantern only hops B's own pond (Mirror's trap, as
     /// both balls would end up in B). A lamplighter's cart patrols each far bank.
     static func lanterns() -> Level {
-        var l = Level("Lanterns", par: [3, 3], hint: "Not every lantern leads to the other hole.")
+        var l = Level("Lanterns", par: [3, 3], hint: "Not every lantern leads to the other green.")
         l.setting = "night"
         l.frame()
         l.water(.a, 0, 380, 200, 450); l.water(.b, 0, 380, 200, 450)

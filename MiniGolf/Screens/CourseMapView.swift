@@ -48,7 +48,7 @@ struct CourseMapView: View {
 
     private var subtitle: String {
         let won = GameModel.levels.filter(game.hasTrophy).count
-        return "\(GameModel.levels.count) pairs · \(won) \(won == 1 ? "trophy" : "trophies")"
+        return "\(GameModel.levels.count) holes · \(won) \(won == 1 ? "trophy" : "trophies")"
     }
 }
 

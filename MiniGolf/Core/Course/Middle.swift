@@ -18,7 +18,7 @@ extension Levels {
     /// Pair 12. A's cup sits in a walled canyon; the only way in is the pipe that starts in B.
     /// So the balls swap: B's ball takes the pipe to A's cup, A's ball crosses the gap to B's cup.
     static func canyonPipe() -> Level {
-        var l = Level("Canyon Pipe", par: [3, 2], hint: "The way into one canyon starts in the other hole.")
+        var l = Level("Canyon Pipe", par: [3, 2], hint: "The way into one canyon starts on the other green.")
         l.setting = "desert"
         l.frame(gaps: [420...520])
         l.tee(.a, 40, 110); l.tee(.b, 160, 110)
