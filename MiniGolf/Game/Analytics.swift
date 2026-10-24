@@ -82,9 +82,11 @@ final class Analytics {
 
     static var defaultEnabled: Bool {
         #if DEBUG
-        // Launch-argument runs (a set hole, art dumps, the mechanic test holes) aren't real play.
+        // Launch-argument runs (a set hole, art dumps, the mechanic test holes, store captures) aren't real play.
         let d = UserDefaults.standard
-        if d.integer(forKey: "level") > 0 || d.bool(forKey: "dumpArt") || d.bool(forKey: "tests") { return false }
+        if d.integer(forKey: "level") > 0 || d.bool(forKey: "dumpArt") || d.bool(forKey: "tests") || StoreCapture.isActive {
+            return false
+        }
         #endif
         return isEnabled
     }

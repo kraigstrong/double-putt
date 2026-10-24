@@ -1,0 +1,11 @@
+{
+  "about": "App Store screenshots, in the listing's order (Tools/capture/screenshots.sh, then frames.py). Each is a still of a clip in clips.json, \"at\" seconds in (a clip's look, Tools/capture/footage.sh --look, shows where its moments fall), and a caption for frames.py. Captions follow the player-copy rules: simple and human, a hole is two greens, never A and B or pair.",
+  "shots": [
+    {"name": "one-swing", "clip": "reflection", "at": 2.6, "caption": "ONE SWING. TWO GREENS."},
+    {"name": "windmill", "clip": "windmill", "at": 5.4, "caption": "TIME IT PAST THE WINDMILL"},
+    {"name": "springboard", "clip": "springboard", "at": 3.6, "caption": "BOUNCE OFF SPRINGBOARDS"},
+    {"name": "slopes", "clip": "two-tiers", "at": 2.6, "caption": "READ THE SLOPES"},
+    {"name": "space", "clip": "teleporter", "at": 4.6, "caption": "MEADOWS TO SPACE STATIONS"},
+    {"name": "double-ace", "clip": "grand-finale", "at": 9.5, "caption": "FIND THE DOUBLE ACE"}
+  ]
+}

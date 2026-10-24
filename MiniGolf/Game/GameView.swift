@@ -13,7 +13,7 @@ struct GameView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                SpriteView(scene: app.scene, isPaused: game.paused, preferredFramesPerSecond: 120, options: [.ignoresSiblingOrder])
+                SpriteView(scene: app.scene, isPaused: viewPaused, preferredFramesPerSecond: 120, options: [.ignoresSiblingOrder])
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -87,11 +87,26 @@ struct GameView: View {
                 if phase != .active && !game.showResult && !game.showScorecard && !game.isComplete { game.paused = true }
             }
             .task(id: game.loadToken) {
+                #if DEBUG
+                // A store capture shows the hint for the whole clip, or not at all.
+                if let clip = StoreCapture.clip {
+                    showHint = clip.hint ?? false
+                    return
+                }
+                #endif
                 withAnimation { showHint = true }
                 try? await Task.sleep(for: .seconds(5))
                 withAnimation { showHint = false }
             }
         }
+    }
+
+    /// A store capture steps the scene itself (StoreCapture.swift), so the view never runs it.
+    private var viewPaused: Bool {
+        #if DEBUG
+        if StoreCapture.isActive { return true }
+        #endif
+        return game.paused
     }
 
     private var subtitle: String {

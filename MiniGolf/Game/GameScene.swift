@@ -1025,6 +1025,13 @@ final class GameScene: SKScene {
             guard let self else { return }
             // Show Ace strikes on the exact tick the solver used (the countdown lands within a frame of it).
             if self.model.isDemo && !self.level.movers.isEmpty { self.world.time = self.level.solutionTime }
+            #if DEBUG
+            // So does a store capture's (StoreCapture.swift).
+            if let strike = self.captureStrikeTime {
+                self.world.time = strike
+                self.captureStrikeTime = nil
+            }
+            #endif
             self.world.shoot(shot.velocity, mirrored: shot.mirrored)
             self.ballsReleased = true
             SoundFX.shared.putt(power: shot.power)
@@ -1076,13 +1083,7 @@ final class GameScene: SKScene {
         let p = t.location(in: v)
         let pull = CGVector(dx: start.x - p.x, dy: p.y - start.y)
         let len = hypot(pull.dx, pull.dy)
-        let a = convertPoint(fromView: start), b = convertPoint(fromView: p)
-        let path = CGMutablePath()
-        path.addEllipse(in: CGRect(x: a.x - 5 / pointsPerUnit, y: a.y - 5 / pointsPerUnit, width: 10 / pointsPerUnit, height: 10 / pointsPerUnit))
-        path.move(to: a)
-        path.addLine(to: b)
-        dragNode.path = path
-        dragNode.lineWidth = 2 / pointsPerUnit
+        drawDrag(from: convertPoint(fromView: start), to: convertPoint(fromView: p))
         guard len > 12 else { return }
         var angle = atan2(pull.dy, pull.dx) * 180 / .pi
         if angle < 0 { angle += 360 }
@@ -1099,6 +1100,16 @@ final class GameScene: SKScene {
         }
     }
 
+    /// The drag line: a ring where the finger went down and a line to where it is now (course units).
+    private func drawDrag(from a: CGPoint, to b: CGPoint) {
+        let path = CGMutablePath()
+        path.addEllipse(in: CGRect(x: a.x - 5 / pointsPerUnit, y: a.y - 5 / pointsPerUnit, width: 10 / pointsPerUnit, height: 10 / pointsPerUnit))
+        path.move(to: a)
+        path.addLine(to: b)
+        dragNode.path = path
+        dragNode.lineWidth = 2 / pointsPerUnit
+    }
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { endDrag() }
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) { endDrag() }
 
@@ -1108,6 +1119,58 @@ final class GameScene: SKScene {
         dragNode.path = nil
         model.finishedAiming()
     }
+
+    #if DEBUG
+    // MARK: - Store capture (StoreCapture.swift)
+
+    /// When set, the next putt strikes with the movers' clock at exactly this time, as Show Ace does, so a stored
+    /// double ace on a hole with movers plays out as the solver found it.
+    var captureStrikeTime: Double?
+    private var captureFinger: SKShapeNode?
+
+    /// The movers' clock, and how long they take to come round together (0 without movers).
+    var captureMoverClock: Double { world.time }
+    var captureMoverCycle: Double { world.moverCycle }
+    var capturePointsPerUnit: CGFloat { pointsPerUnit }
+
+    /// A ball's centre, in course units.
+    func captureBall(_ i: Int) -> CGPoint { world.balls[i].pos.cg }
+
+    /// One frame of a scripted drag on `side`'s ball from `start` to `finger` (course units), aiming `shot`: the drag
+    /// line and the guide as a player's drag draws them, and a fingertip over it when `touch` is set.
+    func captureDrag(side: Int, start: CGPoint, finger: CGPoint, shot: Shot, touch: Bool) {
+        drawDrag(from: start, to: finger)
+        if touch {
+            let tip = captureFinger ?? {
+                let node = SKShapeNode()
+                node.fillColor = UIColor.white.withAlphaComponent(0.3)
+                node.strokeColor = UIColor.white.withAlphaComponent(0.7)
+                node.zPosition = 41
+                worldNode.addChild(node)
+                captureFinger = node
+                return node
+            }()
+            let r = 21 / pointsPerUnit
+            tip.path = CGPath(ellipseIn: CGRect(x: -r, y: -r, width: 2 * r, height: 2 * r), transform: nil)
+            tip.lineWidth = 1.5 / pointsPerUnit
+            tip.position = finger
+            tip.isHidden = false
+        }
+        model.aimSide = side
+        model.setAim(shot)
+        let bucket = Int(shot.power * 10)
+        if bucket != tickBucket {
+            tickBucket = bucket
+            SoundFX.shared.tick()
+        }
+    }
+
+    func captureEndDrag() {
+        dragNode.path = nil
+        captureFinger?.isHidden = true
+        tickBucket = -1
+    }
+    #endif
 
     // MARK: - Guide
 

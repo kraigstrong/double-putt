@@ -30,6 +30,8 @@ final class AppState {
     init() {
         #if DEBUG
         if UserDefaults.standard.bool(forKey: "tests") { GameModel.levels = DebugLevels.all }
+        // Before the game reads its saved state: a store capture stages its own.
+        StoreCapture.stage()
         #endif
         let game = GameModel()
         self.game = game
@@ -61,6 +63,7 @@ final class AppState {
                 game.setAim(Shot(angle: angle, power: power))
             }
         }
+        StoreCapture.open(self)
         #endif
     }
 
@@ -116,5 +119,10 @@ struct RootView: View {
         }
         .animation(.easeInOut(duration: 0.35), value: app.screen)
         .onChange(of: scenePhase) { _, phase in if phase == .background { app.game.analytics.backgrounded() } }
+        #if DEBUG
+        // A store capture steps time itself, frame by frame, and SwiftUI's animations would run on the wall clock in
+        // between: the HUD changes on the frame it happens instead.
+        .transaction { if StoreCapture.isActive { $0.animation = nil; $0.disablesAnimations = true } }
+        #endif
     }
 }
