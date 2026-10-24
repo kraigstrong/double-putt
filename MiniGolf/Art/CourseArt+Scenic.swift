@@ -1,4 +1,3 @@
-import Observation
 import UIKit
 
 extension CourseArt {
@@ -71,44 +70,5 @@ private extension CGRect {
                 CGRect(x: h.maxX, y: minY, width: maxX - h.maxX, height: height),
                 CGRect(x: h.minX, y: minY, width: h.width, height: h.minY - minY),
                 CGRect(x: h.minX, y: h.maxY, width: h.width, height: maxY - h.maxY)].filter { $0.width > 0 && $0.height > 0 }
-    }
-}
-
-/// Menu artwork. Course cards render in the background and appear when ready.
-@MainActor
-@Observable
-final class MenuArt {
-    static let shared = MenuArt()
-    private(set) var cards: [String: UIImage] = [:]
-    @ObservationIgnored private var pending: Set<String> = []
-    @ObservationIgnored private var titleImage: UIImage?
-
-    func card(_ level: Level) -> UIImage? {
-        if let img = cards[level.name] { return img }
-        if !pending.contains(level.name) {
-            pending.insert(level.name)
-            let lvl = level
-            Task.detached(priority: .userInitiated) {
-                let img = CourseArt.card(lvl, pixelWidth: 420)
-                await MainActor.run { MenuArt.shared.cards[lvl.name] = img }
-            }
-        }
-        return nil
-    }
-
-    /// Warm the cache so the course map opens instantly.
-    func prefetch(_ levels: [Level]) { for l in levels { _ = card(l) } }
-
-    func title(size: CGSize) -> UIImage {
-        if let titleImage { return titleImage }
-        let level = Levels.course.first { $0.name == "Reflection" } ?? Levels.course[0]
-        let w: CGFloat = 520
-        let h = w * max(size.height, 1) / max(size.width, 1)
-        // Course top edge ~58% down the screen: logo over the meadow, cups just above the buttons.
-        let top = Course.height + CourseArt.borderOut
-        let rect = CGRect(x: Course.width / 2 - w / 2, y: top - h * 0.42, width: w, height: h)
-        let img = CourseArt.scenic(level, rect: rect, pixelWidth: size.width * 3)
-        titleImage = img
-        return img
     }
 }
