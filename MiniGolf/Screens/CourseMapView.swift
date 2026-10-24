@@ -151,7 +151,7 @@ private struct PairCard: View {
         Button(action: action) {
             // The backdrop sets the card's shape; the art and labels sit over it, so the art can't stretch the card.
             Color(theme.rough)
-                .aspectRatio(0.7, contentMode: .fit)
+                .aspectRatio(CourseArt.cardAspect, contentMode: .fit)
                 .overlay {
                     if let img = MenuArt.shared.card(level) {
                         // The art spills past the card before it's clipped; don't let the spill catch taps.
