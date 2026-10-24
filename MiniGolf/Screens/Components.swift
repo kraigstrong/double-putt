@@ -78,7 +78,7 @@ struct PillButton: View {
     }
 }
 
-/// A nine-pair round's medal (see Medal for the thresholds).
+/// A nine-hole round's medal (see Medal for the thresholds).
 struct MedalView: View {
     let medal: Medal
     var size: CGFloat = 44
@@ -113,7 +113,7 @@ struct MedalView: View {
     }
 }
 
-/// A pair's double-ace trophy: a gold cup with a gem in the pair's setting color, or a dashed outline until it's won.
+/// A hole's double-ace trophy: a gold cup with a gem in the hole's setting color, or a dashed outline until it's won.
 struct TrophyView: View {
     var earned = true
     var accent: Color = .putt

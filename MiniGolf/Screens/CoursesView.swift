@@ -37,7 +37,7 @@ struct CoursesView: View {
             LinearGradient(colors: [Color(UIColor(hex: 0x1B3A28)), Color.ink], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
-        .onAppear { MenuArt.shared.prefetch(game.nines.map { GameModel.levels[$0.pairs.lowerBound] }) }
+        .onAppear { MenuArt.shared.prefetch(game.nines.map { GameModel.levels[$0.holes.lowerBound] }) }
         .confirmationDialog("Start a new round?", isPresented: Binding(get: { confirmNine != nil }, set: { if !$0 { confirmNine = nil } }),
                             titleVisibility: .visible, presenting: confirmNine) { nine in
             Button("Start \(nine.name)", role: .destructive) { app.playRound(nine) }
@@ -70,11 +70,11 @@ private struct CourseCard: View {
     let action: () -> Void
 
     var body: some View {
-        let first = GameModel.levels[nine.pairs.lowerBound]
+        let first = GameModel.levels[nine.holes.lowerBound]
         let theme = Theme.for(first)
         let unlocked = game.isUnlocked(nine)
         let best = game.bestRound(nine)
-        let won = nine.pairs.filter { game.hasTrophy(GameModel.levels[$0]) }.count
+        let won = nine.holes.filter { game.hasTrophy(GameModel.levels[$0]) }.count
         let inProgress = game.round.map { $0.nine == nine.id && !$0.isFinished && $0.hasProgress } ?? false
         Button(action: action) {
             HStack(spacing: 12) {
@@ -87,7 +87,7 @@ private struct CourseCard: View {
                     Text(nine.name).font(.rounded(21, .heavy))
                     Text(nine.settingNames).font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.65))
                     if unlocked {
-                        Text("Par \(game.par(of: nine)) · \(won)/\(nine.pairs.count) 🏆" + (inProgress ? " · in progress" : ""))
+                        Text("Par \(game.par(of: nine)) · \(won)/\(nine.holes.count) 🏆" + (inProgress ? " · in progress" : ""))
                             .font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.85))
                     } else if let before = game.prerequisite(of: nine) {
                         Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
@@ -135,7 +135,7 @@ extension Nine {
     /// The course's settings in order, e.g. "Meadow · Garden · Moat · Seaside".
     @MainActor var settingNames: String {
         var seen: [String] = []
-        for i in pairs where !seen.contains(GameModel.levels[i].setting) { seen.append(GameModel.levels[i].setting) }
+        for i in holes where !seen.contains(GameModel.levels[i].setting) { seen.append(GameModel.levels[i].setting) }
         return seen.map { Self.shortNames[$0] ?? $0.capitalized }.joined(separator: " · ")
     }
 

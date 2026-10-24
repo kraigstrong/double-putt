@@ -1,7 +1,7 @@
-// Middle stretch: pairs 11–13 (designed with Tools/solver).
+// Middle stretch: holes 11–13 (designed with Tools/solver).
 extension Levels {
 
-    /// Pair 11. Looks like a Mirror pair (hollow by A's cup, hill by B's), but both
+    /// Hole 11. Looks like a Mirror hole (hollow by A's cup, hill by B's), but both
     /// mounds shove the ball the same way, so both balls need the same correction: Same.
     static func hollow() -> Level {
         var l = Level("Hollow", par: [2, 2], hint: "Hills push, hollows pull.")
@@ -15,7 +15,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 12. A's cup sits in a walled canyon; the only way in is the pipe that starts in B.
+    /// Hole 12. A's cup sits in a walled canyon; the only way in is the pipe that starts in B.
     /// So the balls swap: B's ball takes the pipe to A's cup, A's ball crosses the gap to B's cup.
     static func canyonPipe() -> Level {
         var l = Level("Canyon Pipe", par: [3, 2], hint: "The way into one canyon starts on the other green.")
@@ -30,7 +30,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 13. A's left apron tilts into a pipe mouth (and the mesa backs it up);
+    /// Hole 13. A's left apron tilts into a pipe mouth (and the mesa backs it up);
     /// B's pipe comes up onto a tilted top that curls the ball toward the cup — power decides.
     static func mesa() -> Level {
         var l = Level("Mesa", par: [2, 2], hint: "Both pipes sit on tilted ground.")

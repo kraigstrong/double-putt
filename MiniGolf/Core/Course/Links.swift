@@ -6,7 +6,7 @@ import Foundation
 // too steep to hold a ball, so a short putt rolls back. Designed with Tools/solver against Tools/levels/BRIEF.md
 // (course 7 targets).
 extension Levels {
-    /// Pair 1, the warm-up. Two leaning greens read two ways. A's long green leans hard right (170), so its ball has
+    /// Hole 1, the warm-up. Two leaning greens read two ways. A's long green leans hard right (170), so its ball has
     /// to start well left of the cup, about 11° off the straight line, and curl in; a small, steep hollow just below
     /// and left of the cup gathers a ball that arrives on that line. B's ball rolls off a tee green across a long
     /// fringe apron and up a main green that climbs toward the cup (it falls back toward the tee), into a little dip
@@ -38,7 +38,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. Short vs long: A is a short side whose straight line runs through a round pot bunker in front of the
+    /// Hole 2. Short vs long: A is a short side whose straight line runs through a round pot bunker in front of the
     /// cup; B is a long haul up a green leaning hard left (150), so B's ball starts out well right, about 8° off the
     /// straight line, and curls back; a small hollow below and right of B's cup catches it on that line. Same, up and
     /// to the right, firm enough for the long one: A's ball crosses the sand, which eats the extra pace and drops it in.
@@ -66,7 +66,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 3. Both greens are bowls. A's green leans right (95), toward a burn down the middle, and a big steep bowl
+    /// Hole 3. Both greens are bowls. A's green leans right (95), toward a burn down the middle, and a big steep bowl
     /// (365) fills its top; the cup sits up the bowl's far bank, off the bottom. The ball has to start about 8° left
     /// of the cup and curl right with the lean into the bowl, crossing it to one side, then climb the bank, whose
     /// pull takes the pace off: without the bowl the same putt runs 40 units past. Come up short and the bank (over
@@ -99,7 +99,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 4. Both greens bend round gorse, and the fence between them is open beside the lower legs (shared rough,
+    /// Hole 4. Both greens bend round gorse, and the fence between them is open beside the lower legs (shared rough,
     /// which also stops banks off it lining up into easy double aces). A doglegs left and leans left; its fringe swells
     /// into a wide apron along the gorse at the corner. The ace starts right of the cup and rides that apron, slowing as
     /// it curls into the upper leg. B bends right and leans right, a little harder, so its ball has to start left of its
@@ -129,7 +129,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 5. A climbs: the green leans back toward the tee, a big dune on its left throws the ball right, and a false
+    /// Hole 5. A climbs: the green leans back toward the tee, a big dune on its left throws the ball right, and a false
     /// front (a bank too steep to hold a ball) guards the upper tier, so a putt that doesn't crest it rolls back down.
     /// The ace starts about 10° left of the cup and lets the dune bring it round into the dish. B is short: it starts on
     /// the upper tier and steps down (the bank falls up and to the right), then runs to a cup near the back with a deep
@@ -164,7 +164,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. A is a long green running up from the right to a pond along the outer fence, leaning hard into it: start
+    /// Hole 6. A is a long green running up from the right to a pond along the outer fence, leaning hard into it: start
     /// right of the cup, ride the fringe up the high side, and let the slope bring the ball back down to the cup (soft
     /// putts break into the pond). B is a short green behind a cross bunker, leaning back toward the tee and left: a
     /// firm putt carries through the sand, then breaks left into the cup. Both lean left, so both balls start right of
@@ -197,7 +197,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. One double green across the top of both sides, open through the middle wall, with the two cups close
+    /// Hole 7. One double green across the top of both sides, open through the middle wall, with the two cups close
     /// together near its middle. Each side leans in toward the middle (A's right at 146.5, B's left at 102), and a
     /// big steep hump (380) stands on the outside of each lane where it opens onto the double green. A putt up either
     /// lane rides the inner flank of its hump, which sheds it in across the middle; the lean keeps it curling, so each
@@ -232,7 +232,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 8. Two saddles, turned opposite ways. A is high front and back (two humps just left of the line) and
+    /// Hole 8. Two saddles, turned opposite ways. A is high front and back (two humps just left of the line) and
     /// falls away to wet ground at its waist; the cup sits in a dish in the waist, with the back hump behind it, and
     /// the whole green leans right. Its ball starts well left of the cup, curls back right and runs past it, and the
     /// back hump (too steep to hold a ball) rolls it back down into the cup. B is high left and right: its ball leaves
@@ -279,7 +279,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9, the finale. A is the lighthouse: a narrow tower of green with the sea either side, leaning left all
+    /// Hole 9, the finale. A is the lighthouse: a narrow tower of green with the sea either side, leaning left all
     /// the way up. A false front climbs into the lantern room, a deep dish round the cup: come up short and the ball
     /// rolls back down off the lip. Its ball starts right of the cup and the lean brings it back. B's ball crosses a
     /// bunker that runs wall to wall, which takes most of its pace, then the green leans away to the right and the

@@ -118,7 +118,7 @@ extension Level {
 // MARK: - Reading the ground (drawing)
 
 extension Level {
-    /// Whether anything tilts this pair's green.
+    /// Whether anything tilts this hole's green.
     var hasGround: Bool { !slopes.isEmpty || !mounds.isEmpty || !terrain.isEmpty }
 
     /// Whether `p` sits on sloped green or fringe: in a slope box, a mound, or a side with terrain.

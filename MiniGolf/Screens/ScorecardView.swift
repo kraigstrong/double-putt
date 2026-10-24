@@ -10,7 +10,7 @@ struct ScorecardView: View {
 
     private var scores: [Int?] { game.round?.scores ?? [] }
     private var nine: Nine { game.roundNine ?? game.nines[0] }
-    private var pairs: [Int] { Array(nine.pairs) }
+    private var holes: [Int] { Array(nine.holes) }
 
     var body: some View {
         ZStack {
@@ -63,7 +63,7 @@ struct ScorecardView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         header
-                        ForEach(Array(pairs.enumerated()), id: \.offset) { k, i in
+                        ForEach(Array(holes.enumerated()), id: \.offset) { k, i in
                             row(k, i)
                         }
                         total
@@ -97,7 +97,7 @@ struct ScorecardView: View {
         .padding(.vertical, 6)
     }
 
-    /// Row `k` of the nine: course pair `i`.
+    /// Row `k` of the nine: course hole `i`.
     private func row(_ k: Int, _ i: Int) -> some View {
         let level = GameModel.levels[i]
         let par = game.par(of: level)

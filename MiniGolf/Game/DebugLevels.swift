@@ -1,5 +1,5 @@
 #if DEBUG
-// Mechanic test pairs for checking visuals: launch with `-tests 1`.
+// Mechanic test holes for checking visuals: launch with `-tests 1`.
 enum DebugLevels {
     static let all: [Level] = [starbaseTest(), muniTest(), stadiumTest(), tunnelTest(), slopeTest(), contourTest(), surfaceTest(), rotorTest(),
                                sliderTest(), funfairTest("midway"), funfairTest("bigtop"), funfairTest("fireworks")]

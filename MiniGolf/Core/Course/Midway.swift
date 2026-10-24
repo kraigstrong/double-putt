@@ -1,10 +1,10 @@
 import Foundation
 
-// Midway (course 4), the first Funfair course: a daytime fairground that introduces kicker pads (pair 2) and
-// carousels (pair 3). Designed with Tools/solver against Tools/levels/BRIEF.md.
+// Midway (course 4), the first Funfair course: a daytime fairground that introduces kicker pads (hole 2) and
+// carousels (hole 3). Designed with Tools/solver against Tools/levels/BRIEF.md.
 extension Levels {
 
-    /// Pair 1. Each cup sits in a ring of balloons with one way in. A's ring opens toward its tee, so A is a straight
+    /// Hole 1. Each cup sits in a ring of balloons with one way in. A's ring opens toward its tee, so A is a straight
     /// putt; B's opens at the back, so B's ball goes up past its ring and drops in off the back fence. A goes up-right
     /// and B up-left: Mirror, at the pace of A's long putt.
     static func ringToss() -> Level {
@@ -30,7 +30,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. A's long lane starts at a springboard that launches whatever reaches it up to the cup, so A only needs a
+    /// Hole 2. A's long lane starts at a springboard that launches whatever reaches it up to the cup, so A only needs a
     /// soft putt that gets to the pad. That soft putt is just what B's short hop across the duck pond wants: aim A at
     /// the pad and B at its cup, which is Mirror.
     static func springboard() -> Level {
@@ -54,7 +54,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 3. B's teacups slow a crossing ball and curl it the way they spin, so B aims a little right of its cup,
+    /// Hole 3. B's teacups slow a crossing ball and curl it the way they spin, so B aims a little right of its cup,
     /// across the side turning its way, and the spin brings it round. A's awning hides its cup: bank off the middle
     /// wall. Both go up-right, so Same, firm enough for A's bank; the teacups soak up the extra for B.
     static func teacups() -> Level {
@@ -74,7 +74,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 4. Only A's ball has to time the ducks: its cup is a straight putt up through both rows. B's balloons leave
+    /// Hole 4. Only A's ball has to time the ducks: its cup is a straight putt up through both rows. B's balloons leave
     /// one way, a long bank off the left fence, and A's line makes it with Mirror. Then wait for both rows to open at
     /// once; that comes round twice every three seconds.
     static func shootingGallery() -> Level {
@@ -98,7 +98,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 5. Short vs long, turned round: the long lane is the easy one, since the striker launches whatever reaches
+    /// Hole 5. Short vs long, turned round: the long lane is the easy one, since the striker launches whatever reaches
     /// it up to the bell and back down into the cup, if it meets the pad in the right spot. The chip is the test: round
     /// the booth off the left fence, soft enough not to run off the back, and that same line (Same) finds the striker.
     static func highStriker() -> Level {
@@ -118,7 +118,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. A's pond leaves one way round, off the left fence, and it is a long way, so A needs a firm putt. B is a
+    /// Hole 6. A's pond leaves one way round, off the left fence, and it is a long way, so A needs a firm putt. B is a
     /// short hop that pace would race past, but its carousel drags the pace off: Mirror sends B's ball up across the
     /// disk and it comes off slow enough to drop.
     static func duckPond() -> Level {
@@ -138,7 +138,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A's cup hides behind the merry-go-round's pole: putt right of it, with the spin, and the ride curls the
+    /// Hole 7. A's cup hides behind the merry-go-round's pole: putt right of it, with the spin, and the ride curls the
     /// ball in behind. B's springboard fires through the prize booth's door, but only a firm putt off the left fence,
     /// past the duck pond, gets there. Mirror, as firm as B needs and as gentle as A's ride allows.
     static func merryGoRound() -> Level {
@@ -168,7 +168,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 8. A balloon blocks A's cup from the front, so A's ball has to run past it and bounce back in off the car
+    /// Hole 8. A balloon blocks A's cup from the front, so A's ball has to run past it and bounce back in off the car
     /// patrolling the duck pond. B's car weaves across the way to the prize booth's door. Mirror, struck when A's car
     /// will be behind the cup and B's car out of the way.
     static func bumperCars() -> Level {
@@ -204,7 +204,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9. The finale: neither ball can reach its own cup. B's ball slips past the duck pond onto the springboard,
+    /// Hole 9. The finale: neither ball can reach its own cup. B's ball slips past the duck pond onto the springboard,
     /// which fires it across B, through the gap and into A's prize booth. A's ball takes the pipe over to B, where the
     /// merry-go-round brakes it and curls it into B's cup. Same, at a pace the merry-go-round can tame.
     static func grandPrize() -> Level {

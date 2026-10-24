@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// One trophy per pair, won with a double ace (in a round or Free Play). Each nine is a cabinet of three
-/// shelves; tapping a slot plays that pair.
+/// One trophy per hole, won with a double ace (in a round or Free Play). Each nine is a cabinet of three
+/// shelves; tapping a slot plays that hole.
 struct TrophyShelfView: View {
     let app: AppState
     private var game: GameModel { app.game }
@@ -33,10 +33,10 @@ struct TrophyShelfView: View {
                                     Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
                                         .font(.rounded(12, .bold)).foregroundStyle(Color.putt)
                                 } else {
-                                    Text("\(won(nine.pairs))/\(nine.pairs.count)").font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
+                                    Text("\(won(nine.holes))/\(nine.holes.count)").font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
                                 }
                             }
-                            cabinet(Array(nine.pairs))
+                            cabinet(Array(nine.holes))
                                 .disabled(locked)
                                 .opacity(locked ? 0.55 : 1)
                         }
@@ -57,8 +57,8 @@ struct TrophyShelfView: View {
         indices.filter { game.hasTrophy(GameModel.levels[$0]) }.count
     }
 
-    private func cabinet(_ pairs: [Int]) -> some View {
-        let rows = stride(from: 0, to: pairs.count, by: 3).map { Array(pairs[$0..<min($0 + 3, pairs.count)]) }
+    private func cabinet(_ holes: [Int]) -> some View {
+        let rows = stride(from: 0, to: holes.count, by: 3).map { Array(holes[$0..<min($0 + 3, holes.count)]) }
         return VStack(spacing: 14) {
             ForEach(rows, id: \.self) { row in
                 VStack(spacing: 0) {
@@ -106,7 +106,7 @@ struct TrophyShelfView: View {
     private func plaque(_ i: Int) -> some View {
         let level = GameModel.levels[i]
         let earned = game.hasTrophy(level)
-        return Text("\(game.pairNumber(i)) · \(level.name)")
+        return Text("\(game.holeNumber(i)) · \(level.name)")
             .font(.rounded(9, .heavy))
             .lineLimit(1)
             .minimumScaleFactor(0.7)

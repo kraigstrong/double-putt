@@ -1,6 +1,6 @@
 import UIKit
 
-/// Visual setting for a hole pair. Everything is drawn in code from these values.
+/// Visual setting for a hole. Everything is drawn in code from these values.
 struct Theme {
     enum Border { case wood, stone, painted, chainLink, ties }
     enum Ambient { case none, petals, leaves, motes, fireflies, snow, dust, confetti, sparks, mist }

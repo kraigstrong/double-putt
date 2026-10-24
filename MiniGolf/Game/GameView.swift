@@ -35,7 +35,7 @@ struct GameView: View {
                 powerMeter(geo)
 
                 let course = localCourseFrame(geo)
-                // Hints sit below the tees (empty on every pair); the tutorial uses the open middle of Reflection.
+                // Hints sit below the tees (empty on every hole); the tutorial uses the open middle of Reflection.
                 if showHint && game.tutorial == nil && !game.showResult {
                     HintBanner(text: game.level.hint)
                         .frame(width: max(course.width, 1))
@@ -83,7 +83,7 @@ struct GameView: View {
             .onChange(of: geo.size) { updateInsets(geo) }
             .onChange(of: game.paused) { _, paused in keepAwake(!paused) }
             .onChange(of: scenePhase) { _, phase in
-                // Leaving the app mid-pair pauses it, so the pause menu is up on return and nothing moved meanwhile.
+                // Leaving the app mid-hole pauses it, so the pause menu is up on return and nothing moved meanwhile.
                 if phase != .active && !game.showResult && !game.showScorecard && !game.isComplete { game.paused = true }
             }
             .task(id: game.loadToken) {
@@ -95,12 +95,12 @@ struct GameView: View {
     }
 
     private var subtitle: String {
-        var s = "HOLE \(game.pairNumber(game.levelIndex)) · PAR \(game.par)"
+        var s = "HOLE \(game.holeNumber(game.levelIndex)) · PAR \(game.par)"
         if game.inRound { s += " · " + (game.roundToPar.map { "ROUND \(GameModel.toPar($0))" } ?? "ROUND E") }
         return s
     }
 
-    /// Aiming can outlast auto-lock, so the screen stays on while a pair is in play; paused, it sleeps as usual.
+    /// Aiming can outlast auto-lock, so the screen stays on while a hole is in play; paused, it sleeps as usual.
     private func keepAwake(_ on: Bool) { UIApplication.shared.isIdleTimerDisabled = on }
 
     private func updateInsets(_ geo: GeometryProxy) {
@@ -122,7 +122,7 @@ struct GameView: View {
             VStack(spacing: 1) {
                 HStack(spacing: 5) {
                     Text(game.level.name).font(.rounded(compact ? 18 : 20, .heavy)).lineLimit(1).minimumScaleFactor(0.7)
-                    // Tapping the name brings the pair's hint back; the bulb says so.
+                    // Tapping the name brings the hole's hint back; the bulb says so.
                     if !game.level.hint.isEmpty {
                         Image(systemName: showHint && game.tutorial == nil ? "lightbulb.fill" : "lightbulb")
                             .font(.system(size: compact ? 12 : 13, weight: .bold))
@@ -139,7 +139,7 @@ struct GameView: View {
             .onTapGesture { withAnimation { showHint.toggle() } }
             Spacer(minLength: 0)
             ScoreChip(index: 1, strokes: game.strokes[1], sunk: game.sunk[1])
-            // A round is played as it lies; only Free Play can start a pair over. The gap keeps the name centered.
+            // A round is played as it lies; only Free Play can start a hole over. The gap keeps the name centered.
             if game.inRound {
                 Color.clear.frame(width: compact ? 38 : 42, height: compact ? 38 : 42)
             } else {
@@ -545,7 +545,7 @@ private struct ResultCard: View {
         ZStack {
             Color.black.opacity(0.45).ignoresSafeArea()
             VStack(spacing: 14) {
-                // Pairs earn a trophy for a double ace (medals are for nine-pair rounds).
+                // Holes earn a trophy for a double ace (medals are for nine-hole rounds).
                 if game.strokes == [1, 1] {
                     VStack(spacing: 8) {
                         TrophyView(accent: Color(game.theme.accent), size: 92)

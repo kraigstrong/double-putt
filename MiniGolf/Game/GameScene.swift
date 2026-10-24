@@ -186,7 +186,7 @@ final class GameScene: SKScene {
             guard hypot(dx, dy) > r * 0.9 else { return false }
             return !placed.contains { hypot($0.0.x - p.x, $0.0.y - p.y) < ($0.1 + r) * overlap }
         }
-        // Prop textures are cached by key across pairs, so keys carry the setting: each setting draws its own.
+        // Prop textures are cached by key across holes, so keys carry the setting: each setting draws its own.
         func add(_ prop: CourseArt.Prop, key: String, at p: CGPoint, sway: Bool) {
             let node = SKSpriteNode(texture: texture(key) { prop.image }, size: prop.size)
             node.position = p
@@ -654,7 +654,7 @@ final class GameScene: SKScene {
             let distance = hypot(end.x - start.x, end.y - start.y)
             gull.run(.sequence([.move(to: end, duration: Double(distance) / .random(in: 60...80)), .removeFromParent()]))
         }
-        // The first comes along soon after the pair loads, then every so often.
+        // The first comes along soon after the hole loads, then every so often.
         run(.sequence([.wait(forDuration: 3, withRange: 2), fly,
                        .repeatForever(.sequence([.wait(forDuration: 11, withRange: 8), fly]))]), withKey: "gulls")
     }
@@ -828,7 +828,7 @@ final class GameScene: SKScene {
     func loadLevel() {
         removeAction(forKey: "demo")
         removeAction(forKey: "result")
-        // Retrying a pair keeps the movers' clock, so they carry on instead of jumping back.
+        // Retrying a hole keeps the movers' clock, so they carry on instead of jumping back.
         let same = level.name == model.level.name
         let clock = same ? world.time : 0
         level = model.level
@@ -1206,7 +1206,7 @@ final class GameScene: SKScene {
         ]))
         node.childNode(withName: "shadow")?.run(.fadeOut(withDuration: 0.1))
         let strokes = model.strokes[i]
-        // Just the side's strokes: par words only make sense for the whole pair, on the result card.
+        // Just the side's strokes: par words only make sense for the whole hole, on the result card.
         let text = strokes == 1 ? "ACE!" : "\(strokes)"
         if strokes == 1, model.strokes != [1, 1] || world.balls.contains(where: { $0.sunkIn == nil }) {
             run(.sequence([.wait(forDuration: 0.25), .run { SoundFX.shared.ace() }]))

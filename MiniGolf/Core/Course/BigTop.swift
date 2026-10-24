@@ -4,7 +4,7 @@ import Foundation
 // Tools/levels/BRIEF.md (course 5 targets: narrower windows and no near-free sides, after Midway played easy).
 extension Levels {
 
-    /// Pair 1. A's cup sits in the centre ring, whose front door faces the middle wall: bank in off the wall, gently,
+    /// Hole 1. A's cup sits in the centre ring, whose front door faces the middle wall: bank in off the wall, gently,
     /// or the ball runs straight out the back door. B's springboard waits behind the one gap in the booths, up-left of
     /// its tee, and fires whatever reaches it up to the cup. A goes up-right and B up-left: Mirror, at A's pace.
     static func ringmaster() -> Level {
@@ -30,7 +30,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. The juggler's three balloons ring A's cup, and the bottom one blocks the straight putt: bank in off the
+    /// Hole 2. The juggler's three balloons ring A's cup, and the bottom one blocks the straight putt: bank in off the
     /// left fence, through the gap on the lower left. B's cup hides behind a booth, but the spinning plate turns
     /// clockwise: send the ball up its left side and it curls round over the top into the cup. Both go up-left: Same.
     static func juggler() -> Level {
@@ -54,7 +54,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 3. Each ball passes a trapeze: A's swings past the one door in A's booths every two seconds, B's crosses
+    /// Hole 3. Each ball passes a trapeze: A's swings past the one door in A's booths every two seconds, B's crosses
     /// B's lane every three, the other way. A's long putt through the door goes up-right and B's, to the net behind its
     /// cup, up-left: Mirror. Then wait for a moment when both trapezes will be clear.
     static func trapeze() -> Level {
@@ -81,7 +81,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 4. Short vs long: A's booth closes the ring, so A's ball must go into the cannon, which fires it across at
+    /// Hole 4. Short vs long: A's booth closes the ring, so A's ball must go into the cannon, which fires it across at
     /// the pace it went in; only a gentle shot curls into the cup, a hot one skims past into the pond. B is a short
     /// chip on an island into a bowl. Both aim up-right (Same): A at the cannon, not its cup.
     static func humanCannonball() -> Level {
@@ -108,7 +108,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 5. A's causeway starts right of its tee and its cup sits right of the causeway, so A's ball walks it corner
+    /// Hole 5. A's causeway starts right of its tee and its cup sits right of the causeway, so A's ball walks it corner
     /// to corner, a hair right of straight. B's ring leans right and a hill stands in the way: go up its left flank and
     /// let the lean bring the ball back. Mirror, firm enough to cross A's pond.
     static func tightrope() -> Level {
@@ -129,7 +129,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. A's ball has one door to its cup, and it only gets through while both spinning plates turn edge-on,
+    /// Hole 6. A's ball has one door to its cup, and it only gets through while both spinning plates turn edge-on,
     /// which comes round every 1.25 s. B's cup sits just past the carousel, whose near side turns upward: it takes the
     /// pace off B's ball and turns it up into the cup. A goes up-right, B up-left: Mirror, struck as the plates open.
     static func spinningPlates() -> Level {
@@ -153,7 +153,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A's springboard waits behind the one door in the booths, and the hoop keeps sliding across it: putt
+    /// Hole 7. A's springboard waits behind the one door in the booths, and the hoop keeps sliding across it: putt
     /// through the door while the hoop is clear and the springboard fires the ball to the cup. B's pond blocks the
     /// left, so B banks off the right fence. Both go up-right, so Same, firm enough for B's bank.
     static func fireHoop() -> Level {
@@ -177,7 +177,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 8. Clowns pile out pad to pad: clip A's first springboard so it fires through the gap in the booths onto
+    /// Hole 8. Clowns pile out pad to pad: clip A's first springboard so it fires through the gap in the booths onto
     /// the second, which sends the ball up to the cup; any pace that reaches the pad will do. B's pipe keeps the ball's
     /// line, so aim through it at the cup, past the windmill. A goes up-right and B up-left: Mirror, at B's pace.
     static func clownCar() -> Level {
@@ -205,7 +205,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9. The finale: the carousel bends A's ball, the pipe keeps the bend, and the windmill by the cup lets it
+    /// Hole 9. The finale: the carousel bends A's ball, the pipe keeps the bend, and the windmill by the cup lets it
     /// through only at the right moment. B's springboard sits behind one door, past the moat. Mirror, firm, on time.
     static func showstopper() -> Level {
         var l = Level("Showstopper", par: [3, 3],
