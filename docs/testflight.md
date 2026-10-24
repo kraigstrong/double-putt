@@ -31,8 +31,8 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 ### In BrightBench (a separate session)
 - [ ] `brightbench.app/api/double-putt/events`: validates batches against `docs/analytics.md` and keeps daily
   counters, like Bigger Fish's endpoint.
-- [ ] `brightbench.app/double-putt/stats`: the counts, by build and channel.
-- [ ] `brightbench.app/double-putt/privacy`: the privacy policy (no account, progress stays on the device,
+- [ ] `brightbench.app/doubleputt/stats`: the counts, by build and channel.
+- [ ] `brightbench.app/doubleputt/privacy`: the privacy policy (no account, progress stays on the device,
   anonymous gameplay counts).
 
 ### In App Store Connect (you)
