@@ -20,6 +20,8 @@ final class SoundFX {
 
     private static let enabledKey = "soundOn"
     private static let poolSize = 10
+    /// The engine's output level (a store capture's rebuilt soundtrack applies it too).
+    static let mixerVolume: Float = 0.9
 
     private var engine: AVAudioEngine?
     private var players: [AVAudioPlayerNode] = []
@@ -47,6 +49,28 @@ final class SoundFX {
 
     private var lastWall: TimeInterval = -.infinity
     private var lastTick: TimeInterval = -.infinity
+
+    #if DEBUG
+    /// Store capture (StoreCapture.swift): each sound is logged by name with its volume instead of played, and its
+    /// spacing is timed on the capture's clock, so the scripts can rebuild the soundtrack from the same sounds.
+    var captureCue: ((String, Double) -> Void)?
+    var captureClock: (() -> TimeInterval)?
+    #endif
+
+    private var capturing: Bool {
+        #if DEBUG
+        captureCue != nil
+        #else
+        false
+        #endif
+    }
+
+    private var now: TimeInterval {
+        #if DEBUG
+        if let captureClock { return captureClock() }
+        #endif
+        return ProcessInfo.processInfo.systemUptime
+    }
 
     private init() {
         isEnabled = UserDefaults.standard.object(forKey: Self.enabledKey) as? Bool ?? true
@@ -90,7 +114,7 @@ final class SoundFX {
             newEngine.connect(node, to: newEngine.mainMixerNode, format: format)
             nodes.append(node)
         }
-        newEngine.mainMixerNode.outputVolume = 0.9
+        newEngine.mainMixerNode.outputVolume = Self.mixerVolume
         newEngine.prepare()
         engine = newEngine
         players = nodes
@@ -161,10 +185,10 @@ final class SoundFX {
     }
 
     func wall(intensity: Double) {
-        guard isEnabled else { return }
-        let now = ProcessInfo.processInfo.systemUptime
-        guard now - lastWall >= 0.04 else { return }
-        lastWall = now
+        guard isEnabled || capturing else { return }
+        let time = now
+        guard time - lastWall >= 0.04 else { return }
+        lastWall = time
         play(wallHits.randomElement(), volume: Self.scaled(intensity, floor: 0.2))
     }
 
@@ -187,16 +211,24 @@ final class SoundFX {
     func tap() { play(tapBuffer, volume: 0.7) }
 
     func tick() {
-        guard isEnabled else { return }
-        let now = ProcessInfo.processInfo.systemUptime
-        guard now - lastTick >= 0.03 else { return }
-        lastTick = now
+        guard isEnabled || capturing else { return }
+        let time = now
+        guard time - lastTick >= 0.03 else { return }
+        lastTick = time
         play(tickBuffer, volume: 0.55)
     }
 
     // MARK: - Playback
 
     private func play(_ buffer: @autoclosure () -> AVAudioPCMBuffer?, volume: Double) {
+        #if DEBUG
+        if let captureCue {
+            if let buffer = buffer(), let name = named.first(where: { $0.buffer === buffer })?.name {
+                captureCue(name, Self.clamp(volume))
+            }
+            return
+        }
+        #endif
         guard isEnabled else { return }
         if !didStart { start() }
         guard let buffer = buffer(), let engine, !players.isEmpty else { return }
@@ -260,6 +292,32 @@ final class SoundFX {
         tapBuffer = makeBuffer(Synth.tap(), peak: 0.35)
         tickBuffer = makeBuffer(Synth.tick(), peak: 0.25, fadeOut: 0.004)
     }
+
+    #if DEBUG
+    /// Every sound by name, for a store capture's cue log and soundtrack.
+    var named: [(name: String, buffer: AVAudioPCMBuffer)] {
+        func each(_ prefix: String, _ buffers: [AVAudioPCMBuffer]) -> [(name: String, buffer: AVAudioPCMBuffer)] {
+            buffers.enumerated().map { ("\(prefix)-\($0.offset)", $0.element) }
+        }
+        let singles: [(String, AVAudioPCMBuffer?)] = [
+            ("cup", cupBuffer), ("splash", splashBuffer), ("ace", aceBuffer), ("double-ace", doubleAceBuffer),
+            ("good", goodBuffer), ("neutral", neutralBuffer), ("tap", tapBuffer), ("tick", tickBuffer),
+        ]
+        return each("putt-soft", puttSoft) + each("putt-hard", puttHard) + each("wall", wallHits)
+            + each("clack", ballClacks) + singles.compactMap { name, buffer in buffer.map { (name, $0) } }
+    }
+
+    /// Writes every sound to `directory` as <name>.wav, before the mixer (`mixerVolume`).
+    func exportSounds(to directory: URL) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for (name, buffer) in named {
+            let file = try AVAudioFile(forWriting: directory.appendingPathComponent("\(name).wav"),
+                                       settings: buffer.format.settings, commonFormat: .pcmFormatFloat32, interleaved: false)
+            try file.write(from: buffer)
+        }
+    }
+
+    #endif
 
     /// Normalizes to `peak`, trims the inaudible tail and fades the end to avoid clicks.
     private func makeBuffer(_ samples: [Float], peak: Float, fadeOut: Double = 0.01) -> AVAudioPCMBuffer? {
