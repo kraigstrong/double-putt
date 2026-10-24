@@ -260,6 +260,7 @@ Tools/capture/footage.sh windmill          # 60 fps at 1320x2868 with its sound 
 Tools/capture/screenshots.sh               # the stills in screenshots.json: 6.9" (1320x2868) and 6.5" (1284x2778), no alpha
 Tools/capture/frames.py build/capture/screenshots build/capture/captioned   # captioned, in the game's typeface
 Tools/capture/trailer.sh --music ~/Music/track.m4a   # records what the edit needs, then both cuts
+Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # the site's loops, stills, trailer and preview image
 ```
 
 - **Clips** (`clips.json`) name a hole and its swings: `"aim": "solution"` or `[degrees, power]`, which ball the drag
