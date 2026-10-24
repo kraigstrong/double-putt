@@ -37,7 +37,6 @@ struct CoursesView: View {
             LinearGradient(colors: [Color(UIColor(hex: 0x1B3A28)), Color.ink], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
-        .onAppear { MenuArt.shared.prefetch(game.nines.map { GameModel.levels[$0.holes.lowerBound] }) }
         .confirmationDialog("Start a new round?", isPresented: Binding(get: { confirmNine != nil }, set: { if !$0 { confirmNine = nil } }),
                             titleVisibility: .visible, presenting: confirmNine) { nine in
             Button("Start \(nine.name)", role: .destructive) { app.playRound(nine) }
