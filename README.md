@@ -58,7 +58,7 @@ Tap the pair name (the 💡) to bring the pair's hint back; Pause → **How to P
 | Path | What |
 | --- | --- |
 | `MiniGolf/Core/` | Deterministic physics (fixed 1/480 s step) and level geometry. Shared with the solver. |
-| `MiniGolf/Art/` | Themes and procedural art: every course, tree, ball and the menu art is drawn in code. |
+| `MiniGolf/Art/` | Themes and procedural art: every course, tree, ball and the menu art is drawn in code. The menu art (title backdrop and every hole's card) is drawn once per build behind the launch loading screen and cached in `Library/Caches/MenuArt` (`MenuArt.swift`). |
 | `MiniGolf/Game/` | SpriteKit scene (camera fit around the HUD, aim, guide, effects) and the SwiftUI HUD. |
 | `MiniGolf/Screens/` | Title, Courses, Free Play, Trophy Shelf, scorecard, shared components. |
 | `MiniGolf/Audio/Sound.swift` | Synthesized sound effects (no audio assets). |

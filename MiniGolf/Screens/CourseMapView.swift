@@ -43,7 +43,6 @@ struct CourseMapView: View {
             LinearGradient(colors: [Color(UIColor(hex: 0x1B3A28)), Color.ink], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
-        .onAppear { MenuArt.shared.prefetch(GameModel.levels) }
     }
 
     private var subtitle: String {
@@ -151,11 +150,11 @@ private struct PairCard: View {
         Button(action: action) {
             // The backdrop sets the card's shape; the art and labels sit over it, so the art can't stretch the card.
             Color(theme.rough)
-                .aspectRatio(0.7, contentMode: .fit)
+                .aspectRatio(CourseArt.cardAspect, contentMode: .fit)
                 .overlay {
                     if let img = MenuArt.shared.card(level) {
                         // The art spills past the card before it's clipped; don't let the spill catch taps.
-                        Image(uiImage: img).resizable().scaledToFill().allowsHitTesting(false).transition(.opacity)
+                        Image(uiImage: img).resizable().scaledToFill().allowsHitTesting(false)
                     }
                 }
                 .overlay {
@@ -191,7 +190,6 @@ private struct PairCard: View {
                 .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
                 .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
-                .animation(.easeOut(duration: 0.3), value: MenuArt.shared.cards[level.name] != nil)
                 .opacity(locked ? 0.45 : 1)
         }
         .buttonStyle(PressStyle(scale: 0.95))

@@ -20,6 +20,8 @@ final class AppState {
     enum Screen: Equatable { case title, courses, levels, trophies, settings, game }
 
     var screen: Screen = .title
+    /// The menu art is loaded (see LoadingView), so the screens can show.
+    var artReady = false
     var soundOn = SoundFX.shared.isEnabled
     var freePlay = FreePlaySpot()
     let game: GameModel
@@ -99,13 +101,17 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Color(uiColor: Palette.ink).ignoresSafeArea()
-            switch app.screen {
-            case .title: TitleView(app: app).transition(.opacity)
-            case .courses: CoursesView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
-            case .levels: CourseMapView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
-            case .trophies: TrophyShelfView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
-            case .settings: SettingsView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
-            case .game: GameView(app: app).transition(.opacity)
+            if !app.artReady {
+                LoadingView(app: app).transition(.opacity)
+            } else {
+                switch app.screen {
+                case .title: TitleView(app: app).transition(.opacity)
+                case .courses: CoursesView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
+                case .levels: CourseMapView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
+                case .trophies: TrophyShelfView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
+                case .settings: SettingsView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
+                case .game: GameView(app: app).transition(.opacity)
+                }
             }
         }
         .animation(.easeInOut(duration: 0.35), value: app.screen)
