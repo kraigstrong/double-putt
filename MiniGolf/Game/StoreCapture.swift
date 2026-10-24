@@ -92,9 +92,10 @@ enum StoreCapture {
     }
 
     /// What to save, from the launch arguments: frames from -captureFrom to -captureTo (seconds), every
-    /// -captureEvery'th, at -captureScale times the screen (below 1 for a quick look), and -captureStills as PNGs at
-    /// full size (seconds, comma separated).
+    /// -captureEvery'th, at -captureScale times the screen (below 1 for a quick look), or none with -captureNoFrames;
+    /// and -captureStills as PNGs at full size (seconds, comma separated).
     struct Request {
+        var frames = true
         var from = 0.0
         var to = Double.infinity
         var every = 1
@@ -123,6 +124,7 @@ enum StoreCapture {
             return args[i + 1]
         }
         var r = Request()
+        r.frames = !args.contains("-captureNoFrames")
         if let from = value("-captureFrom").flatMap(Double.init), from >= 0 { r.from = from }
         if let to = value("-captureTo").flatMap(Double.init), to > r.from { r.to = to }
         if let every = value("-captureEvery").flatMap(Int.init), every >= 1 { r.every = every }
@@ -238,7 +240,7 @@ enum StoreCapture {
             clock = Double(frame) / framesPerSecond
             let finished = director.tick(at: clock)
             stepper.step(to: clock)
-            let footage = frame >= first && frame <= last && (frame - first) % request.every == 0
+            let footage = request.frames && frame >= first && frame <= last && (frame - first) % request.every == 0
             let due = stills.filter { $0.frame <= frame }
             if footage || !due.isEmpty {
                 guard let drawn = stepper.image(pixels: pixels) else { return fail("couldn't draw frame \(frame)") }
@@ -264,7 +266,8 @@ enum StoreCapture {
                 while encoder.operationCount > 6 { try? await Task.sleep(for: .milliseconds(5)) }
             }
             guard failure == nil else { return }
-            if (finished && stills.isEmpty) || frame >= last { break }
+            // Done with the clip, or with what was asked for.
+            if ((finished || !request.frames) && stills.isEmpty) || frame >= last { break }
             frame += 1
             guard clock < 180 else { return fail("the clip ran past three minutes") }
         }
@@ -272,9 +275,9 @@ enum StoreCapture {
         let length = Double(frame) / framesPerSecond
         let summary = String(format: "%d frames of %.2fs, in %ds", saved, length, Int(Date().timeIntervalSince(started)))
         do {
-            try (["# seconds sound volume (before the mixer, at \(SoundFX.mixerVolume))"] + cues).joined(separator: "\n")
+            try ((["# seconds sound volume (before the mixer, at \(SoundFX.mixerVolume))"] + cues).joined(separator: "\n") + "\n")
                 .write(to: directory.appendingPathComponent("cues.txt"), atomically: true, encoding: .utf8)
-            try ([summary, "seconds event:"] + director.timeline).joined(separator: "\n")
+            try (([summary, "seconds event:"] + director.timeline).joined(separator: "\n") + "\n")
                 .write(to: directory.appendingPathComponent("done.txt"), atomically: true, encoding: .utf8)
         } catch {
             return fail("couldn't save the cues: \(error.localizedDescription)")
