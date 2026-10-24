@@ -4,8 +4,8 @@ import SwiftUI
 struct SettingsView: View {
     let app: AppState
 
-    static let privacyURL = URL(string: "https://brightbench.app/double-putt/privacy")!
-    static let supportURL = URL(string: "https://brightbench.app/support")!
+    static let privacyURL = URL(string: "https://brightbench.app/doubleputt/privacy")!
+    static let supportURL = URL(string: "https://brightbench.app/doubleputt/support")!
 
     private var version: String {
         let info = Bundle.main.infoDictionary
