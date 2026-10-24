@@ -2,21 +2,21 @@ import Foundation
 
 // Anonymous gameplay counts, sent to brightbench.app. The contract (every field and rule the server checks) is
 // docs/analytics.md; change both together. Modeled on Bigger Fish's ArcadeAnalytics. No user, install, session or
-// device IDs and no timestamps are sent: per-install facts (first launch, pairs finished, attempt counts) stay on
+// device IDs and no timestamps are sent: per-install facts (first launch, holes finished, attempt counts) stay on
 // the device and only decide what to send.
 
-/// Which pair, by course, number, name and content revision.
-struct PairContext: Codable, Equatable {
+/// Which hole, by course, number, name and content revision.
+struct HoleContext: Codable, Equatable {
     let course: String
-    let pair: Int
+    let hole: Int
     let slug: String
     let revision: String
 }
 
 struct AnalyticsEvent: Codable, Equatable {
-    enum Kind: String, Codable { case milestone, pair, round }
+    enum Kind: String, Codable { case milestone, hole, round }
 
-    /// A pair attempt's strokes per side, or a finished round's total.
+    /// A hole attempt's strokes per side, or a finished round's total.
     enum Strokes: Codable, Equatable {
         case sides([Int])
         case total(Int)
@@ -41,7 +41,7 @@ struct AnalyticsEvent: Codable, Equatable {
     var action: String?
     var course: String?
     var revision: String?
-    var context: PairContext?
+    var context: HoleContext?
     var mode: String?
     var outcome: String?
     var replay: Bool?
@@ -55,13 +55,14 @@ struct AnalyticsEvent: Codable, Equatable {
     var doubleAce: Bool?
     var seconds: Int?
     var first: Bool?
-    var pair: Int?
+    var hole: Int?
     var medal: String?
     var best: Bool?
 }
 
 struct AnalyticsBatch: Codable {
-    var schema = 1
+    /// 2 since a pair of greens became a hole (schema 1 named holes `pair`).
+    var schema = 2
     let appVersion: String
     let build: String
     let channel: String
@@ -81,7 +82,7 @@ final class Analytics {
 
     static var defaultEnabled: Bool {
         #if DEBUG
-        // Launch-argument runs (a set pair, art dumps, the mechanic test pairs) aren't real play.
+        // Launch-argument runs (a set hole, art dumps, the mechanic test holes) aren't real play.
         let d = UserDefaults.standard
         if d.integer(forKey: "level") > 0 || d.bool(forKey: "dumpArt") || d.bool(forKey: "tests") { return false }
         #endif
@@ -104,10 +105,10 @@ final class Analytics {
         let channel: String
     }
 
-    /// The pair attempt in progress, saved after each swing so one cut short by the app closing is sent as
+    /// The hole attempt in progress, saved after each swing so one cut short by the app closing is sent as
     /// `abandoned` on the next launch.
     private struct Attempt: Codable {
-        var context: PairContext
+        var context: HoleContext
         var mode: String
         var par: Int
         var swings = 0
@@ -153,12 +154,12 @@ final class Analytics {
         flush()
     }
 
-    // MARK: Pairs
+    // MARK: Holes
 
-    /// A pair was loaded (started fresh, retried or restarted). Any attempt still open ends as `quit`.
-    func pairStarted(_ context: PairContext, mode: String, par: Int) {
+    /// A hole was loaded (started fresh, retried or restarted). Any attempt still open ends as `quit`.
+    func holeStarted(_ context: HoleContext, mode: String, par: Int) {
         guard enabled else { return }
-        pairLeft()
+        holeLeft()
         attempt = Attempt(context: context, mode: mode, par: par)
         playedBefore = 0
         playingSince = Date()
@@ -198,7 +199,7 @@ final class Analytics {
     }
 
     /// Both balls are in.
-    func pairFinished(strokes: [Int]) {
+    func holeFinished(strokes: [Int]) {
         guard enabled, var a = attempt else { return }
         a.strokes = strokes
         a.sunk = [true, true]
@@ -209,8 +210,8 @@ final class Analytics {
         DispatchQueue.main.async { [weak self] in self?.flush() }
     }
 
-    /// The pair was left unfinished (Restart, moving on, or leaving the game screen).
-    func pairLeft() {
+    /// The hole was left unfinished (Restart, moving on, or leaving the game screen).
+    func holeLeft() {
         guard enabled, var a = attempt else { return }
         a.seconds = elapsed
         attempt = nil
@@ -219,7 +220,7 @@ final class Analytics {
     }
 
     /// A dev-mode demo replaced the attempt: it isn't real play, so nothing is sent.
-    func pairDiscarded() {
+    func holeDiscarded() {
         attempt = nil
         defaults.removeObject(forKey: prefix + "attempt")
     }
@@ -232,14 +233,14 @@ final class Analytics {
     private func checkpoint() {
         guard var a = attempt else { return }
         a.seconds = elapsed
-        if a.stamp == nil { a.stamp = stamp(AnalyticsEvent(kind: .pair)) }
+        if a.stamp == nil { a.stamp = stamp(AnalyticsEvent(kind: .hole)) }
         attempt = a
         defaults.set(try? JSONEncoder().encode(a), forKey: prefix + "attempt")
     }
 
-    private func key(_ c: PairContext) -> String { "\(c.revision).\(c.course).\(c.slug)" }
+    private func key(_ c: HoleContext) -> String { "\(c.revision).\(c.course).\(c.slug)" }
 
-    /// Sends the attempt, if a swing was taken (loading a pair and leaving isn't an attempt).
+    /// Sends the attempt, if a swing was taken (loading a hole and leaving isn't an attempt).
     private func finish(_ a: Attempt, outcome: String) {
         guard a.swings > 0 else { return }
         let k = key(a.context)
@@ -253,7 +254,7 @@ final class Analytics {
         let strokes = a.strokes.map { min(99, max(0, $0)) }
         let aces = zip(strokes, a.sunk).filter { $0.0 == 1 && $0.1 }.count
         let swings = min(200, a.swings)
-        var event = AnalyticsEvent(kind: .pair)
+        var event = AnalyticsEvent(kind: .hole)
         event.context = a.context
         event.mode = a.mode
         event.outcome = outcome
@@ -273,7 +274,8 @@ final class Analytics {
         enqueue(queued)
         if finished {
             defaults.set(true, forKey: prefix + "cleared." + k)
-            milestone("pair_finished", scope: k, context: a.context)
+            // The once-per-install flag keeps its schema 1 name, so a hole finished before the update isn't sent again.
+            milestone("hole_finished", scope: k, context: a.context, flag: "pair_finished")
             if strokes == [1, 1] { milestone("trophy_won", scope: k, context: a.context) }
         }
     }
@@ -292,14 +294,14 @@ final class Analytics {
         enqueue(stamp(event))
     }
 
-    /// Leave Round, or a new round replacing an unfinished one. `pair` is the round's pair (1–9) when it was left.
-    func roundLeft(course: String, pair: Int) {
+    /// Leave Round, or a new round replacing an unfinished one. `hole` is the round's hole (1–9) when it was left.
+    func roundLeft(course: String, hole: Int) {
         guard enabled else { return }
         var event = AnalyticsEvent(kind: .round)
         event.action = "left"
         event.course = course
         event.revision = Levels.revision
-        event.pair = min(9, max(1, pair))
+        event.hole = min(9, max(1, hole))
         enqueue(stamp(event))
     }
 
@@ -334,11 +336,12 @@ final class Analytics {
 
     // MARK: Queue
 
-    private func milestone(_ name: String, scope: String, context: PairContext? = nil) {
+    /// `flag` names the on-device once-per-install flag when it differs from `name`.
+    private func milestone(_ name: String, scope: String, context: HoleContext? = nil, flag: String? = nil) {
         var event = AnalyticsEvent(kind: .milestone)
         event.name = name
         event.context = context
-        once(name + "." + scope, event)
+        once((flag ?? name) + "." + scope, event)
     }
 
     private func once(_ key: String, _ event: AnalyticsEvent) {

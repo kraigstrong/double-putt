@@ -220,7 +220,7 @@ final class GameModel {
     func startRound(_ nine: Nine) {
         newlyUnlocked = nil
         if let old = round, !old.isFinished, old.hasProgress, let oldNine = roundNine {
-            analytics.roundLeft(course: oldNine.id, pair: old.current + 1)
+            analytics.roundLeft(course: oldNine.id, hole: old.current + 1)
         }
         analytics.roundStarted(course: nine.id)
         round = RoundState(nine: nine.id, scores: Array(repeating: nil, count: nine.holes.count))
@@ -239,7 +239,7 @@ final class GameModel {
     /// Leave the round in place (it can be continued later) and play single holes.
     func leaveRound() {
         if inRound, let r = round, !r.isFinished, let nine = roundNine {
-            analytics.roundLeft(course: nine.id, pair: r.current + 1)
+            analytics.roundLeft(course: nine.id, hole: r.current + 1)
         }
         inRound = false
     }
@@ -321,7 +321,7 @@ final class GameModel {
         }
         scene?.loadLevel()
         loadToken += 1
-        analytics.pairStarted(pairContext, mode: inRound ? "round" : "single", par: par)
+        analytics.holeStarted(holeContext, mode: inRound ? "round" : "single", par: par)
     }
 
     /// Start the hole over. Free Play only: a round is played as it lies.
@@ -329,7 +329,7 @@ final class GameModel {
         guard !inRound else { return }
         paused = false
         scene?.loadLevel()
-        analytics.pairStarted(pairContext, mode: inRound ? "round" : "single", par: par)
+        analytics.holeStarted(holeContext, mode: inRound ? "round" : "single", par: par)
         if let shot = lastOpeningShot, tutorial == nil {
             setMirrored(shot.mirrored)
             aim = shot
@@ -423,11 +423,11 @@ final class GameModel {
     }
 
     /// The game screen closed: an unfinished hole counts as quit.
-    func leftGame() { analytics.pairLeft() }
+    func leftGame() { analytics.holeLeft() }
 
-    /// Which pair this is, for analytics.
-    var pairContext: PairContext {
-        PairContext(course: nine(containing: levelIndex)?.id ?? "unknown", pair: holeNumber(levelIndex),
+    /// Which hole this is, for analytics.
+    var holeContext: HoleContext {
+        HoleContext(course: nine(containing: levelIndex)?.id ?? "unknown", hole: holeNumber(levelIndex),
                     slug: Self.slug(level.name), revision: Levels.revision)
     }
 
@@ -454,7 +454,7 @@ final class GameModel {
 
     func demo() {
         paused = false
-        analytics.pairDiscarded()
+        analytics.holeDiscarded()
         scene?.playDemo()
     }
 
@@ -468,7 +468,7 @@ final class GameModel {
         newBest = false
         newTrophy = false
         guard !demo else { return }
-        analytics.pairFinished(strokes: strokes)
+        analytics.holeFinished(strokes: strokes)
         newBest = best == nil || total < best!
         if newBest {
             bests[level.name] = total
