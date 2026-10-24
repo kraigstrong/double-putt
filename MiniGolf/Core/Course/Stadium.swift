@@ -1,18 +1,18 @@
 import Foundation
 
 // The Stadium (course 9): a Florida tournament course, and the last and hardest of the putting courses. Island and
-// peninsula greens in water walled with railroad ties, waste bunkers, spectator mounds, and on a few pairs grandstands
+// peninsula greens in water walled with railroad ties, waste bunkers, spectator mounds, and on a few holes grandstands
 // the ball banks off like any mini golf wall. Designed with Tools/solver against Tools/levels/BRIEF.md (course 9
-// targets); the pairs run in order of their double-ace odds, with Island Green as the finale.
+// targets); the holes run in order of their double-ace odds, with Island Green as the finale.
 extension Levels {
-    /// Pair 1, the opener. A is a peninsula green: a lane runs up the right from the tee and opens into a round green
+    /// Hole 1, the opener. A is a peninsula green: a lane runs up the right from the tee and opens into a round green
     /// with a lake along its left and behind it, and the whole green leans left into the lake (150). Its ball has to
     /// start well right of the cup and curl in; a steep little hollow just below and right of the cup gathers a ball
     /// that arrives on that line. B is a long two-tier green: a bank falls back toward the tee halfway up, so a short
     /// putt rolls back off it, and the upper tier leans gently right into a dish round the cup, with a lake behind.
     /// Same, up and a little right: A's ball starts about 9° right of its cup, B's about 3° left of its. Take A's lean
-    /// away and the Same double ace is gone. The water keeps both holes honest: drain it and each hole aces three to
-    /// five times as often, off the fences. A burn down the middle swallows banks off the wall between the holes.
+    /// away and the Same double ace is gone. The water keeps both sides honest: drain it and each side aces three to
+    /// five times as often, off the fences. A burn down the middle swallows banks off the middle wall.
     static func firstTee() -> Level {
         var l = Level("First Tee", par: [3, 3], hint: "One green falls toward the lake. The other has a ledge.")
         l.setting = "stadium"
@@ -39,13 +39,13 @@ extension Levels {
         l.hollow(.b, 120, 640, radius: 30, strength: 220)
         l.tee(.b, 60, 125)
         l.cup(.b, 120, 640)
-        // A burn either side of the wall between the holes.
+        // A burn either side of the middle wall.
         l.paint(.water, nil, [(183, 170), (217, 170), (217, 480), (183, 480)])
         l.solution = Shot(angle: 86.25, power: 0.630, mirrored: false)
         return l
     }
 
-    /// Pair 2. Short vs long, round two Florida waste areas. A is a long green leaning hard right (150) toward a big
+    /// Hole 2. Short vs long, round two Florida waste areas. A is a long green leaning hard right (150) toward a big
     /// waste area beside the right of its lane; its ball starts well left of the cup, about 9° off the straight line,
     /// and curls into a steep hollow below and left of the cup (break too much and it finishes in the sand). B is
     /// short: its tee box sits beside a big waste area that sweeps across the front of the green, up its right side
@@ -83,7 +83,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 3 introduces the grandstand. B is short, and a pond sits right in front of its cup, with a grandstand
+    /// Hole 3 introduces the grandstand. B is short, and a pond sits right in front of its cup, with a grandstand
     /// behind the green angled a little toward the left, and the green falls gently back toward the tee. No putt
     /// can get over the pond, so the only way in is off the stand: up the right of the pond, off the stand's front
     /// and back down the slope into a dish round the cup. A is long: its green leans left (150) all the way up to a
@@ -125,7 +125,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 4. A is a long green with two spectator mounds: a big, steep one off its left side and another behind the
+    /// Hole 4. A is a long green with two spectator mounds: a big, steep one off its left side and another behind the
     /// cup. The ball starts up the left, about 12° left of the cup; the side mound's flank kicks it right, and the back
     /// mound turns a firm putt back down to the cup. B's green sits up on a plateau behind a false front, a bank too
     /// steep to hold a ball, so a short putt rolls back down to the apron; past it the green leans hard right and the
@@ -156,7 +156,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 5. A is a peninsula green: a lane runs up the right side and the green hooks left into a lake that wraps
+    /// Hole 5. A is a peninsula green: a lane runs up the right side and the green hooks left into a lake that wraps
     /// round its left, its back and the bay below it, right up to the ties. The whole green leans down toward the bay
     /// and back toward the tee (210, 173), and the cup sits in a dish at the tip. Aim straight up the lane, about 13°
     /// right of the cup: the lean hooks the ball onto the peninsula, it climbs past the cup toward the ties and the dish
@@ -190,11 +190,11 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. B is the amphitheater: a lane up to a bowl of green with a long grandstand down its left, another
+    /// Hole 6. B is the amphitheater: a lane up to a bowl of green with a long grandstand down its left, another
     /// across the back, and a lagoon on its right. The cup sits on the bowl's right bank, a few yards off the lagoon.
     /// A straight putt falls into the bowl; the ace runs up the bowl's left side, banks off the back stand and comes
     /// down across the bank into the cup. Too firm and it carries on into the lagoon. A climbs a long bank (leaning
-    /// back toward the tee) to a dish on the upper tier, its ball banking off the wall between the holes on the way.
+    /// back toward the tee) to a dish on the upper tier, its ball banking off the middle wall on the way.
     /// Mirror: A up and to the right, B up and to the left. Take the back stand away and there's no double ace.
     static func amphitheater() -> Level {
         var l = Level("Amphitheater", par: [2, 2], hint: "The bowl swallows a straight putt. Play off the stands.")
@@ -223,7 +223,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A creek winds across both holes in a gentle S, under the wall between them (open there, inside the
+    /// Hole 7. A creek winds across both sides in a gentle S, under the wall between them (open there, inside the
     /// water), and stops short of each outer fence, so the straight line to either cup is wet: each ball has to go round
     /// the creek's end on its own side. Both balls start up and a little left. A's tee is by its end of the creek: its
     /// ball slips past it up the left, and the green, leaning right, curls it back across above the creek into a dish
@@ -260,12 +260,12 @@ extension Levels {
             let p = line[i] + normal * h, q = line[i] - normal * h
             left.append((p.x, p.y)); right.append((q.x, q.y))
         }
-        // The wall between the holes is open where the creek crosses it (wet from y 371.5 to 424.5 on the wall's
+        // The middle wall is open where the creek crosses it (wet from y 371.5 to 424.5 on the wall's
         // line), so its rounded ends stop at the banks; a ball has to clear an end by its own radius to get through,
         // which keeps it in the water.
         l.frame(gaps: [367.5...428.5])
         l.ground(.rough, nil)
-        // A long green in each hole, then the creek across both.
+        // A long green on each side, then the creek across both.
         l.green(.a, [(60, 105), (150, 105), (166, 250), (166, 500), (164, 690), (130, 735), (60, 735), (36, 650),
                      (34, 400), (40, 200)])
         l.green(.b, [(50, 105), (140, 105), (160, 200), (166, 400), (166, 650), (140, 735), (70, 735), (36, 690),
@@ -286,7 +286,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 8. Short against long. B is a short, two-tier green with a false front: a bank across it too steep to hold
+    /// Hole 8. Short against long. B is a short, two-tier green with a false front: a bank across it too steep to hold
     /// a ball (400 against the green's 240), with the cup in a dish just over the crest. The whole green leans left
     /// (142), so B's ball starts about 13° right of the cup, runs up the right side and has to reach the crest slowly:
     /// too soft and the bank rolls it back, too firm and it runs through the dish. A is a long, slim green bending
@@ -329,7 +329,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9, the finale. B is the island green: a lake right across the hole, a wide walkway out to the island, and
+    /// Hole 9, the finale. B is the island green: a lake right across the side, a wide walkway out to the island, and
     /// a grandstand at the back right of it, angled toward the cup on the island's far left. The island falls gently
     /// toward the walkway. The ball runs up the walkway and across the island, banks off the stand and comes back
     /// across to the cup: it starts about 17° right of the cup. A is a long uphill green leaning hard right, so its

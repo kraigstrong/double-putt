@@ -1,7 +1,7 @@
-// Back nine additions: pairs 14, 15, 17, 18 (designed with Tools/solver).
+// Back nine additions: holes 14, 15, 17, 18 (designed with Tools/solver).
 extension Levels {
 
-    /// Pair 14. Mirror-image holes, each with a mill guarding its door, but the mills turn opposite ways and
+    /// Hole 14. Mirror-image sides, each with a mill guarding its door, but the mills turn opposite ways and
     /// are never in step (always 15° off each other's mirror image): at a given moment a soft putt gets swatted in
     /// B, a firm one in A. Only a middle power, struck at the right moment, slips past both.
     static func windmill() -> Level {
@@ -21,7 +21,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 15. A's cup is dead ahead and B's is up to the right, which looks like no single swing fits.
+    /// Hole 15. A's cup is dead ahead and B's is up to the right, which looks like no single swing fits.
     /// But the icy slope just past A's tee throws A's ball left: aim both at B's cup with Same and the hill
     /// brings A home. B's sled then decides the power.
     static func sledRun() -> Level {
@@ -41,11 +41,11 @@ extension Levels {
         return l
     }
 
-    /// Pair 17. Every lantern is a tunnel across the pond. A's lantern pops out on B's far bank and B's left
-    /// lantern on A's, so the balls swap holes; B's right lantern only hops B's own pond (Mirror's trap, as
+    /// Hole 17. Every lantern is a tunnel across the pond. A's lantern pops out on B's far bank and B's left
+    /// lantern on A's, so the balls swap sides; B's right lantern only hops B's own pond (Mirror's trap, as
     /// both balls would end up in B). A lamplighter's cart patrols each far bank.
     static func lanterns() -> Level {
-        var l = Level("Lanterns", par: [3, 3], hint: "Not every lantern leads to the other hole.")
+        var l = Level("Lanterns", par: [3, 3], hint: "Not every lantern leads to the other green.")
         l.setting = "night"
         l.frame()
         l.water(.a, 0, 380, 200, 450); l.water(.b, 0, 380, 200, 450)
@@ -60,7 +60,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 18. Each lantern on its jetty crosses to the other hole's far bank, right beside one shared clock
+    /// Hole 18. Each lantern on its jetty crosses to the other side's far bank, right beside one shared clock
     /// whose hands never stop. They sweep down onto one ball and away from the other. The cups sit off
     /// the exit lines in hollows, so only a ball that is slow enough curls in. Two hands, not three, so both
     /// exit lines open at once (with three, one line was always closing as the other opened).

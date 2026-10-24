@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Free Play: one row per course, swiped sideways to pick a pair. Tapping one plays it on its own (outside a round).
+/// Free Play: one row per course, swiped sideways to pick a hole. Tapping one plays it on its own (outside a round).
 struct CourseMapView: View {
     let app: AppState
     private var game: GameModel { app.game }
@@ -47,7 +47,7 @@ struct CourseMapView: View {
 
     private var subtitle: String {
         let won = GameModel.levels.filter(game.hasTrophy).count
-        return "\(GameModel.levels.count) pairs · \(won) \(won == 1 ? "trophy" : "trophies")"
+        return "\(GameModel.levels.count) holes · \(won) \(won == 1 ? "trophy" : "trophies")"
     }
 }
 
@@ -57,20 +57,20 @@ struct FreePlaySpot {
     var course: String?
     var cards: [String: Int] = [:]
 
-    /// Bring a pair's course and card into view, unless they already are.
-    mutating func reveal(_ pair: Int, in nines: [Nine]) {
-        guard let k = nines.firstIndex(where: { $0.pairs.contains(pair) }) else { return }
+    /// Bring a hole's course and card into view, unless they already are.
+    mutating func reveal(_ hole: Int, in nines: [Nine]) {
+        guard let k = nines.firstIndex(where: { $0.holes.contains(hole) }) else { return }
         let nine = nines[k]
-        // Two cards show in full. Bring the pair in second, so the one before it shows too.
-        let first = cards[nine.id] ?? nine.pairs.lowerBound
-        if !(first...first + 1).contains(pair) { cards[nine.id] = max(pair - 1, nine.pairs.lowerBound) }
+        // Two cards show in full. Bring the hole in second, so the one before it shows too.
+        let first = cards[nine.id] ?? nine.holes.lowerBound
+        if !(first...first + 1).contains(hole) { cards[nine.id] = max(hole - 1, nine.holes.lowerBound) }
         // So do two courses.
         let top = course.flatMap { id in nines.firstIndex { $0.id == id } } ?? 0
         if !(top...top + 1).contains(k) { course = nine.id }
     }
 }
 
-/// A course's name and settings over its pairs, in a row that swipes sideways and settles on a card. Cards ease
+/// A course's name and settings over its holes, in a row that swipes sideways and settles on a card. Cards ease
 /// smaller and dimmer as they slide off either edge.
 private struct CourseRow: View {
     let nine: Nine
@@ -103,9 +103,9 @@ private struct CourseRow: View {
             ScrollViewReader { proxy in
                 ScrollView(.horizontal) {
                     HStack(spacing: 10) {
-                        ForEach(nine.pairs, id: \.self) { i in
+                        ForEach(nine.holes, id: \.self) { i in
                             let level = GameModel.levels[i]
-                            PairCard(number: game.pairNumber(i), level: level, best: game.best(for: level),
+                            HoleCard(number: game.holeNumber(i), level: level, best: game.best(for: level),
                                      trophy: game.hasTrophy(level), locked: locked) {
                                 play(i)
                             }
@@ -130,12 +130,12 @@ private struct CourseRow: View {
     }
 
     private var summary: String {
-        let won = nine.pairs.filter { game.hasTrophy(GameModel.levels[$0]) }.count
-        return "Par \(game.par(of: nine)) · \(won)/\(nine.pairs.count) 🏆"
+        let won = nine.holes.filter { game.hasTrophy(GameModel.levels[$0]) }.count
+        return "Par \(game.par(of: nine)) · \(won)/\(nine.holes.count) 🏆"
     }
 }
 
-private struct PairCard: View {
+private struct HoleCard: View {
     let number: Int
     let level: Level
     let best: Int?

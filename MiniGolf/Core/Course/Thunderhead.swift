@@ -1,8 +1,8 @@
-// Thunderhead (course 3): asymmetric pairs, ramping from about Nightfall's middle to its hardest.
+// Thunderhead (course 3): asymmetric holes, ramping from about Nightfall's middle to its hardest.
 // Designed with Tools/solver against Tools/levels/BRIEF.md.
 extension Levels {
 
-    /// Pair 1. Short vs long: A is a chip from halfway up, B a long haul whose straight line the buoys block, so
+    /// Hole 1. Short vs long: A is a chip from halfway up, B a long haul whose straight line the buoys block, so
     /// B banks off its left fence into a shallow hollow round the cup, which takes a firm putt. That pace races
     /// past A's cup, but the breakwater and the middle wall make a corner that hands it straight back: aim A at
     /// its cup, swing for B, and Mirror.
@@ -22,12 +22,12 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. One-sided mechanics: A's pools leave one channel, a few degrees left of straight, to a cup under a
+    /// Hole 2. One-sided mechanics: A's pools leave one channel, a few degrees left of straight, to a cup under a
     /// rock (rock and fence send firm putts back). B has no water, only a dune just past its tee that pushes right,
     /// and its cup is dead ahead. So B must start left too: Same lets the dune carry it back to the cup, while
     /// Mirror starts B right and the dune pushes it further off.
     static func tidePools() -> Level {
-        var l = Level("Tide Pools", par: [3, 2], hint: "Only one hole has a dune. Read which way it leans.")
+        var l = Level("Tide Pools", par: [3, 2], hint: "Only one green has a dune. Read which way it leans.")
         l.setting = "seaside"
         l.frame()
         l.tee(.a, 140, 110)
@@ -42,7 +42,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 3. Only A has a sundial, so only A's ball cares when you swing. A's door is up-left of its tee;
+    /// Hole 3. Only A has a sundial, so only A's ball cares when you swing. A's door is up-left of its tee;
     /// Mirror sends B's ball up-right, off the fence and in under B's hedge. Find that one line, then wait
     /// for the sundial's hand to clear A's door.
     static func sundial() -> Level {
@@ -65,7 +65,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 4. Unrelated layouts: A's cup hides behind a planter, so A banks off its left fence. B is an open green
+    /// Hole 4. Unrelated layouts: A's cup hides behind a planter, so A banks off its left fence. B is an open green
     /// with its cup dead ahead and a hill guarding the front-left. B could bank off either fence, but the hill
     /// spoils the left bank (Same), so it is the right bank, and Mirror, that matches A.
     static func topiary() -> Level {
@@ -82,7 +82,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 5. One long putt, one short chip, one power. A's ramp carries its ball most of the way and leans
+    /// Hole 5. One long putt, one short chip, one power. A's ramp carries its ball most of the way and leans
     /// it left, so A aims up the pass on the right, right of its cup; B's cup is just left of straight up, which
     /// makes it a Mirror swing. The rock behind B's hollow soaks up the extra pace.
     static func plateau() -> Level {
@@ -105,7 +105,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. Neither ball can reach its own cup. A's mine pipe comes up inside B's box canyon, so A's ball
+    /// Hole 6. Neither ball can reach its own cup. A's mine pipe comes up inside B's box canyon, so A's ball
     /// plays B's cup; B's ball has to get into A's cave, and the arroyo drains toward its mouth. The pipe and
     /// the arroyo both take banks, so Same and Mirror each have a line.
     static func arroyo() -> Level {
@@ -130,12 +130,12 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A's icy pond leaves one way to its cup: bank off the left fence by the tee and skim past the pond's
+    /// Hole 7. A's icy pond leaves one way to its cup: bank off the left fence by the tee and skim past the pond's
     /// corner. B's left is snowed in, so Mirror sends B's ball up-right, where the plough running up and down the fence
     /// banks it back to the cup. Only while the plough is low, though: miss it and the fence banks the ball too late,
     /// wide of the cup.
     static func avalanche() -> Level {
-        var l = Level("Avalanche", par: [3, 3], hint: "Both holes need a bank. One bank keeps moving.")
+        var l = Level("Avalanche", par: [3, 3], hint: "Both greens need a bank. One bank keeps moving.")
         l.setting = "winter"
         l.frame()
         // A: an icy pond fills the right of the lane; the cup is beyond it.
@@ -152,21 +152,21 @@ extension Levels {
         return l
     }
 
-    /// Pair 8. A is the long haul, and its ice bridge is the obvious way over the river, but going round by the bridge
+    /// Hole 8. A is the long haul, and its ice bridge is the obvious way over the river, but going round by the bridge
     /// takes a firm putt while B is a short chip into a snow house with a windmill in the door. The pipe under the
     /// river makes A short too: aim the same way (A's ball at the pipe, B's at the door) at B's soft pace, when the
     /// door is clear.
     static func iceBridge() -> Level {
-        var l = Level("Ice Bridge", par: [3, 3], hint: "Two ways over the river. Only one suits both holes.")
+        var l = Level("Ice Bridge", par: [3, 3], hint: "Two ways over the river. Only one suits both greens.")
         l.setting = "winter"
         l.frame()
-        // A: a long hole. A narrow ice bridge crosses the river on the left; a pipe runs under it on the right.
+        // A: a long side. A narrow ice bridge crosses the river on the left; a pipe runs under it on the right.
         l.tee(.a, 100, 115)
         l.water(.a, 0, 400, 40, 460)
         l.water(.a, 66, 400, 200, 460)
         l.tunnel(.a, 150, 290, .a, 134, 496)
         l.cup(.a, 175, 661)
-        // B: a short hole up top; a windmill turns in the door of the cup's snow house.
+        // B: a short side up top; a windmill turns in the door of the cup's snow house.
         l.tee(.b, 52, 388)
         l.block(.b, 0, 560, 84, 590)
         l.block(.b, 120, 560, 200, 590)
@@ -177,7 +177,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9. The finale. A's ball has to slip through the one gap in a row of storm-cloud bumpers that leads to the
+    /// Hole 9. The finale. A's ball has to slip through the one gap in a row of storm-cloud bumpers that leads to the
     /// hollow, which curls it into the cup. B's cup is on an island: the only way on is the pipe, and a windmill keeps
     /// sweeping its mouth. The gap leans right and the pipe left, so Mirror, at a pace both cups accept, between
     /// blades.

@@ -2,7 +2,7 @@ import Foundation
 import Observation
 import UIKit
 
-/// A nine-pair round's medal. (Single pairs earn trophies instead, for a double ace.)
+/// A nine-hole round's medal. (Single holes earn trophies instead, for a double ace.)
 enum Medal: Int, Comparable {
     case none, bronze, silver, gold
 
@@ -42,11 +42,11 @@ enum Medal: Int, Comparable {
 }
 
 extension Nine {
-    /// The nines that exist for these pairs (debug builds can swap in a short test course).
+    /// The nines that exist for these holes (debug builds can swap in a short test course).
     static func all(levelCount: Int) -> [Nine] {
         Levels.playable.nines.compactMap { n in
-            let pairs = n.pairs.clamped(to: 0..<levelCount)
-            return pairs.isEmpty ? nil : Nine(id: n.id, name: n.name, pairs: pairs)
+            let holes = n.holes.clamped(to: 0..<levelCount)
+            return holes.isEmpty ? nil : Nine(id: n.id, name: n.name, holes: holes)
         }
     }
 }
@@ -54,9 +54,9 @@ extension Nine {
 /// A round of one nine, saved so it survives relaunches.
 struct RoundState: Codable, Equatable {
     var nine: String
-    /// One per pair of the nine.
+    /// One per hole of the nine.
     var scores: [Int?]
-    /// Index within the nine of the pair being played.
+    /// Index within the nine of the hole being played.
     var current = 0
 
     var isFinished: Bool { current >= scores.count }
@@ -65,12 +65,12 @@ struct RoundState: Codable, Equatable {
     static func load() -> RoundState? {
         guard let data = UserDefaults.standard.data(forKey: "round") else { return nil }
         if let r = try? JSONDecoder().decode(RoundState.self, from: data) { return r }
-        // Rounds used to be all 18 pairs: carry one in progress over to the nine it's on.
+        // Rounds used to be all 18 holes: carry one in progress over to the nine it's on.
         struct Legacy: Codable { var scores: [Int?]; var current: Int }
         guard let old = try? JSONDecoder().decode(Legacy.self, from: data), old.current < old.scores.count,
-              let nine = Nine.all(levelCount: old.scores.count).first(where: { $0.pairs.contains(old.current) })
+              let nine = Nine.all(levelCount: old.scores.count).first(where: { $0.holes.contains(old.current) })
         else { return nil }
-        return RoundState(nine: nine.id, scores: nine.pairs.map { old.scores[$0] }, current: old.current - nine.pairs.lowerBound)
+        return RoundState(nine: nine.id, scores: nine.holes.map { old.scores[$0] }, current: old.current - nine.holes.lowerBound)
     }
 }
 
@@ -108,18 +108,18 @@ final class GameModel {
     var tutorial: TutorialStep?
     /// Where the course sits on screen (scene/view points), so HUD pieces can hug it.
     var courseFrame: CGRect = .zero
-    /// Bumped when a pair is entered (not on retry), e.g. to flash the hint.
+    /// Bumped when a hole is entered (not on retry), e.g. to flash the hint.
     private(set) var loadToken = 0
     private(set) var newBest = false
-    /// The last finish double-aced a pair for the first time.
+    /// The last finish double-aced a hole for the first time.
     private(set) var newTrophy = false
-    /// The round in progress, if any (it's kept while playing single pairs).
+    /// The round in progress, if any (it's kept while playing single holes).
     private(set) var round: RoundState? = RoundState.load()
-    /// True while this session is playing the round (vs. a single pair).
+    /// True while this session is playing the round (vs. a single hole).
     private(set) var inRound = false
     /// Best finished round per nine (by id).
     private(set) var bestRounds: [String: Int] = UserDefaults.standard.dictionary(forKey: "bestRounds") as? [String: Int] ?? [:]
-    /// Pairs double-aced (by name), with when the trophy was won.
+    /// Holes double-aced (by name), with when the trophy was won.
     private(set) var trophies: [String: Date] = GameModel.loadTrophies()
     var showScorecard = false
     private(set) var newBestRound = false
@@ -143,7 +143,7 @@ final class GameModel {
 
     @ObservationIgnored weak var scene: GameScene?
     @ObservationIgnored let analytics = Analytics()
-    /// The tips were asked for again (How to Play), so they're generic: the Mirror tip doesn't depend on the pair.
+    /// The tips were asked for again (How to Play), so they're generic: the Mirror tip doesn't depend on the hole.
     @ObservationIgnored private var replayingTips = false
     /// First swing of the last attempt, restored on Retry so you can tweak it.
     @ObservationIgnored var lastOpeningShot: Shot?
@@ -167,8 +167,8 @@ final class GameModel {
     // MARK: Nines
 
     var nines: [Nine] { Nine.all(levelCount: levelCount) }
-    func nine(containing index: Int) -> Nine? { nines.first { $0.pairs.contains(index) } }
-    func par(of nine: Nine) -> Int { nine.pairs.reduce(0) { $0 + par(of: Self.levels[$1]) } }
+    func nine(containing index: Int) -> Nine? { nines.first { $0.holes.contains(index) } }
+    func par(of nine: Nine) -> Int { nine.holes.reduce(0) { $0 + par(of: Self.levels[$1]) } }
     func bestRound(_ nine: Nine) -> Int? { bestRounds[nine.id] }
     func medal(_ nine: Nine) -> Medal { Medal(round: bestRound(nine), par: par(of: nine)) }
 
@@ -194,17 +194,17 @@ final class GameModel {
 
     /// Dev mode and the beta open everything.
     func isUnlocked(_ nine: Nine) -> Bool { devMode || Self.betaOpensEveryCourse || hasEarnedUnlock(nine) }
-    /// A pair's number within its nine (1–9).
-    func pairNumber(_ index: Int) -> Int { index - (nine(containing: index)?.pairs.lowerBound ?? 0) + 1 }
+    /// A hole's number within its nine (1–9).
+    func holeNumber(_ index: Int) -> Int { index - (nine(containing: index)?.holes.lowerBound ?? 0) + 1 }
     /// The nine the saved round is on.
     var roundNine: Nine? { round.flatMap { r in nines.first { $0.id == r.nine } } }
-    /// The last pair of the round being played.
-    var isLastInRound: Bool { inRound && levelIndex == (roundNine?.pairs.upperBound ?? 0) - 1 }
+    /// The last hole of the round being played.
+    var isLastInRound: Bool { inRound && levelIndex == (roundNine?.holes.upperBound ?? 0) - 1 }
 
-    /// Round score relative to par over the pairs finished so far.
+    /// Round score relative to par over the holes finished so far.
     var roundToPar: Int? {
         guard let round, let nine = roundNine else { return nil }
-        let done = zip(round.scores, nine.pairs).compactMap { s, i in s.map { $0 - par(of: Self.levels[i]) } }
+        let done = zip(round.scores, nine.holes).compactMap { s, i in s.map { $0 - par(of: Self.levels[i]) } }
         return done.isEmpty ? nil : done.reduce(0, +)
     }
 
@@ -220,39 +220,39 @@ final class GameModel {
     func startRound(_ nine: Nine) {
         newlyUnlocked = nil
         if let old = round, !old.isFinished, old.hasProgress, let oldNine = roundNine {
-            analytics.roundLeft(course: oldNine.id, pair: old.current + 1)
+            analytics.roundLeft(course: oldNine.id, hole: old.current + 1)
         }
         analytics.roundStarted(course: nine.id)
-        round = RoundState(nine: nine.id, scores: Array(repeating: nil, count: nine.pairs.count))
+        round = RoundState(nine: nine.id, scores: Array(repeating: nil, count: nine.holes.count))
         saveRound()
         inRound = true
         showScorecard = false
-        start(level: nine.pairs.lowerBound)
+        start(level: nine.holes.lowerBound)
     }
 
     func continueRound() {
         guard let round, let nine = roundNine else { return }
         inRound = true
-        start(level: nine.pairs.lowerBound + min(round.current, nine.pairs.count - 1))
+        start(level: nine.holes.lowerBound + min(round.current, nine.holes.count - 1))
     }
 
-    /// Leave the round in place (it can be continued later) and play single pairs.
+    /// Leave the round in place (it can be continued later) and play single holes.
     func leaveRound() {
         if inRound, let r = round, !r.isFinished, let nine = roundNine {
-            analytics.roundLeft(course: nine.id, pair: r.current + 1)
+            analytics.roundLeft(course: nine.id, hole: r.current + 1)
         }
         inRound = false
     }
 
     func nextInRound() {
         guard var r = round, let nine = roundNine else { return next() }
-        r.current = levelIndex - nine.pairs.lowerBound + 1
+        r.current = levelIndex - nine.holes.lowerBound + 1
         round = r
         saveRound()
         if r.isFinished {
             finishRound()
         } else {
-            start(level: nine.pairs.lowerBound + r.current)
+            start(level: nine.holes.lowerBound + r.current)
         }
     }
 
@@ -321,15 +321,15 @@ final class GameModel {
         }
         scene?.loadLevel()
         loadToken += 1
-        analytics.pairStarted(pairContext, mode: inRound ? "round" : "single", par: par)
+        analytics.holeStarted(holeContext, mode: inRound ? "round" : "single", par: par)
     }
 
-    /// Start the pair over. Free Play only: a round is played as it lies.
+    /// Start the hole over. Free Play only: a round is played as it lies.
     func restart() {
         guard !inRound else { return }
         paused = false
         scene?.loadLevel()
-        analytics.pairStarted(pairContext, mode: inRound ? "round" : "single", par: par)
+        analytics.holeStarted(holeContext, mode: inRound ? "round" : "single", par: par)
         if let shot = lastOpeningShot, tutorial == nil {
             setMirrored(shot.mirrored)
             aim = shot
@@ -422,12 +422,12 @@ final class GameModel {
         analytics.swing(mirrored: shot.mirrored, strokes: strokes, sunk: sunk)
     }
 
-    /// The game screen closed: an unfinished pair counts as quit.
-    func leftGame() { analytics.pairLeft() }
+    /// The game screen closed: an unfinished hole counts as quit.
+    func leftGame() { analytics.holeLeft() }
 
-    /// Which pair this is, for analytics.
-    var pairContext: PairContext {
-        PairContext(course: nine(containing: levelIndex)?.id ?? "unknown", pair: pairNumber(levelIndex),
+    /// Which hole this is, for analytics.
+    var holeContext: HoleContext {
+        HoleContext(course: nine(containing: levelIndex)?.id ?? "unknown", hole: holeNumber(levelIndex),
                     slug: Self.slug(level.name), revision: Levels.revision)
     }
 
@@ -445,7 +445,7 @@ final class GameModel {
         #endif
     }
 
-    /// Show the tips again on the pair being played; the pair and the round carry on untouched.
+    /// Show the tips again on the hole being played; the hole and the round carry on untouched.
     func replayTutorial() {
         paused = false
         replayingTips = true
@@ -454,21 +454,21 @@ final class GameModel {
 
     func demo() {
         paused = false
-        analytics.pairDiscarded()
+        analytics.holeDiscarded()
         scene?.playDemo()
     }
 
-    /// Score the finished pair. A dev-mode Show Ace still fills in the round, but earns no best or trophy.
+    /// Score the finished hole. A dev-mode Show Ace still fills in the round, but earns no best or trophy.
     func recordFinish(demo: Bool = false) {
-        if inRound, var r = round, let nine = roundNine, nine.pairs.contains(levelIndex) {
-            r.scores[levelIndex - nine.pairs.lowerBound] = total
+        if inRound, var r = round, let nine = roundNine, nine.holes.contains(levelIndex) {
+            r.scores[levelIndex - nine.holes.lowerBound] = total
             round = r
             saveRound()
         }
         newBest = false
         newTrophy = false
         guard !demo else { return }
-        analytics.pairFinished(strokes: strokes)
+        analytics.holeFinished(strokes: strokes)
         newBest = best == nil || total < best!
         if newBest {
             bests[level.name] = total
@@ -486,7 +486,7 @@ final class GameModel {
         if let saved = d.dictionary(forKey: "trophies") as? [String: Double] {
             return saved.mapValues { Date(timeIntervalSince1970: $0) }
         }
-        // Before trophies, a best of 2 was a double ace: those pairs start with their trophy.
+        // Before trophies, a best of 2 was a double ace: those holes start with their trophy.
         let bests = d.dictionary(forKey: "bests") as? [String: Int] ?? [:]
         let earned = bests.filter { $0.value <= 2 }.mapValues { _ in Date() }
         d.set(earned.mapValues { $0.timeIntervalSince1970 }, forKey: "trophies")

@@ -4,7 +4,7 @@ import Foundation
 // Tools/levels/BRIEF.md (course 6 targets).
 extension Levels {
 
-    /// Pair 1. A's springboard fires whatever reaches it at the back fence, which drops it in the cup, so A only has to
+    /// Hole 1. A's springboard fires whatever reaches it at the back fence, which drops it in the cup, so A only has to
     /// reach the pad: straight through the booth door, or off the left fence. B's booths leave one way round, off its
     /// right fence, and only A's fence line mirrors it: Mirror, firm enough for the pad and soft enough for B.
     static func sparkler() -> Level {
@@ -26,7 +26,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 2. The ferris wheel fills A's lane, and the only way past is the strip by the fence, between two cars: bank
+    /// Hole 2. The ferris wheel fills A's lane, and the only way past is the strip by the fence, between two cars: bank
     /// off the left fence beside it just as a gap comes round. B is a short hop from the duck pond's bank, off the back
     /// fence past a balloon. Both go up and a little left: Same, timed for the wheel.
     static func ferrisWheel() -> Level {
@@ -47,7 +47,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 3. The halls look like mirror images, but B's cup sits higher. A banks off its right fence and back to its
+    /// Hole 3. The halls look like mirror images, but B's cup sits higher. A banks off its right fence and back to its
     /// cup; Mirror sends B's ball round the same bank, which runs wide of the higher cup. Same sends B's ball off its
     /// near fence instead, and that steeper climb is the one that reaches it.
     static func hallOfMirrors() -> Level {
@@ -68,7 +68,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 4. A booth hides A's springboard: bank in off the left fence and it fires the ball up the lane into the
+    /// Hole 4. A booth hides A's springboard: bank in off the left fence and it fires the ball up the lane into the
     /// bowl. Reaching it takes a firm putt, far too firm for B's short hop, but B's carousel turns against the ball and
     /// takes the pace off. A goes up-left and B up-right: Mirror.
     static func romanCandle() -> Level {
@@ -97,7 +97,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 5. A dark ride: A's first pipe keeps the ball's heading, so it has to go in on the line that carries it on
+    /// Hole 5. A dark ride: A's first pipe keeps the ball's heading, so it has to go in on the line that carries it on
     /// into the second pipe, which lets it out by the cup. B's cup is up-left too, through a door a ghost glides
     /// across: Same, struck so B's ball reaches the door while the ghost is away.
     static func ghostTrain() -> Level {
@@ -123,7 +123,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 6. A's wheel turns anticlockwise and carries the ball left as it crosses, so A aims a touch right of
+    /// Hole 6. A's wheel turns anticlockwise and carries the ball left as it crosses, so A aims a touch right of
     /// straight up, and the little rotor by the way off has to be clear. B's springboard waits through a narrow door a
     /// touch left of straight up and fires the ball round to the cup: Mirror, timed for the blades.
     static func catherineWheel() -> Level {
@@ -152,7 +152,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 7. A's rocket flies itself: on the launch pad, stage one fires the ball up the tube and stage two fires it
+    /// Hole 7. A's rocket flies itself: on the launch pad, stage one fires the ball up the tube and stage two fires it
     /// across to the cup. Getting in is the puzzle: a booth roof hides the tube's door, so bank in off the left fence.
     /// B banks off its left fence into the booth too, so Same, at B's pace, struck when both sliders are clear.
     static func rocket() -> Level {
@@ -169,7 +169,7 @@ extension Levels {
         l.kicker(.a, 166, 382, toward: 90, speed: 640)
         l.kicker(.a, 163, 745, toward: 180, speed: 420)
         l.cup(.a, 40, 734)
-        // B: a short hole from the edge of the duck pond. The cup's booth opens to the left, one slider runs across
+        // B: a short side from the edge of the duck pond. The cup's booth opens to the left, one slider runs across
         // the way there and another slides up and down in the door.
         l.water(.b, 0, 95, 200, 280)
         l.tee(.b, 150, 320)
@@ -184,7 +184,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 8. One pipe, both ways. A's ball goes in heading up-right and comes out in B still heading up-right, on
+    /// Hole 8. One pipe, both ways. A's ball goes in heading up-right and comes out in B still heading up-right, on
     /// line for B's jetty; B's ball goes in up-left and comes out in A up-left, through the one wide gap in the burst
     /// and into its bowl. The balls swap cups: Mirror, at a pace both cups accept.
     static func starburst() -> Level {
@@ -215,7 +215,7 @@ extension Levels {
         return l
     }
 
-    /// Pair 9. The finale. A's cup is sealed in the grandstand: A's ball threads the door into the pipe to B's launch
+    /// Hole 9. The finale. A's cup is sealed in the grandstand: A's ball threads the door into the pipe to B's launch
     /// bay, where the carousel swings it into the return pipe, which drops it on the pad that fires it into the cup, if
     /// the pace was right. B's ball runs straight up through the door the pinwheel sweeps. Mirror, between blades.
     static func grandFinale() -> Level {

@@ -406,7 +406,7 @@ struct Painter {
             stroke(rounded(box, 6), UIColor.white.withAlphaComponent(0.35), 0.8)
             for dx in [-14.0, 14.0] {
                 let m = CGPoint(x: tee.x + dx, y: tee.y)
-                shadow(dx: 0.8, dy: -1, blur: 1, alpha: 0.4) { fill(circle(m, 2.6), Palette.hole(i)) }
+                shadow(dx: 0.8, dy: -1, blur: 1, alpha: 0.4) { fill(circle(m, 2.6), Palette.side(i)) }
                 fill(circle(CGPoint(x: m.x - 0.8, y: m.y + 0.8), 0.9), UIColor.white.withAlphaComponent(0.7))
             }
         }
