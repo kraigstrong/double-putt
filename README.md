@@ -64,6 +64,7 @@ Tap the hole name (the 💡) to bring the hole's hint back; Pause → **How to P
 | `MiniGolf/Audio/Sound.swift` | Synthesized sound effects (no audio assets). |
 | `Tools/solver/` | Headless brute-force solver. |
 | `Tools/icon/make_icon.swift` | Generates the app icon. |
+| `Tools/capture/` | App Store screenshots, footage and the trailer, captured from the game (see below). |
 | `appstore/` | App Store listing and TestFlight text, and `push.py` to send them to App Store Connect. |
 
 ## The courses
@@ -240,6 +241,37 @@ the movers load in); a level's `solutionTime` says when its stored solution is s
 xcrun simctl launch booted com.kraigstrong.doubleputt -level 3 -aim 70.25,0.71,mirror -guide full
 xcrun simctl launch booted com.kraigstrong.doubleputt -dumpArt 1   # writes course PNGs to the app's Documents/art
 ```
+
+## Screenshots, footage and the trailer
+
+`Tools/capture/` makes the App Store screenshots, the App Store preview and the site's trailer from the game itself.
+A Debug build launched with `-storeCapture` (`MiniGolf/Game/StoreCapture.swift`) plays a scripted clip from
+`Tools/capture/clips.json`, as a player would: a drag on one ball (with a fingertip), Same or Mirror, then Putt, a
+stored double ace striking on the solver's tick. It steps the scene exactly a 60th of a second a frame, however long a
+frame takes to save, and saves the whole screen, HUD included, so footage never stutters and a rerun plays the same.
+The game's sounds are logged as they play and rebuilt into the soundtrack (the simulator records none). It runs on a
+simulator of its own, "DP Capture iPhone 17 Pro Max" (made the first time), since each capture stages a fresh saved
+state: your usual simulator keeps its progress. Output goes to `build/capture/` (ignored by git). Needs ffmpeg
+(`brew install ffmpeg`) and Python 3 with Pillow and NumPy.
+
+```bash
+Tools/capture/footage.sh --look windmill   # a contact sheet, a frame every half second, and when each drag, tap and putt fell
+Tools/capture/footage.sh windmill          # 60 fps at 1320x2868 with its sound (or: windmill 4.5 6.5 for just those seconds)
+Tools/capture/screenshots.sh               # the stills in screenshots.json: 6.9" (1320x2868) and 6.5" (1284x2778), no alpha
+Tools/capture/frames.py build/capture/screenshots build/capture/captioned   # captioned, in the game's typeface
+Tools/capture/trailer.sh --music ~/Music/track.m4a   # records what the edit needs, then both cuts
+```
+
+- **Clips** (`clips.json`) name a hole and its swings: `"aim": "solution"` or `[degrees, power]`, which ball the drag
+  is on, Same or Mirror, timings, a round to show in the top bar. The file says how.
+- **Screenshots** (`screenshots.json`) are a clip and a moment in it, with the caption `frames.py` sets over the
+  screen. A clip's `--look` shows where its moments fall.
+- **The trailer** (`trailer/edl.json`) cuts the clips into shots with slow camera moves and big captions, then the
+  end card with the wordmark: `double-putt-trailer.mp4` (1080x1920, 60 fps, for the site) and
+  `double-putt-app-preview.mp4` (886x1920, 30 fps, 15-30 seconds, the App Store preview). Each shot keeps its own game
+  sounds, under the music if there is a track (`--music` or `TRAILER_MUSIC`). The track isn't kept in the repo.
+- SwiftUI's animations are off in a capture, so the HUD changes on the frame it happens; a hole's ambience (a gull, a
+  firework) is SpriteKit's random and can differ between runs.
 
 ## Workflow
 
