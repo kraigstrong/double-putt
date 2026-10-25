@@ -33,6 +33,7 @@ struct GameView: View {
                 }
 
                 powerMeter(geo)
+                holePanel(geo)
 
                 let course = localCourseFrame(geo)
                 let tip = tipSpot(course)
@@ -204,6 +205,18 @@ struct GameView: View {
             Spacer(minLength: 0)
             PuttButton(enabled: game.canPutt, rolling: game.isRolling) { game.putt() }
                 .overlay(alignment: .top) { if game.tutorial == .putt { BouncingArrow().offset(y: -44) } }
+        }
+    }
+
+    /// The nine's scorecard in the column left of an upright course, when it's wide enough to read: an iPad, or a Duo
+    /// opened and held upright. Phones don't have the room, and a turned course fills the width.
+    @ViewBuilder
+    private func holePanel(_ geo: GeometryProxy) -> some View {
+        let course = localCourseFrame(geo)
+        let column = course.minX
+        if !game.courseTurned, course.width > 0, column - 24 >= 120 {
+            HolePanel(game: game, width: min(column - 24, 250))
+                .position(x: column / 2, y: course.midY)
         }
     }
 
