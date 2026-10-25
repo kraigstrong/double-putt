@@ -190,9 +190,11 @@ final class GameScene: SKScene {
     /// often comes in a few steps, so the redraw waits for them to settle.
     private func redraw() {
         pendingRedraw?.cancel()
+        pendingRedraw = nil
         if model.paused {
-            // The pause menu hides the course and nothing's moving: redraw now, ready for Resume.
-            buildArt(ppu: ppu)
+            // The pause menu hides the course and nothing's moving: redraw now, ready for Resume (and finish any
+            // redraw that was waiting when the game was paused).
+            finishRedraw()
             return
         }
         redrawing = true
@@ -219,7 +221,12 @@ final class GameScene: SKScene {
         // The wait isn't play time: the next frame picks up from here.
         lastUpdate = nil
         redrawCover.removeAllActions()
-        redrawCover.run(.sequence([.fadeOut(withDuration: 0.3), .removeFromParent()]))
+        if model.paused {
+            // A paused scene doesn't run actions, so a fade would wait for Resume: the pause menu hides it anyway.
+            redrawCover.removeFromParent()
+        } else {
+            redrawCover.run(.sequence([.fadeOut(withDuration: 0.3), .removeFromParent()]))
+        }
     }
 
     /// The world on screen.

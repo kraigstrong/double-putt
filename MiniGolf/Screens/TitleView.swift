@@ -5,12 +5,13 @@ struct TitleView: View {
     @State private var zoom = false
     @State private var appeared = false
     @State private var devToast: String?
+    @Environment(\.displayScale) private var displayScale
     private var game: GameModel { app.game }
 
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                if let backdrop = MenuArt.shared.title(size: geo.size) {
+                if let backdrop = MenuArt.shared.title(size: geo.size, scale: displayScale) {
                     Image(uiImage: backdrop)
                         .resizable()
                         .scaledToFill()
