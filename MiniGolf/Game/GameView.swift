@@ -35,11 +35,12 @@ struct GameView: View {
                 powerMeter(geo)
 
                 let course = localCourseFrame(geo)
+                let tip = tipSpot(course)
                 // Hints sit below the tees (empty on every hole); the tutorial uses the open middle of Reflection.
                 if showHint && game.tutorial == nil && !game.showResult {
                     HintBanner(text: game.level.hint)
-                        .frame(width: max(course.width, 1))
-                        .position(x: course.midX, y: course.maxY - course.height * 0.055)
+                        .frame(width: tip.width)
+                        .position(tip.center)
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                         .onTapGesture { withAnimation { showHint = false } }
                 }
@@ -47,15 +48,15 @@ struct GameView: View {
                 ZStack {
                     if let step = game.tutorial {
                         TutorialCard(step: step) { withAnimation { game.dismissTutorial() } }
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .transition(.move(edge: game.courseTurned ? .top : .bottom).combined(with: .opacity))
                     }
                 }
-                .frame(width: max(course.width, 1))
-                .position(x: course.midX, y: course.maxY - course.height * 0.06)
+                .frame(width: tip.width)
+                .position(tip.center)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: game.tutorial)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showHint)
 
-                if game.tutorial == .aim { DragDemo(frame: localCourseFrame(geo)) }
+                if game.tutorial == .aim { DragDemo(frame: localCourseFrame(geo), turned: game.courseTurned) }
 
                 if game.paused {
                     PauseMenu(app: app).transition(.opacity)
@@ -128,11 +129,23 @@ struct GameView: View {
 
     private func updateInsets(_ geo: GeometryProxy) {
         let s = geo.safeAreaInsets
-        game.insets = UIEdgeInsets(top: s.top + Self.topBar + 10, left: 14, bottom: s.bottom + Self.bottomBar + 14, right: 52)
+        // The sides' safe areas (a Duo keeps its camera and status bar down one side) go in as well: the course
+        // stays clear of them, but still centres on the whole screen when there's room.
+        game.insets = (hud: UIEdgeInsets(top: s.top + Self.topBar + 10, left: 14, bottom: s.bottom + Self.bottomBar + 14, right: 52),
+                       sides: UIEdgeInsets(top: 0, left: s.leading, bottom: 0, right: s.trailing))
     }
 
     private func localCourseFrame(_ geo: GeometryProxy) -> CGRect {
         game.courseFrame.offsetBy(dx: -geo.safeAreaInsets.leading, dy: -geo.safeAreaInsets.top)
+    }
+
+    /// Where hints and tips go: the strip below the tees, empty on every hole. Turned, that strip runs down the
+    /// course's left end, too narrow for words, so they hang across the top edge instead, under the bar.
+    private func tipSpot(_ course: CGRect) -> (center: CGPoint, width: CGFloat) {
+        if game.courseTurned {
+            return (CGPoint(x: course.midX, y: course.minY + 26), max(min(course.width * 0.6, 520), 1))
+        }
+        return (CGPoint(x: course.midX, y: course.maxY - course.height * 0.055), max(course.width, 1))
     }
 
     // MARK: Bars
@@ -173,7 +186,7 @@ struct GameView: View {
 
     private func bottomBar(compact: Bool) -> some View {
         HStack(spacing: compact ? 6 : 8) {
-            SwingToggle(mirrored: game.mirrored, segment: compact ? 50 : 58) { game.setMirrored($0) }
+            SwingToggle(mirrored: game.mirrored, turned: game.courseTurned, segment: compact ? 50 : 58) { game.setMirrored($0) }
                 .overlay(alignment: .topTrailing) { if game.tutorial == .mirror { BouncingArrow().offset(x: -21, y: -44) } }
             Spacer(minLength: 0)
             HStack(spacing: 4) {
@@ -234,6 +247,8 @@ private struct ScoreChip: View {
 
 private struct SwingToggle: View {
     let mirrored: Bool
+    /// The course is turned, one green above the other: the arrows turn with it, so Mirror reads top to bottom.
+    var turned = false
     var segment: CGFloat = 58
     let set: (Bool) -> Void
 
@@ -254,6 +269,7 @@ private struct SwingToggle: View {
             VStack(spacing: 2) {
                 HStack(spacing: 2) { ForEach(icons.indices, id: \.self) { Image(systemName: icons[$0]) } }
                     .font(.system(size: 12, weight: .black))
+                    .rotationEffect(.degrees(turned ? 90 : 0))
                 Text(title).font(.rounded(12, .heavy))
             }
             .frame(width: segment, height: 48)
@@ -484,9 +500,11 @@ private struct BouncingArrow: View {
     }
 }
 
-/// A ghost finger demonstrating the pull-back.
+/// A ghost finger demonstrating the pull-back: down the screen, or to the left when the course is turned (tees on
+/// the left).
 private struct DragDemo: View {
     let frame: CGRect
+    var turned = false
     @State private var t = false
 
     var body: some View {
@@ -494,7 +512,8 @@ private struct DragDemo: View {
             .font(.system(size: 44))
             .foregroundStyle(.white)
             .shadow(color: .black.opacity(0.4), radius: 4, y: 2)
-            .position(x: frame.midX + 30, y: frame.minY + frame.height * 0.6 + (t ? 110 : 0))
+            .position(turned ? CGPoint(x: frame.minX + frame.width * 0.4 - (t ? 110 : 0), y: frame.midY - 30)
+                             : CGPoint(x: frame.midX + 30, y: frame.minY + frame.height * 0.6 + (t ? 110 : 0)))
             .opacity(t ? 0.25 : 0.95)
             .onAppear { withAnimation(.easeInOut(duration: 1.3).repeatForever(autoreverses: false)) { t = true } }
             .allowsHitTesting(false)
@@ -504,6 +523,7 @@ private struct DragDemo: View {
 // MARK: - Overlays
 
 private struct PauseMenu: View {
+    static let maxWidth: CGFloat = 380
     let app: AppState
     private var game: GameModel { app.game }
 
@@ -551,6 +571,8 @@ private struct PauseMenu: View {
                     .padding(.top, 8)
                 }
             }
+            // A phone's width at most, so its buttons don't stretch across an iPad.
+            .frame(maxWidth: Self.maxWidth)
             .padding(24)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
@@ -624,6 +646,7 @@ private struct ResultCard: View {
                 }
                 .padding(.top, 6)
             }
+            .frame(maxWidth: PauseMenu.maxWidth)
             .padding(26)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))

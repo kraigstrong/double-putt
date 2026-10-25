@@ -108,6 +108,9 @@ final class GameModel {
     var tutorial: TutorialStep?
     /// Where the course sits on screen (scene/view points), so HUD pieces can hug it.
     var courseFrame: CGRect = .zero
+    /// The course is turned a quarter to fill a wide screen (a Duo opened, an iPad on its side): tees on the left,
+    /// one green above the other.
+    var courseTurned = false
     /// Bumped when a hole is entered (not on retry), e.g. to flash the hint.
     private(set) var loadToken = 0
     private(set) var newBest = false
@@ -136,8 +139,9 @@ final class GameModel {
     private(set) var bests: [String: Int] = UserDefaults.standard.dictionary(forKey: "bests") as? [String: Int] ?? [:]
     private(set) var tutorialDone = UserDefaults.standard.bool(forKey: "tutorialDone")
 
-    /// Screen area (points) covered by HUD; the scene fits the course into what's left.
-    @ObservationIgnored var insets: UIEdgeInsets = .zero {
+    /// Screen area (points) covered by HUD, and the safe areas down the sides; the scene fits the course into what's
+    /// left.
+    @ObservationIgnored var insets: (hud: UIEdgeInsets, sides: UIEdgeInsets) = (.zero, .zero) {
         didSet { if insets != oldValue { scene?.layoutInsets = insets } }
     }
 

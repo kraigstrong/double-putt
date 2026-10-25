@@ -29,7 +29,7 @@ final class GameScene: SKScene {
     private var accumulator = 0.0
     private var lastUpdate: TimeInterval?
 
-    var layoutInsets: UIEdgeInsets = .zero { didSet { layoutCamera() } }
+    var layoutInsets: (hud: UIEdgeInsets, sides: UIEdgeInsets) = (.zero, .zero) { didSet { layoutCamera() } }
     private let cam = SKCameraNode()
     private let worldNode = SKNode()
     private let groundNode = SKSpriteNode()
@@ -40,6 +40,9 @@ final class GameScene: SKScene {
     private let flowNode = SKNode()
     private var flowDots: [SKSpriteNode] = []
     private let dragNode = SKShapeNode()
+    /// Effects that belong to the screen rather than the ground (weather, fireworks, gulls, confetti), so they fall
+    /// down the screen however the course is turned. A child of the camera, scaled to course units: see `screenRect`.
+    private let overlayNode = SKNode()
     private var ballNodes: [SKNode] = []
     /// Each ball's orientation (ball → world), turned on every physics step so it rolls as it moves.
     private var ballSpin: [simd_quatf] = []
@@ -53,6 +56,7 @@ final class GameScene: SKScene {
     private var pointsPerUnit: CGFloat = 1
     private var renderedPPU: CGFloat = 0
     private var renderedLevel: String?
+    private var renderedTurned = false
     /// The part of the world the ground art covers: what was on screen when it was drawn, plus a margin.
     private var paintedRect = CGRect.null
     private var textureCache: [String: SKTexture] = [:]
@@ -89,6 +93,7 @@ final class GameScene: SKScene {
         backgroundColor = theme.rough
         addChild(cam)
         camera = cam
+        cam.addChild(overlayNode)
         addChild(worldNode)
         groundNode.anchorPoint = .zero
         groundNode.zPosition = -20
@@ -121,28 +126,60 @@ final class GameScene: SKScene {
 
     private func layoutCamera() {
         // Wait for a real view and HUD insets; rendering art for a placeholder size is wasted work.
-        guard view != nil, size.width > 10, size.height > 10, layoutInsets != .zero else { return }
+        guard view != nil, size.width > 10, size.height > 10, layoutInsets.hud != .zero else { return }
         let margin = CourseArt.borderOut + 6
         let fullW = Course.width + 2 * margin, fullH = Course.height + 2 * margin
-        let i = layoutInsets
-        let availW = size.width - i.left - i.right, availH = size.height - i.top - i.bottom
-        let s = min(availW / fullW, availH / fullH)
+        let i = layoutInsets.hud, sides = layoutInsets.sides
+        let availW = size.width - i.left - i.right - sides.left - sides.right, availH = size.height - i.top - i.bottom
+        let upright = min(availW / fullW, availH / fullH)
+        let sideways = min(availW / fullH, availH / fullW)
+        // A wide screen (a Duo opened, an iPad on its side) shows the course turned a quarter, tees on the left, when
+        // that makes it clearly bigger.
+        let turned = sideways > upright * 1.15
+        let s = turned ? sideways : upright
         guard s > 0 else { return }
         pointsPerUnit = s
         cam.setScale(1 / s)
-        let free = CGPoint(x: i.left + availW / 2, y: i.bottom + availH / 2)
-        cam.position = CGPoint(x: Course.width / 2 - (free.x - size.width / 2) / s,
-                               y: Course.height / 2 - (free.y - size.height / 2) / s)
+        cam.zRotation = turned ? .pi / 2 : 0
+        overlayNode.setScale(s)
+        // The course's centre goes in the middle of the space the HUD leaves, moved off it only as far as it takes to
+        // keep clear of the safe areas down the sides.
+        let half = (turned ? fullH : fullW) * s / 2
+        let ideal = i.left + (size.width - i.left - i.right) / 2
+        let lo = sides.left + i.left + half, hi = size.width - sides.right - i.right - half
+        let free = CGPoint(x: lo <= hi ? min(max(ideal, lo), hi) : (lo + hi) / 2, y: i.bottom + availH / 2)
+        let offset = toWorld(CGVector(dx: free.x - size.width / 2, dy: free.y - size.height / 2))
+        cam.position = CGPoint(x: Course.width / 2 - offset.dx / s, y: Course.height / 2 - offset.dy / s)
         let o = CourseArt.borderOut
-        let frame = CGRect(x: (-o - cam.position.x) * s + size.width / 2,
-                           y: size.height / 2 - (Course.height + o - cam.position.y) * s,
-                           width: (Course.width + 2 * o) * s, height: (Course.height + 2 * o) * s)
+        let long = (Course.height + 2 * o) * s, short = (Course.width + 2 * o) * s
+        let (w, h) = turned ? (long, short) : (short, long)
+        let frame = CGRect(x: free.x - w / 2, y: size.height - free.y - h / 2, width: w, height: h)
         if model.courseFrame != frame { model.courseFrame = frame }
+        if model.courseTurned != turned { model.courseTurned = turned }
         if renderedLevel != level.name {
             buildArt(ppu: ppu)
-        } else if abs(ppu - renderedPPU) / ppu > 0.15 || !paintedRect.contains(visibleRect) {
+        } else if turned != renderedTurned || abs(ppu - renderedPPU) / ppu > 0.15 || !paintedRect.contains(visibleRect) {
             redraw()
         }
+    }
+
+    /// The course is turned a quarter on screen (see `layoutCamera`).
+    private var turned: Bool { cam.zRotation != 0 }
+
+    /// A screen direction (points, y up) as a world direction: the camera's turn applied.
+    private func toWorld(_ v: CGVector) -> CGVector {
+        turned ? CGVector(dx: -v.dy, dy: v.dx) : v
+    }
+
+    /// A point in the view (points, y down) in world coordinates.
+    private func worldPoint(fromView p: CGPoint) -> CGPoint {
+        let v = toWorld(CGVector(dx: p.x - size.width / 2, dy: size.height / 2 - p.y))
+        return CGPoint(x: cam.position.x + v.dx / pointsPerUnit, y: cam.position.y + v.dy / pointsPerUnit)
+    }
+
+    /// Turns a node that stands up on screen (a flag, a word) so it still stands up when the course is turned.
+    private func standUp(_ node: SKNode) {
+        node.zRotation = cam.zRotation
     }
 
     /// Pixels per course unit for the current layout.
@@ -192,9 +229,25 @@ final class GameScene: SKScene {
         }
     }
 
+    /// The world on screen.
     private var visibleRect: CGRect {
-        let w = size.width / pointsPerUnit, h = size.height / pointsPerUnit
+        var w = size.width / pointsPerUnit, h = size.height / pointsPerUnit
+        if turned { swap(&w, &h) }
         return CGRect(x: cam.position.x - w / 2, y: cam.position.y - h / 2, width: w, height: h)
+    }
+
+    /// The screen in `overlayNode`'s space: course units, centred, y up, never turned.
+    private var screenRect: CGRect {
+        let w = size.width / pointsPerUnit, h = size.height / pointsPerUnit
+        return CGRect(x: -w / 2, y: -h / 2, width: w, height: h)
+    }
+
+    /// The course (and its border) in `overlayNode`'s space.
+    private var courseInOverlay: CGRect {
+        let r = CourseArt.courseRect
+        let corners = [CGPoint(x: r.minX, y: r.minY), CGPoint(x: r.maxX, y: r.maxY)].map { overlayNode.convert($0, from: worldNode) }
+        return CGRect(x: min(corners[0].x, corners[1].x), y: min(corners[0].y, corners[1].y),
+                      width: abs(corners[1].x - corners[0].x), height: abs(corners[1].y - corners[0].y))
     }
 
     private func texture(_ key: String, _ make: () -> UIImage) -> SKTexture {
@@ -208,6 +261,7 @@ final class GameScene: SKScene {
         if abs(ppu - renderedPPU) / max(ppu, 0.01) > 0.15 { textureCache = [:] }
         renderedPPU = ppu
         renderedLevel = level.name
+        renderedTurned = turned
         backgroundColor = theme.rough
         let seed = CourseArt.stableSeed(level.name)
 
@@ -227,7 +281,7 @@ final class GameScene: SKScene {
         buildWater()
         buildMovers(ppu: ppu)
         addLanterns()
-        buildAmbient(in: visibleRect)
+        buildAmbient(in: screenRect)
         buildBalls()
         drawnGuide = nil
     }
@@ -257,13 +311,15 @@ final class GameScene: SKScene {
         }
         if level.bandon {
             // Bandon naps on the ground just right of the course, near the top: clear of the power meter and the
-            // buttons on a phone. His spot is kept clear of trees.
+            // buttons on a phone. Turned, he naps above the course, between the first score and the hole's name. His
+            // spot is kept clear of trees.
             var spot = SeededRandom(seed: seed &+ 77)
-            let p = CGPoint(x: Course.width + CourseArt.borderOut + 26, y: Course.height - spot.range(50, 100))
+            let p = turned ? CGPoint(x: -CourseArt.borderOut - 26, y: Course.height * 0.3 + spot.range(-25, 25))
+                : CGPoint(x: Course.width + CourseArt.borderOut + 26, y: Course.height - spot.range(50, 100))
             let art = CourseArt.bandon(ppu: ppu)
             let dog = SKNode()
             dog.position = p
-            dog.zRotation = spot.unit() < 0.5 ? 0.12 : .pi - 0.12
+            dog.zRotation = (spot.unit() < 0.5 ? 0.12 : .pi - 0.12) + cam.zRotation
             let body = SKSpriteNode(texture: texture("bandon") { art.body.image }, size: art.body.size)
             body.anchorPoint = CGPoint(x: 0.5, y: 20 / art.body.size.height)
             let tail = SKSpriteNode(texture: texture("bandonTail") { art.tail.image }, size: art.tail.size)
@@ -281,7 +337,9 @@ final class GameScene: SKScene {
         }
         if theme.ground == .muni {
             // The city's water tower stands just right of the course, near the top: the strip above the power meter.
-            let p = CGPoint(x: Course.width + CourseArt.borderOut + 30, y: Course.height - 70)
+            // Turned, it stands above the course, between the hole's name and the second score.
+            let p = turned ? CGPoint(x: -CourseArt.borderOut - 30, y: Course.height * 0.72)
+                : CGPoint(x: Course.width + CourseArt.borderOut + 30, y: Course.height - 70)
             add(CourseArt.waterTower(radius: 28, ppu: ppu), key: "waterTower", at: p, sway: false)
             placed.append((p, 40))
         }
@@ -449,7 +507,10 @@ final class GameScene: SKScene {
             flag.position = cup.cg
             flag.zPosition = 20
             flag.name = "flag\(i)"
-            let shadow = SKShapeNode(path: CourseArt.line(.zero, CGPoint(x: 20, y: -15)))
+            standUp(flag)
+            // The pole stands up on screen; its shadow falls the way the course's shadows do.
+            let fall = turned ? CGPoint(x: -15, y: -20) : CGPoint(x: 20, y: -15)
+            let shadow = SKShapeNode(path: CourseArt.line(.zero, fall))
             shadow.strokeColor = UIColor.black.withAlphaComponent(0.22)
             shadow.lineWidth = 2.2
             shadow.lineCap = .round
@@ -518,9 +579,11 @@ final class GameScene: SKScene {
         }
     }
 
+    /// Weather and the like, over `rect`: the screen, in `overlayNode`'s space.
     private func buildAmbient(in rect: CGRect) {
         ambient?.removeFromParent()
         ambient = nil
+        overlayNode.removeAllChildren()
         removeAction(forKey: "fireworks")
         removeAction(forKey: "gulls")
         if theme.ambient == .sparks { startFireworks(in: rect) }
@@ -671,8 +734,8 @@ final class GameScene: SKScene {
         }
         e.particleSize = CGSize(width: 2, height: 2)
         if theme.ambient == .fireflies || theme.ambient == .motes || theme.ambient == .mist { e.particleSize = CGSize(width: 40, height: 40) }
-        e.targetNode = worldNode
-        worldNode.addChild(e)
+        e.targetNode = overlayNode
+        overlayNode.addChild(e)
         e.advanceSimulationTime(20)
         ambient = e
     }
@@ -706,7 +769,7 @@ final class GameScene: SKScene {
                 let beat = SKAction.animate(with: textures + [textures[0]], timePerFrame: 0.08)
                 node.run(.repeatForever(.sequence([.repeat(beat, count: 3), .wait(forDuration: 1.1, withRange: 0.8)])))
             }
-            self.worldNode.addChild(gull)
+            self.overlayNode.addChild(gull)
             let distance = hypot(end.x - start.x, end.y - start.y)
             gull.run(.sequence([.move(to: end, duration: Double(distance) / .random(in: 60...80)), .removeFromParent()]))
         }
@@ -717,7 +780,7 @@ final class GameScene: SKScene {
 
     /// Every few seconds a firework bursts in the margins round the course (never over the green).
     private func startFireworks(in rect: CGRect) {
-        let felt = CGRect(x: -80, y: -80, width: Course.width + 160, height: Course.height + 160)
+        let felt = courseInOverlay.insetBy(dx: -80 + CourseArt.borderOut, dy: -80 + CourseArt.borderOut)
         let burst = SKAction.run { [weak self] in
             guard let self, !self.model.paused else { return }
             var p = CGPoint.zero
@@ -744,7 +807,7 @@ final class GameScene: SKScene {
             e.particleScale = 0.8
             e.particleScaleSpeed = -0.5
             e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [1, 1, 0], times: [0, 0.5, 1])
-            self.worldNode.addChild(e)
+            self.overlayNode.addChild(e)
             e.run(.sequence([.wait(forDuration: 2.2), .removeFromParent()]))
         }
         run(.repeatForever(.sequence([.wait(forDuration: 2.6, withRange: 2.0), burst])), withKey: "fireworks")
@@ -1134,7 +1197,7 @@ final class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard model.canAim, !redrawing, dragStart == nil, let t = touches.first, let v = view else { return }
         dragStart = t.location(in: v)
-        dragSide = convertPoint(fromView: dragStart!).x > Course.half ? 1 : 0
+        dragSide = worldPoint(fromView: dragStart!).x > Course.half ? 1 : 0
         tickBucket = model.aim.map { Int($0.power * 10) } ?? -1
         selection.prepare()
     }
@@ -1142,9 +1205,10 @@ final class GameScene: SKScene {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard model.canAim, let start = dragStart, let t = touches.first, let v = view else { return }
         let p = t.location(in: v)
-        let pull = CGVector(dx: start.x - p.x, dy: p.y - start.y)
+        // The pull back, on screen (y up) and then on the course.
+        let pull = toWorld(CGVector(dx: start.x - p.x, dy: p.y - start.y))
         let len = hypot(pull.dx, pull.dy)
-        drawDrag(from: convertPoint(fromView: start), to: convertPoint(fromView: p))
+        drawDrag(from: worldPoint(fromView: start), to: worldPoint(fromView: p))
         guard len > 12 else { return }
         var angle = atan2(pull.dy, pull.dx) * 180 / .pi
         if angle < 0 { angle += 360 }
@@ -1335,7 +1399,8 @@ final class GameScene: SKScene {
         if strokes == 1, model.strokes != [1, 1] || world.balls.contains(where: { $0.sunkIn == nil }) {
             run(.sequence([.wait(forDuration: 0.25), .run { SoundFX.shared.ace() }]))
         }
-        popText(text, at: CGPoint(x: target.x, y: target.y + 18), color: Palette.side(i), big: strokes == 1)
+        let above = toWorld(CGVector(dx: 0, dy: 18))
+        popText(text, at: CGPoint(x: target.x + above.dx, y: target.y + above.dy), color: Palette.side(i), big: strokes == 1)
         let ring = SKShapeNode(circleOfRadius: Tuning.cupRadius)
         ring.position = target
         ring.strokeColor = .white
@@ -1381,7 +1446,8 @@ final class GameScene: SKScene {
         let node = ballNodes[i]
         node.alpha = 0
         node.run(.sequence([.wait(forDuration: 0.5), .fadeIn(withDuration: 0.3)]))
-        popText("+1", at: CGPoint(x: world.balls[i].pos.x, y: world.balls[i].pos.y + 16), color: UIColor(hex: 0xFF5A5F), big: false)
+        let above = toWorld(CGVector(dx: 0, dy: 16))
+        popText("+1", at: CGPoint(x: world.balls[i].pos.x + above.dx, y: world.balls[i].pos.y + above.dy), color: UIColor(hex: 0xFF5A5F), big: false)
     }
 
     private func puff(at p: Vec, count: Int, color: UIColor) {
@@ -1406,7 +1472,7 @@ final class GameScene: SKScene {
     }
 
     private func confetti() {
-        let r = visibleRect
+        let r = screenRect
         for side in [-1.0, 1.0] {
             let e = SKEmitterNode()
             e.particleTexture = texture("confetti") {
@@ -1432,7 +1498,7 @@ final class GameScene: SKScene {
             e.particleColorBlueRange = 1
             e.particleAlphaSequence = SKKeyframeSequence(keyframeValues: [1, 1, 0], times: [0, 0.8, 1])
             e.zPosition = 60
-            worldNode.addChild(e)
+            overlayNode.addChild(e)
             e.run(.sequence([.wait(forDuration: 4), .removeFromParent()]))
         }
     }
@@ -1443,11 +1509,13 @@ final class GameScene: SKScene {
         label.zPosition = 45
         label.setScale(0.3)
         label.alpha = 0
+        standUp(label)
         fxNode.addChild(label)
+        let rise = toWorld(CGVector(dx: 0, dy: 14))
         label.run(.sequence([
             .group([.fadeIn(withDuration: 0.12), .scale(to: 1.1, duration: 0.18)]),
             .scale(to: 1, duration: 0.08),
-            .group([.moveBy(x: 0, y: 14, duration: 1.1), .sequence([.wait(forDuration: 0.7), .fadeOut(withDuration: 0.4)])]),
+            .group([.moveBy(x: rise.dx, y: rise.dy, duration: 1.1), .sequence([.wait(forDuration: 0.7), .fadeOut(withDuration: 0.4)])]),
             .removeFromParent(),
         ]))
     }

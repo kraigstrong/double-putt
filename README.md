@@ -4,7 +4,9 @@
 
 Mini golf where one swing plays two greens. Every swing hits both balls with the same shot — or, with **Mirror**,
 green B's ball gets the shot flipped left-to-right. It runs on iPhone (held upright) and iPad (either way round); the
-art redraws whenever the screen changes size mid-hole, with play held still until it's done.
+art redraws whenever the screen changes size mid-hole, with play held still until it's done. On a wide screen (an iPad
+on its side, an iPhone Duo opened like a book) the course turns a quarter to fill it: tees on the left, one green above
+the other, and Mirror flips top to bottom.
 
 ## Run it
 
