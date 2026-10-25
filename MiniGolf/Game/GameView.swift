@@ -523,6 +523,7 @@ private struct DragDemo: View {
 // MARK: - Overlays
 
 private struct PauseMenu: View {
+    static let maxWidth: CGFloat = 380
     let app: AppState
     private var game: GameModel { app.game }
 
@@ -570,6 +571,8 @@ private struct PauseMenu: View {
                     .padding(.top, 8)
                 }
             }
+            // A phone's width at most, so its buttons don't stretch across an iPad.
+            .frame(maxWidth: Self.maxWidth)
             .padding(24)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
@@ -643,6 +646,7 @@ private struct ResultCard: View {
                 }
                 .padding(.top, 6)
             }
+            .frame(maxWidth: PauseMenu.maxWidth)
             .padding(26)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
