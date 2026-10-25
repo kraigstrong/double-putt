@@ -13,7 +13,7 @@ struct GameView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                SpriteView(scene: app.scene, isPaused: viewPaused, preferredFramesPerSecond: 120, options: [.ignoresSiblingOrder])
+                SpriteView(scene: shownScene, isPaused: viewPaused, preferredFramesPerSecond: 120, options: [.ignoresSiblingOrder])
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -99,6 +99,14 @@ struct GameView: View {
                 withAnimation { showHint = false }
             }
         }
+    }
+
+    /// The game's scene, or a store capture's stand-in once it's running the scene itself (StoreCapture.swift).
+    private var shownScene: SKScene {
+        #if DEBUG
+        if let standIn = app.captureStandIn { return standIn }
+        #endif
+        return app.scene
     }
 
     /// A store capture steps the scene itself (StoreCapture.swift), so the view never runs it.

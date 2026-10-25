@@ -9,11 +9,11 @@ import UIKit
 /// and plays its swings as a player would (a drag on one ball, Same or Mirror, then Putt), saving the frames it draws,
 /// the HUD included, to Documents/StoreCapture: NNNNN.jpg, any stills asked for as still-N.png, then done.txt.
 ///
-/// Frame by frame, as Bigger Fish's footage plays: the view is paused and an SKRenderer steps the scene, its update
-/// and its actions alike, exactly a 60th of a second at a time, however long a frame takes to save. So footage never
-/// stutters, and a rerun plays the same swings the same way. (The ambience, a gull or a firework, is SpriteKit's
-/// random and can differ.) Each frame the renderer draws is shown over the paused view, and the window is saved, HUD
-/// and all. SwiftUI's animations would run on the wall clock in between, so they're off: the HUD changes on the frame
+/// Frame by frame, as Bigger Fish's footage plays: the scene comes off its view and an SKRenderer steps it, its
+/// update, actions and particles alike, exactly a 60th of a second at a time, however long a frame takes to save
+/// (Stepper). So footage never stutters, and a rerun plays the same swings the same way. (The ambience, a gull or a
+/// firework, is SpriteKit's random and can differ.) Each frame the renderer draws is shown where the scene was, and the
+/// window is saved, HUD and all. SwiftUI's animations would run on the wall clock in between, so they're off: the HUD changes on the frame
 /// it happens (the result card comes up without its fade). The game's sounds are logged by name against the same
 /// clock (cues.txt) and saved as WAVs (sounds/), so the scripts can rebuild the soundtrack: the simulator records none.
 ///
@@ -217,6 +217,13 @@ enum StoreCapture {
         // Past the game screen's fade in.
         try? await Task.sleep(for: .seconds(1))
         guard let view = scene.view, let window = view.window else { return fail("the hole's view went away") }
+        // Laid out for the screen; now off the view, which shows a stand-in, so only the stepper runs it (Stepper). The
+        // game screen shows the stand-in too, so SwiftUI doesn't put the scene back.
+        scene.scaleMode = .fill
+        let standIn = SKScene(size: view.bounds.size)
+        app.captureStandIn = standIn
+        view.presentScene(standIn)
+        guard scene.view == nil else { return fail("the hole's scene stayed on its view") }
         guard let stepper = Stepper(scene: scene) else { return fail("no Metal device to draw frames with") }
         do {
             try SoundFX.shared.exportSounds(to: directory.appendingPathComponent("sounds", isDirectory: true))
@@ -308,8 +315,11 @@ enum StoreCapture {
     // MARK: Stepping the scene
 
     /// Steps the scene a frame at a time and draws it offscreen, as Math Reef's capture does (kraigstrong/bigger-fish,
-    /// MathReef/StoreCapture.swift). The view stays paused (which pauses the scene too, undone each step); the view
-    /// can't draw a scene a renderer has, so the renderer draws the frames.
+    /// MathReef/StoreCapture.swift). The scene is off the view by then (`record` swaps in a stand-in): a view, even
+    /// paused, renders whenever it's laid out (SKView.layoutSubviews), and that runs its scene's update on the wall
+    /// clock, many seconds from the capture's. Every overlay frame and HUD change lays it out, so the scene's time
+    /// jumped back and forth: particles aged past their lifetime in a frame (a double ace's confetti never showed), and
+    /// a clip recorded from partway in stalled while the physics caught up.
     @MainActor final class Stepper {
         private let renderer: SKRenderer
         private let device: MTLDevice
@@ -323,16 +333,31 @@ enum StoreCapture {
             self.queue = queue
             self.scene = scene
             renderer = SKRenderer(device: device)
-            // Drawn bigger as it is, not resized to the frame (which would lay it out again at that size).
-            scene.scaleMode = .fill
             renderer.scene = scene
         }
 
+        /// The last step's time.
+        private var last: Double?
+
         /// The scene `seconds` into the clip.
         func step(to seconds: Double) {
-            scene.view?.isPaused = true
             scene.isPaused = false
             renderer.update(atTime: start + seconds)
+            // Particles, stepped by hand: SpriteKit ages them unreliably under a renderer (they lived a third as long),
+            // and gives an emitter born during an update an enormous first step that spends and ages out all its
+            // particles before they're drawn (a double ace's confetti, made as the balls settle). Each emitter's own
+            // clock is stopped (speed 0, which also marks it as taken over: the game never sets an emitter's speed), one
+            // born during this update starts over, and every one advances a frame.
+            let dt = seconds - (last ?? seconds)
+            scene.enumerateChildNodes(withName: "//*") { node, _ in
+                guard let emitter = node as? SKEmitterNode else { return }
+                if emitter.speed != 0 {
+                    if self.last != nil { emitter.resetSimulation() }
+                    emitter.speed = 0
+                }
+                if dt > 0 { emitter.advanceSimulationTime(dt) }
+            }
+            last = seconds
         }
 
         /// The scene as it stands, drawn `pixels` big.
