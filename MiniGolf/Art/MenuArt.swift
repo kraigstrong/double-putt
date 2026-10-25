@@ -103,8 +103,10 @@ final class MenuArt {
 
     nonisolated private static func drawTitle(size: CGSize, scale: CGFloat) -> UIImage {
         let level = Levels.course.first { $0.name == "Reflection" } ?? Levels.course[0]
-        let w: CGFloat = 520
-        let h = w * max(size.height, 1) / max(size.width, 1)
+        // At least 520 units across; on a wide screen, enough for 600 down, so the course isn't blown up to fill it.
+        let aspect = max(size.height, 1) / max(size.width, 1)
+        let w = max(520, 600 / aspect)
+        let h = w * aspect
         // Course top edge ~58% down the screen: logo over the meadow, cups just above the buttons.
         let top = Course.height + CourseArt.borderOut
         let rect = CGRect(x: Course.width / 2 - w / 2, y: top - h * 0.42, width: w, height: h)
