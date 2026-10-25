@@ -10,33 +10,54 @@ import SwiftUI
 final class MenuArt {
     static let shared = MenuArt()
     @ObservationIgnored private var cards: [String: UIImage] = [:]
-    /// Title backdrops by screen size (see `titleKey`).
+    /// Title backdrops by screen size (see `titleKey`): the few most recently shown, oldest first in `titleOrder`.
     private var titles: [String: UIImage] = [:]
-    @ObservationIgnored private var drawingTitles: Set<String> = []
+    @ObservationIgnored private var titleOrder: [String] = []
+    /// A backdrop is a full screen of pixels (some 20 MB on an iPad), so only this many are kept in memory; the rest
+    /// stay in the cache on disk.
+    private static let titlesKept = 3
+    /// The size the title screen is waiting on, and the wait-then-draw for it.
+    @ObservationIgnored private var wantedTitle: String?
+    @ObservationIgnored private var titleTask: Task<Void, Never>?
 
     /// A hole's card, once `prepare` has run.
     func card(_ level: Level) -> UIImage? { cards[level.name] }
 
-    /// The title's backdrop for a screen of `size`. A size it hasn't got yet (an iPad turned or resized, a Duo
-    /// opened) is drawn in the background, or loaded from the cache, and until then the backdrop of the nearest shape
-    /// stands in, filled to the screen.
-    func title(size: CGSize) -> UIImage? {
+    /// The title's backdrop for a screen of `size` at `scale`. A size it hasn't got (an iPad turned or resized, a Duo
+    /// opened) is drawn in the background, or loaded from the cache, once the size has settled; until then the
+    /// backdrop of the nearest shape stands in, filled to the screen.
+    func title(size: CGSize, scale: CGFloat) -> UIImage? {
         let key = Self.titleKey(size)
-        if let image = titles[key] { return image }
-        if !drawingTitles.contains(key) {
-            drawingTitles.insert(key)
+        if let image = titles[key] {
+            titleOrder.removeAll { $0 == key }
+            titleOrder.append(key)
+            return image
+        }
+        if wantedTitle != key {
+            wantedTitle = key
+            titleTask?.cancel()
             let file = Self.folder().appendingPathComponent("title-\(key).jpg")
-            Task.detached(priority: .userInitiated) {
-                let image = Self.cached(file) { Self.drawTitle(size: size) }
-                await MainActor.run {
-                    let art = MenuArt.shared
-                    withAnimation(.easeInOut(duration: 0.4)) { art.titles[key] = image }
-                    art.drawingTitles.remove(key)
-                }
+            titleTask = Task {
+                // A window being resized passes through many sizes: only draw the one it stops at.
+                try? await Task.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled else { return }
+                let image = await Task.detached(priority: .userInitiated) {
+                    Self.cached(file) { Self.drawTitle(size: size, scale: scale) }
+                }.value
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeInOut(duration: 0.4)) { self.keepTitle(image, key) }
+                self.wantedTitle = nil
             }
         }
         let aspect = size.height / max(size.width, 1)
         return titles.values.min { abs($0.size.height / $0.size.width - aspect) < abs($1.size.height / $1.size.width - aspect) }
+    }
+
+    private func keepTitle(_ image: UIImage, _ key: String) {
+        titles[key] = image
+        titleOrder.removeAll { $0 == key }
+        titleOrder.append(key)
+        while titleOrder.count > Self.titlesKept { titles[titleOrder.removeFirst()] = nil }
     }
 
     nonisolated private static func titleKey(_ size: CGSize) -> String { "\(Int(size.width))x\(Int(size.height))" }
@@ -53,7 +74,7 @@ final class MenuArt {
         // The titles first: they take the longest. Their names are their sizes' keys.
         let jobs: [(name: String, title: Bool, file: URL, draw: () -> UIImage)] =
             screens.map { size in
-                (Self.titleKey(size), true, folder.appendingPathComponent("title-\(Self.titleKey(size)).jpg"), { Self.drawTitle(size: size) })
+                (Self.titleKey(size), true, folder.appendingPathComponent("title-\(Self.titleKey(size)).jpg"), { Self.drawTitle(size: size, scale: scale) })
             }
             + levels.map { level in
                 (level.name, false, folder.appendingPathComponent("card-\(Self.fileName(level.name))-\(Int(cardWidth)).jpg"),
@@ -70,7 +91,7 @@ final class MenuArt {
             for _ in 0..<max(1, ProcessInfo.processInfo.activeProcessorCount - 1) { start() }
             var done = 0
             for await (name, title, image) in group {
-                if title { titles[name] = image } else { cards[name] = image }
+                if title { keepTitle(image, name) } else { cards[name] = image }
                 done += 1
                 progress(Double(done) / Double(jobs.count))
                 start()
@@ -78,14 +99,14 @@ final class MenuArt {
         }
     }
 
-    nonisolated private static func drawTitle(size: CGSize) -> UIImage {
+    nonisolated private static func drawTitle(size: CGSize, scale: CGFloat) -> UIImage {
         let level = Levels.course.first { $0.name == "Reflection" } ?? Levels.course[0]
         let w: CGFloat = 520
         let h = w * max(size.height, 1) / max(size.width, 1)
         // Course top edge ~58% down the screen: logo over the meadow, cups just above the buttons.
         let top = Course.height + CourseArt.borderOut
         let rect = CGRect(x: Course.width / 2 - w / 2, y: top - h * 0.42, width: w, height: h)
-        return CourseArt.scenic(level, rect: rect, pixelWidth: size.width * 3)
+        return CourseArt.scenic(level, rect: rect, pixelWidth: size.width * scale)
     }
 
     // MARK: - Cache
