@@ -23,7 +23,8 @@ struct CoursesView: View {
             .padding(.horizontal, 16)
 
             ScrollView {
-                VStack(spacing: 12) {
+                // One column on a phone; side by side on a wider screen, rather than stretching across it.
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 12)], spacing: 12) {
                     ForEach(Array(game.nines.enumerated()), id: \.element.id) { k, nine in
                         CourseCard(number: k + 1, nine: nine, game: game) { play(nine) }
                     }
@@ -67,6 +68,7 @@ private struct CourseCard: View {
     let nine: Nine
     let game: GameModel
     let action: () -> Void
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         let first = GameModel.levels[nine.holes.lowerBound]
@@ -106,7 +108,8 @@ private struct CourseCard: View {
                 }
             }
             .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            // Side by side on a big screen, the cards stand taller and show more of their course.
+            .frame(maxWidth: .infinity, minHeight: sizeClass == .regular ? 150 : nil, alignment: .leading)
             .background {
                 ZStack {
                     Color(theme.rough)

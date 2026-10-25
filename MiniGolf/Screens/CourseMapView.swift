@@ -72,7 +72,7 @@ struct FreePlaySpot {
 
 /// A course's name and settings over its holes, in a row that swipes sideways and settles on a card. Cards ease
 /// smaller and dimmer as they slide off either edge.
-private struct CourseRow: View {
+struct CourseRow: View {
     let nine: Nine
     let game: GameModel
     /// The first card in view.
@@ -109,8 +109,7 @@ private struct CourseRow: View {
                                      trophy: game.hasTrophy(level), locked: locked) {
                                 play(i)
                             }
-                            // Two and a half cards across, so the cut-off one says the row swipes.
-                            .containerRelativeFrame(.horizontal, count: 5, span: 2, spacing: 10)
+                            .containerRelativeFrame(.horizontal) { length, _ in Self.cardWidth(in: length) }
                             .scrollTransition(.interactive, axis: .horizontal) { card, phase in
                                 card.scaleEffect(1 - abs(phase.value) * 0.12).opacity(1 - abs(phase.value) * 0.5)
                             }
@@ -127,6 +126,13 @@ private struct CourseRow: View {
                 .scrollClipDisabled()
             }
         }
+    }
+
+    /// A card's width in a row `length` wide: two and a half cards across a phone, so the cut-off one says the row
+    /// swipes, and on a wider screen as many more as fit at about that size (still ending on a half).
+    static func cardWidth(in length: CGFloat) -> CGFloat {
+        let count = max(5, Int(2 * length / 190) | 1)
+        return (length - CGFloat(count - 1) * 10) / CGFloat(count) * 2 + 10
     }
 
     private var summary: String {

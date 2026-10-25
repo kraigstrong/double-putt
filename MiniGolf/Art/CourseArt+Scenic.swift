@@ -45,6 +45,9 @@ extension CourseArt {
                 if let crop, !crop.insetBy(dx: -r * 1.6, dy: -r * 1.6).contains(c) { continue }
                 p.c.saveGState()
                 p.c.translateBy(x: c.x, y: c.y)
+                // Each shadow is drawn through a transparency layer the size of the clip: unclipped, that's the whole
+                // backdrop, which on an iPad is slow and leaves smears of colour where the layers meet.
+                p.c.clip(to: CGRect(x: -r * 1.7, y: -r * 1.7, width: r * 3.4, height: r * 3.4))
                 let color = rng.pick(theme.canopies)
                 if tree {
                     p.tree(theme, radius: r, color: color, &rng)

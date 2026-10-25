@@ -38,6 +38,8 @@ struct TitleView: View {
 
                     Spacer()
                     logo
+                        // Phone-sized on a phone; up to half as big again on an iPad.
+                        .scaleEffect(min(max(min(geo.size.width, geo.size.height) / 520, 1), 1.5))
                         .padding(.bottom, geo.size.height * 0.16)
                         .scaleEffect(appeared ? 1 : 0.85)
                         .opacity(appeared ? 1 : 0)
@@ -72,6 +74,7 @@ struct TitleView: View {
                             }
                         }
                     }
+                    .frame(maxWidth: 440)
                     .padding(.horizontal, 40)
                     .padding(.bottom, 30)
                     .opacity(appeared ? 1 : 0)

@@ -72,6 +72,7 @@ struct ScorecardView: View {
                 .frame(maxHeight: 430)
                 PillButton(title: final ? "Done" : "Back to Game", symbol: final ? "flag.checkered" : "play.fill", fill: .putt, height: 50, action: close)
             }
+            .frame(maxWidth: 460)
             .padding(20)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))

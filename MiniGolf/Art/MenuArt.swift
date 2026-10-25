@@ -66,8 +66,10 @@ final class MenuArt {
     /// at once. `progress` hears the share done after each one.
     func prepare(_ levels: [Level], screen: CGSize, scale: CGFloat, progress: @escaping (Double) -> Void) async {
         let folder = Self.folder()
-        // Two of the five columns across Free Play: a touch wider than a card (see CourseRow), so it stays crisp.
-        let cardWidth = (screen.width * 0.4 * scale).rounded(.up)
+        // A touch wider than Free Play's cards (see CourseRow), so they stay crisp; an iPad's the wider of its two ways
+        // round.
+        let widths = [screen.width, screen.height].prefix(UIDevice.current.userInterfaceIdiom == .pad ? 2 : 1)
+        let cardWidth = (widths.map { CourseRow.cardWidth(in: $0) }.max()! * 1.05 * scale).rounded(.up)
         // An iPad turns, so it gets the title for the other way round too.
         var screens = [screen]
         if UIDevice.current.userInterfaceIdiom == .pad { screens.append(CGSize(width: screen.height, height: screen.width)) }
@@ -101,8 +103,10 @@ final class MenuArt {
 
     nonisolated private static func drawTitle(size: CGSize, scale: CGFloat) -> UIImage {
         let level = Levels.course.first { $0.name == "Reflection" } ?? Levels.course[0]
-        let w: CGFloat = 520
-        let h = w * max(size.height, 1) / max(size.width, 1)
+        // At least 520 units across; on a wide screen, enough for 600 down, so the course isn't blown up to fill it.
+        let aspect = max(size.height, 1) / max(size.width, 1)
+        let w = max(520, 600 / aspect)
+        let h = w * aspect
         // Course top edge ~58% down the screen: logo over the meadow, cups just above the buttons.
         let top = Course.height + CourseArt.borderOut
         let rect = CGRect(x: Course.width / 2 - w / 2, y: top - h * 0.42, width: w, height: h)
