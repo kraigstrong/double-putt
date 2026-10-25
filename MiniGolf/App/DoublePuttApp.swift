@@ -59,6 +59,15 @@ final class AppState {
                 try? img.pngData()?.write(to: dir.appendingPathComponent("\(level.name).png"))
             }
         }
+        if d.bool(forKey: "dumpLandmarks") {
+            // Write each setting's landmark to Documents/landmarks for inspection.
+            let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("landmarks")
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            for (id, theme) in Theme.all {
+                let prop = CourseArt.landmark(theme, radius: 100, ppu: 2)
+                try? prop.image.pngData()?.write(to: dir.appendingPathComponent("\(id).png"))
+            }
+        }
         if d.integer(forKey: "level") > 0 {
             play(level: d.integer(forKey: "level") - 1)
             if d.string(forKey: "guide") == "full" { game.fullPathGuide = true }

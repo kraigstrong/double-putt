@@ -19,6 +19,9 @@ final class GameScene: SKScene {
     static let maxDragPoints: CGFloat = 210
     /// Seconds from tapping Putt to the putter striking the balls.
     static let swing = 0.11
+    /// The power meter's height (points) beside a course this tall on screen: GameView sizes it, and the landmark
+    /// keeps clear of it.
+    static func powerMeterHeight(courseHeight: CGFloat) -> CGFloat { min(courseHeight * 0.62, 420) }
 
     let model: GameModel
     private var level: Level
@@ -57,6 +60,8 @@ final class GameScene: SKScene {
     private var renderedPPU: CGFloat = 0
     private var renderedLevel: String?
     private var renderedTurned = false
+    /// The course (with its border) on screen, in points with y up, and the HUD's insets: what the landmark fits round.
+    private var screenLayout = (course: CGRect.zero, hud: UIEdgeInsets.zero, sides: UIEdgeInsets.zero)
     /// The part of the world the ground art covers: what was on screen when it was drawn, plus a margin.
     private var paintedRect = CGRect.null
     private var textureCache: [String: SKTexture] = [:]
@@ -155,12 +160,48 @@ final class GameScene: SKScene {
         let (w, h) = turned ? (long, short) : (short, long)
         let frame = CGRect(x: free.x - w / 2, y: size.height - free.y - h / 2, width: w, height: h)
         if model.courseFrame != frame { model.courseFrame = frame }
+        screenLayout = (CGRect(x: free.x - w / 2, y: free.y - h / 2, width: w, height: h), i, sides)
         if model.courseTurned != turned { model.courseTurned = turned }
         if renderedLevel != level.name {
             buildArt(ppu: ppu)
-        } else if turned != renderedTurned || abs(ppu - renderedPPU) / ppu > 0.15 || !paintedRect.contains(visibleRect) {
+        } else if turned != renderedTurned || abs(ppu - renderedPPU) / ppu > 0.15 || !paintedRect.contains(visibleRect)
+                    || landmarkSpot().map(Spot.init) != renderedLandmark {
             redraw()
         }
+    }
+
+    /// Where the landmark went last time it was drawn, to tell when a resize moves it.
+    private var renderedLandmark: Spot?
+    private struct Spot: Equatable {
+        var x, y, radius: Int
+        init(_ s: (center: CGPoint, radius: CGFloat)) { (x, y, radius) = (Int(s.center.x), Int(s.center.y), Int(s.radius)) }
+    }
+
+    /// Where the setting's landmark goes: the biggest space on screen it fits, beside the course and clear of the HUD
+    /// (world point, radius in course units). Right of an upright course, below the power meter or else above it (the
+    /// hole panel has the left, Bandon and the water tower the top right); below a turned course or else above it.
+    /// Nil when there's no room for one, as on phones.
+    private func landmarkSpot() -> (center: CGPoint, radius: CGFloat)? {
+        let (course, i, sides) = screenLayout
+        guard course.width > 0 else { return nil }
+        let top = size.height - i.top, bottom = i.bottom, gap: CGFloat = 10
+        var spaces: [CGRect]
+        if turned {
+            let x0 = sides.left + gap, x1 = size.width - sides.right - gap
+            spaces = [CGRect(x: x0, y: bottom + gap, width: x1 - x0, height: course.minY - bottom - 2 * gap),
+                      CGRect(x: x0, y: course.maxY + gap, width: x1 - x0, height: top - course.maxY - 2 * gap)]
+        } else {
+            let x0 = course.maxX + gap, x1 = size.width - sides.right - gap
+            let meter = Self.powerMeterHeight(courseHeight: course.height) / 2 + gap
+            spaces = [CGRect(x: x0, y: bottom + gap, width: x1 - x0, height: course.midY - meter - bottom - gap),
+                      CGRect(x: x0, y: course.midY + meter, width: x1 - x0, height: top - gap - course.midY - meter)]
+        }
+        // The art reaches about 1.2 radii out (its shadow, the props round it); under 50pt it's too small to read.
+        guard let space = spaces.first(where: { min($0.width, $0.height) / 2.4 >= 50 }) else { return nil }
+        let radius = min(space.width, space.height) / 2.4
+        let v = toWorld(CGVector(dx: space.midX - size.width / 2, dy: space.midY - size.height / 2))
+        return (CGPoint(x: cam.position.x + v.dx / pointsPerUnit, y: cam.position.y + v.dy / pointsPerUnit),
+                min(radius / pointsPerUnit, 140))
     }
 
     /// The course is turned a quarter on screen (see `layoutCamera`).
@@ -335,6 +376,16 @@ final class GameScene: SKScene {
             propsNode.addChild(dog)
             placed.append((p, 32))
         }
+        if let spot = landmarkSpot() {
+            // The setting's landmark, in the spare space on a big screen. Trees keep clear of it.
+            let r = spot.radius
+            let node = SKSpriteNode(texture: texture("landmark-\(theme.id)-\(Int(r))") { CourseArt.landmark(theme, radius: r, ppu: ppu).image },
+                                    size: CGSize(width: r * 2.6, height: r * 2.6))
+            node.position = spot.center
+            propsNode.addChild(node)
+            placed.append((spot.center, r * 1.15))
+        }
+        renderedLandmark = landmarkSpot().map(Spot.init)
         if theme.ground == .muni {
             // The city's water tower stands just right of the course, near the top: the strip above the power meter.
             // Turned, it stands above the course, between the hole's name and the second score.
