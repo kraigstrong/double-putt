@@ -242,6 +242,7 @@ the movers load in); a level's `solutionTime` says when its stored solution is s
 ```bash
 xcrun simctl launch booted com.kraigstrong.doubleputt -level 3 -aim 70.25,0.71,mirror -guide full
 xcrun simctl launch booted com.kraigstrong.doubleputt -dumpArt 1   # writes course PNGs to the app's Documents/art
+xcrun simctl launch booted com.kraigstrong.doubleputt -canvas 951x669   # lays out at that size: a Duo opened, an iPad turned
 ```
 
 ## Screenshots, footage and the trailer
