@@ -75,20 +75,26 @@ Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by o
 
 ## Smoke check on the TestFlight build
 On a physical iPhone, with a fresh install (and later, as an update over the previous build):
-- The home screen shows the app icon with the mallet behind two balls.
-- The title shows; How to Play runs on Twins for a first-time player.
+- The home screen shows the app icon with the fang mallet behind two balls, a sight line behind each.
+- The first launch of the build (fresh install or update) shows "Setting up the greens…" and a bar for a few
+  seconds, then the title; the next launch goes straight to the title.
+- The title says "One swing. Two greens."; How to Play runs on Twins for a first-time player.
 - Courses lists every course but City Muni (Debug builds only), all open while the beta switch is on. With it off, Daybreak and Nightfall are open
   and the rest locked until the previous course has a medal. Long-pressing the logo does nothing (no dev mode).
 - Play a few holes in a round: strokes show as numbers when balls drop; the result card shows the hole's verdict;
   finishing a round shows the scorecard and medal, and (beta switch off) a medal on Nightfall unlocks Thunderhead.
 - Free Play shows a row per course that swipes sideways, and keeps each row where you left it until the app quits.
-  It plays any open hole; a double ace shows NEW TROPHY and lands on the Trophy Shelf.
+  Every card is there when it opens, and scrolling doesn't stutter. It plays any open hole; a double ace shows
+  NEW TROPHY and lands on the Trophy Shelf.
 - A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Hole.
 - Progress survives force-quitting and reopening.
 - The screen doesn't dim while aiming; it sleeps normally on the title screen.
 - Background the app mid-hole: on return the pause menu is up and nothing moved while away.
 - Sound off in Settings and the pause menu is remembered; with the phone on silent there's no sound.
-- Settings shows the version, and Privacy Policy and Support open in Safari.
+- Settings shows the version, and Privacy Policy and Support open Double Putt's own pages
+  (brightbench.app/doubleputt) in Safari.
+- A lone hill or bowl has its own grid centred on it, with the dots riding its lines (Hollow and Midnight on
+  Nightfall), and Topiary's hill (Thunderhead) draws nothing on the other green.
 - The Links: the slope grid and its dots show on green and fringe only; on Two Tiers a soft putt up the false
   front rolls back down; Bandon naps beside Fescue.
 - The Stadium: on Grandstand a ball banks off the stands like a wall.
