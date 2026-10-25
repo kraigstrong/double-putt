@@ -23,8 +23,8 @@ python3 appstore/push.py push --app double-putt --dry-run      # what would chan
 python3 appstore/push.py push --app double-putt                 # push only what differs
 python3 appstore/push.py push --app double-putt --only promotional_text
 python3 appstore/push.py testflight --app double-putt --dry-run                     # test information, groups
-python3 appstore/push.py testflight --app double-putt --build 3 --dry-run           # and build 3's What to Test
-python3 appstore/push.py testflight --app double-putt --build 3 --submit --dry-run  # to Friends, beta review
+python3 appstore/push.py testflight --app double-putt --build 4 --dry-run           # and build 4's What to Test
+python3 appstore/push.py testflight --app double-putt --build 4 --submit --dry-run  # to Friends, beta review
 python3 appstore/push.py testflight --app double-putt --invite EMAIL --dry-run      # a tester, to Friends
 python3 appstore/push.py media --app double-putt --screenshots DIR DIR --creative FILE --dry-run
 ```
