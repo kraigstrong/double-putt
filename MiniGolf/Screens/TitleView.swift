@@ -10,14 +10,19 @@ struct TitleView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                Image(uiImage: MenuArt.shared.title(size: geo.size))
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .scaleEffect(zoom ? 1.08 : 1.0)
-                    .animation(.easeInOut(duration: 14).repeatForever(autoreverses: true), value: zoom)
-                    .clipped()
-                    .ignoresSafeArea()
+                if let backdrop = MenuArt.shared.title(size: geo.size) {
+                    Image(uiImage: backdrop)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .scaleEffect(zoom ? 1.08 : 1.0)
+                        .animation(.easeInOut(duration: 14).repeatForever(autoreverses: true), value: zoom)
+                        .clipped()
+                        .ignoresSafeArea()
+                        // A new size's backdrop fades in over the stand-in.
+                        .id(ObjectIdentifier(backdrop))
+                        .transition(.opacity)
+                }
 
                 LinearGradient(colors: [.black.opacity(0.35), .clear, .clear, Color.ink.opacity(0.85), Color.ink],
                                startPoint: .top, endPoint: .bottom)

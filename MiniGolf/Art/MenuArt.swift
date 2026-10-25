@@ -1,25 +1,45 @@
 import MachO
-import UIKit
+import Observation
+import SwiftUI
 
 /// Menu artwork: every hole's card and the title's backdrop. They take seconds to draw, so the loading screen draws
 /// them once per build, saves them to Caches, and loads them from there on later launches. The menus only ever show
 /// art that's ready, so they never draw while you scroll.
 @MainActor
+@Observable
 final class MenuArt {
     static let shared = MenuArt()
-    private var cards: [String: UIImage] = [:]
-    private var titleArt: (size: CGSize, image: UIImage)?
+    @ObservationIgnored private var cards: [String: UIImage] = [:]
+    /// Title backdrops by screen size (see `titleKey`).
+    private var titles: [String: UIImage] = [:]
+    @ObservationIgnored private var drawingTitles: Set<String> = []
 
     /// A hole's card, once `prepare` has run.
     func card(_ level: Level) -> UIImage? { cards[level.name] }
 
-    /// The title's backdrop for a screen of `size`: the one `prepare` loaded, or drawn now if the size has changed.
-    func title(size: CGSize) -> UIImage {
-        if let titleArt, titleArt.size == size { return titleArt.image }
-        let image = Self.drawTitle(size: size)
-        titleArt = (size, image)
-        return image
+    /// The title's backdrop for a screen of `size`. A size it hasn't got yet (an iPad turned or resized, a Duo
+    /// opened) is drawn in the background, or loaded from the cache, and until then the backdrop of the nearest shape
+    /// stands in, filled to the screen.
+    func title(size: CGSize) -> UIImage? {
+        let key = Self.titleKey(size)
+        if let image = titles[key] { return image }
+        if !drawingTitles.contains(key) {
+            drawingTitles.insert(key)
+            let file = Self.folder().appendingPathComponent("title-\(key).jpg")
+            Task.detached(priority: .userInitiated) {
+                let image = Self.cached(file) { Self.drawTitle(size: size) }
+                await MainActor.run {
+                    let art = MenuArt.shared
+                    withAnimation(.easeInOut(duration: 0.4)) { art.titles[key] = image }
+                    art.drawingTitles.remove(key)
+                }
+            }
+        }
+        let aspect = size.height / max(size.width, 1)
+        return titles.values.min { abs($0.size.height / $0.size.width - aspect) < abs($1.size.height / $1.size.width - aspect) }
     }
+
+    nonisolated private static func titleKey(_ size: CGSize) -> String { "\(Int(size.width))x\(Int(size.height))" }
 
     /// Load the title and every hole's card from the cache, drawing (and saving) any that aren't there yet, several
     /// at once. `progress` hears the share done after each one.
@@ -27,25 +47,30 @@ final class MenuArt {
         let folder = Self.folder()
         // Two of the five columns across Free Play: a touch wider than a card (see CourseRow), so it stays crisp.
         let cardWidth = (screen.width * 0.4 * scale).rounded(.up)
-        // The title first: it takes the longest. Its name is nil.
-        let jobs: [(name: String?, file: URL, draw: () -> UIImage)] =
-            [(nil, folder.appendingPathComponent("title-\(Int(screen.width))x\(Int(screen.height)).jpg"), { Self.drawTitle(size: screen) })]
+        // An iPad turns, so it gets the title for the other way round too.
+        var screens = [screen]
+        if UIDevice.current.userInterfaceIdiom == .pad { screens.append(CGSize(width: screen.height, height: screen.width)) }
+        // The titles first: they take the longest. Their names are their sizes' keys.
+        let jobs: [(name: String, title: Bool, file: URL, draw: () -> UIImage)] =
+            screens.map { size in
+                (Self.titleKey(size), true, folder.appendingPathComponent("title-\(Self.titleKey(size)).jpg"), { Self.drawTitle(size: size) })
+            }
             + levels.map { level in
-                (level.name, folder.appendingPathComponent("card-\(Self.fileName(level.name))-\(Int(cardWidth)).jpg"),
+                (level.name, false, folder.appendingPathComponent("card-\(Self.fileName(level.name))-\(Int(cardWidth)).jpg"),
                  { CourseArt.card(level, pixelWidth: cardWidth) })
             }
-        await withTaskGroup(of: (String?, UIImage).self) { group in
+        await withTaskGroup(of: (String, Bool, UIImage).self) { group in
             // One short of a job per core: with every thread drawing, the progress updates (and the rest of the app's
             // async work) would wait for the drawing to finish.
             var queue = jobs.makeIterator()
             func start() {
                 guard let job = queue.next() else { return }
-                group.addTask { (job.name, Self.cached(job.file, job.draw)) }
+                group.addTask { (job.name, job.title, Self.cached(job.file, job.draw)) }
             }
             for _ in 0..<max(1, ProcessInfo.processInfo.activeProcessorCount - 1) { start() }
             var done = 0
-            for await (name, image) in group {
-                if let name { cards[name] = image } else { titleArt = (screen, image) }
+            for await (name, title, image) in group {
+                if title { titles[name] = image } else { cards[name] = image }
                 done += 1
                 progress(Double(done) / Double(jobs.count))
                 start()
