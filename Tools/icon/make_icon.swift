@@ -131,8 +131,11 @@ func putter(_ c: CGContext) {
         c.setLineWidth(8)
         c.strokePath()
     }
-    // Sight line on the bar, aimed between the balls.
+    // Sight line on the bar, aimed between the balls, and a shorter one behind each ball in that ball's colour.
     fill(c, taper(CGPoint(x: S / 2, y: faceTop + depth * 0.06), CGPoint(x: S / 2, y: notch - depth * 0.06), 14, 12), putt)
+    for (x, band) in [(S * 0.325, orange), (S * 0.675, purple)] {
+        fill(c, taper(CGPoint(x: x, y: faceTop + depth * 0.06), CGPoint(x: x, y: faceTop + depth * 0.26), 13, 11), band)
+    }
 
     // Square along the top so face and crown read as one body; rounded where it sits on the green.
     let face = roundedPolygon([CGPoint(x: x0, y: faceTop), CGPoint(x: x1, y: faceTop), CGPoint(x: x1, y: faceBottom),
