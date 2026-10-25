@@ -1,4 +1,4 @@
-// Generates the 1024px app icon: down on the green, face on, two striped balls with a rounded mallet right behind them.
+// Generates the 1024px app icon: down on the green, face on, two striped balls with a fang mallet right behind them.
 // Usage: swift Tools/icon/make_icon.swift MiniGolf/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 import CoreGraphics
 import Foundation
@@ -104,30 +104,35 @@ func scenery(_ c: CGContext, horizon hz: CGFloat) {
     }
 }
 
-/// Rounded mallet, face on: the milled face, and above it the half-moon crown curving away from the camera.
+/// Fang mallet, face on: the milled face, and above it a bar along the face with a slim prong running back from
+/// each end, the wide gap between them open to the green.
 func putter(_ c: CGContext) {
     let x0 = S * 0.11, x1 = S * 0.89
-    let faceBottom = S * 0.40, faceTop = S * 0.525, depth = S * 0.17
+    let faceBottom = S * 0.40, faceTop = S * 0.525, depth = S * 0.21
     let back = faceTop + depth
+    /// Where the gap between the prongs bottoms out, leaving a bar behind the face.
+    let notch = faceTop + depth * 0.45
     groundShadow(c, CGPoint(x: S / 2, y: faceBottom + 2), rx: S * 0.43, ry: S * 0.035, alpha: 0.4)
 
-    let crown = CGMutablePath()
-    crown.move(to: CGPoint(x: x0, y: faceTop))
-    crown.addLine(to: CGPoint(x: x1, y: faceTop))
-    crown.addCurve(to: CGPoint(x: S / 2, y: back), control1: CGPoint(x: x1 + S * 0.005, y: faceTop + depth * 0.75),
-                   control2: CGPoint(x: S * 0.74, y: back))
-    crown.addCurve(to: CGPoint(x: x0, y: faceTop), control1: CGPoint(x: S * 0.26, y: back),
-                   control2: CGPoint(x: x0 - S * 0.005, y: faceTop + depth * 0.75))
-    crown.closeSubpath()
+    let crown = roundedPolygon([CGPoint(x: x0, y: faceTop), CGPoint(x: x1, y: faceTop),
+                                CGPoint(x: S * 0.82, y: back), CGPoint(x: S * 0.68, y: back),
+                                CGPoint(x: S * 0.66, y: notch), CGPoint(x: S * 0.34, y: notch),
+                                CGPoint(x: S * 0.32, y: back), CGPoint(x: S * 0.18, y: back)],
+                               [4, 4, S * 0.06, S * 0.035, S * 0.05, S * 0.05, S * 0.035, S * 0.06])
     clipped(c, crown) {
         c.drawLinearGradient(grad([rgb(0x5B646E), rgb(0x76808B)], [0, 1]), start: CGPoint(x: 0, y: faceTop),
                              end: CGPoint(x: 0, y: back), options: [])
-        let sheen = CGPoint(x: S * 0.40, y: back - depth * 0.35)
+        let sheen = CGPoint(x: S * 0.3, y: notch)
         c.drawRadialGradient(grad([rgb(0xFFFFFF, 0.22), rgb(0xFFFFFF, 0)], [0, 1]), startCenter: sheen, startRadius: 0,
                              endCenter: sheen, endRadius: S * 0.3, options: [])
+        // A polished chamfer round the milled edge.
+        c.addPath(crown)
+        c.setStrokeColor(rgb(0xB5BEC8, 0.7))
+        c.setLineWidth(8)
+        c.strokePath()
     }
-    // Sight line, aimed between the balls.
-    fill(c, taper(CGPoint(x: S / 2, y: faceTop + depth * 0.16), CGPoint(x: S / 2, y: back - depth * 0.2), 14, 12), putt)
+    // Sight line on the bar, aimed between the balls.
+    fill(c, taper(CGPoint(x: S / 2, y: faceTop + depth * 0.06), CGPoint(x: S / 2, y: notch - depth * 0.06), 14, 12), putt)
 
     // Square along the top so face and crown read as one body; rounded where it sits on the green.
     let face = roundedPolygon([CGPoint(x: x0, y: faceTop), CGPoint(x: x1, y: faceTop), CGPoint(x: x1, y: faceBottom),
