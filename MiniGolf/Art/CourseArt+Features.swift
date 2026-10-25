@@ -15,7 +15,10 @@ extension Painter {
         guard level.hasGround else { return }
         func rect(_ b: Box) -> CGRect { CGRect(x: b.minX, y: b.minY, width: b.width, height: b.height) }
         var parts: [CGPath] = level.slopes.map { CourseArt.rounded(rect($0.box), 10, square: Corners(CourseArt.walledSides($0.box, level))) }
-        parts += level.mounds.map { circle(CGPoint(x: $0.center.x, y: $0.center.y), CGFloat($0.radius)) }
+        parts += level.mounds.map {
+            circle(CGPoint(x: $0.center.x, y: $0.center.y), CGFloat($0.radius))
+                .intersection(CGPath(rect: rect(Level.sideBox(of: $0)), transform: nil))
+        }
         parts += level.terrain.features.map { CGPath(rect: rect($0.area), transform: nil) }
         guard let first = parts.first else { return }
         var region = parts.dropFirst().reduce(first) { $0.union($1) }

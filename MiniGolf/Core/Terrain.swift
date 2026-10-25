@@ -125,9 +125,13 @@ extension Level {
     func isSloped(at p: Vec) -> Bool {
         guard patches.isEmpty || surface(at: p).isTurf else { return false }
         return slopes.contains { $0.box.contains(p) }
-            || mounds.contains { ($0.center - p).lengthSquared < $0.radius * $0.radius }
+            || mounds.contains { ($0.center - p).lengthSquared < $0.radius * $0.radius && Self.sideBox(of: $0).contains(p) }
             || terrain.features.contains { $0.area.contains(p) }
     }
+
+    /// The side a mound stands on. One that reaches under the middle wall still pushes a ball there, but only its
+    /// own green shows it: a sliver of grid by the wall would read as a stray mark.
+    static func sideBox(of m: Mound) -> Box { sideArea(m.center.x < Course.half ? .a : .b) }
 
     /// The pull a ball feels at `p`: the same pieces `World.step` applies, added up.
     func groundAccel(at p: Vec) -> Vec {
