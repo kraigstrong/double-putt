@@ -9,7 +9,6 @@ let S: CGFloat = 1024
 let space = CGColorSpace(name: CGColorSpace.sRGB)!
 let orange: UInt32 = 0xFF8A3D
 let purple: UInt32 = 0x8F6BFF
-let putt: UInt32 = 0xFFC94A
 let shadowGreen: UInt32 = 0x0A4A26
 /// Upper-left light, for the shading on the balls.
 let light: CGPoint = {
@@ -132,7 +131,7 @@ func putter(_ c: CGContext) {
         c.strokePath()
     }
     // Sight line on the bar, aimed between the balls, and a shorter one behind each ball in that ball's colour.
-    fill(c, taper(CGPoint(x: S / 2, y: faceTop + depth * 0.06), CGPoint(x: S / 2, y: notch - depth * 0.06), 14, 12), putt)
+    fill(c, taper(CGPoint(x: S / 2, y: faceTop + depth * 0.06), CGPoint(x: S / 2, y: notch - depth * 0.06), 14, 12), 0xFFFFFF)
     for (x, band) in [(S * 0.325, orange), (S * 0.675, purple)] {
         fill(c, taper(CGPoint(x: x, y: faceTop + depth * 0.06), CGPoint(x: x, y: faceTop + depth * 0.26), 13, 11), band)
     }
