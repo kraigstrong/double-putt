@@ -227,7 +227,7 @@ struct GameView: View {
             let x = min(frame.maxX + (geo.size.width - frame.maxX) / 2, geo.size.width - 24)
             PowerMeter(power: game.aim?.power, enabled: game.canAim,
                        nudge: { game.nudge(power: $0) }, set: { game.setPower($0) })
-                .frame(height: min(frame.height * 0.62, 420))
+                .frame(height: GameScene.powerMeterHeight(courseHeight: frame.height))
                 .position(x: x, y: frame.midY)
         }
     }
