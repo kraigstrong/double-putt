@@ -264,7 +264,8 @@ Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # th
 ```
 
 - **Clips** (`clips.json`) name a hole and its swings: `"aim": "solution"` or `[degrees, power]`, which ball the drag
-  is on, Same or Mirror, timings, a round to show in the top bar. The file says how.
+  is on, Same or Mirror, timings, a round to show in the top bar. Or a screen instead, as it stands: the Trophy Shelf,
+  with the trophies won. The file says how.
 - A capture plays the courses players get: a course still in development (`Levels.inDevelopment`) is left out, as in
   TestFlight and App Store builds.
 - **Screenshots** (`screenshots.json`) are a clip and a moment in it, with the caption `frames.py` sets over the
