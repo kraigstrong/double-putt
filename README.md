@@ -265,6 +265,8 @@ Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # th
 
 - **Clips** (`clips.json`) name a hole and its swings: `"aim": "solution"` or `[degrees, power]`, which ball the drag
   is on, Same or Mirror, timings, a round to show in the top bar. The file says how.
+- A capture plays the courses players get: a course still in development (`Levels.inDevelopment`) is left out, as in
+  TestFlight and App Store builds.
 - **Screenshots** (`screenshots.json`) are a clip and a moment in it, with the caption `frames.py` sets over the
   screen. A clip's `--look` shows where its moments fall.
 - **The trailer** (`trailer/edl.json`) cuts the clips into shots with slow camera moves and big captions, then the

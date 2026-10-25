@@ -293,10 +293,12 @@ enum Levels {
     /// The holes and nines a player gets: the whole lineup in Debug builds, and without the courses still in
     /// development otherwise. (`course` and `nines` are always the whole lineup, for the solver.)
     static let playable: (course: [Level], nines: [Nine]) = {
+        let released = lineup.filter { !inDevelopment.contains($0.id) }
         #if DEBUG
-        let shown = lineup
+        // A store capture (MiniGolf/Game/StoreCapture.swift) shows what players get.
+        let shown = ProcessInfo.processInfo.arguments.contains("-storeCapture") ? released : lineup
         #else
-        let shown = lineup.filter { !inDevelopment.contains($0.id) }
+        let shown = released
         #endif
         return (shown.flatMap(\.holes), ninesOf(shown))
     }()
