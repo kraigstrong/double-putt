@@ -1,8 +1,9 @@
 Thanks for playing! New in this build:
-- Simpler words: each hole now has two greens, and one swing plays both.
-- Free Play opens right away and scrolls smoothly. The first launch after an update shows "Setting up the greens…" for a few seconds while it gets every course ready.
-- Hills and dips on the green show a grid centred on them, so they're easier to read.
-- The app icon has a sturdier putter.
+- Double Putt now plays on iPad, either way up. On its side, the course turns to fill the screen: tees on the left, one green above the other, and Mirror flips the second green's shot top to bottom.
+- On iPhone Duo, it plays like a phone when closed. Open it like a book and the course turns and fills the screen; bend it part way and the buttons move out of the fold.
+- On a big screen, the course you're playing shows its scorecard beside the greens, and each setting has a landmark nearby: a red barn, a castle tower, a lighthouse, the big top and more.
+- Turn, resize or fold mid-hole and play holds still for a moment while the course redraws, then carries on.
+- The menus spread out on bigger screens.
 - Every course is still open for the beta.
 
 We'd love to hear which holes felt too hard or too easy (and roughly how many tries they took), whether any hint or mechanic was confusing, and any bugs, crashes or sound problems. Sound follows the phone's silent switch, so turn that off to hear it.
