@@ -5,10 +5,12 @@
 #
 # Records any clip it needs that isn't in build/capture/footage/ yet (footage.sh), and the trailer if it isn't built
 # (trailer.sh), then writes, web-sized:
-#   hero.mp4, hero-poster.jpg              the hero's loop: a Mirror double ace on Reflection, the whole screen
+#   hero.mp4, hero-poster.jpg              the hero's loop: a Mirror double ace on Reflection, the whole screen, through
+#                                          its confetti to the Double Ace trophy card
 #   courses/<course>.mp4, -poster.jpg      a loop on each course, cut to the course itself (no HUD), from just before
-#                                          the putt to just after both drop
-#   beats/aim.jpg, mirror.jpg, double-ace.jpg   the three steps of a swing, the whole screen
+#                                          the putt through the double ace's confetti
+#   beats/aim.jpg, mirror.jpg, double-ace.jpg   the three steps of a swing, the whole screen (the last, the trophy
+#                                          card over the confetti)
 #   trailer.mp4, trailer-poster.jpg        the site's trailer, smaller to stream
 #   icon-1024.png                          the app icon
 #   og.png                                 1200x630, for link previews: the wordmark beside the course
@@ -47,17 +49,17 @@ loop() {
 SCREEN="scale=720:-2:flags=lanczos"
 COURSE="crop=1146:2160:30:357,scale=480:-2:flags=lanczos"
 
-loop reflection 0.6 5.2 "$SCREEN" "$DEST/hero"
+loop reflection 0.6 7.3 "$SCREEN" "$DEST/hero"
 for c in $COURSES; do
     slug="${c%%:*}" clip="${c#*:}"
     putt=$(when "$clip" Putt) done=$(when "$clip" "both in")
-    loop "$clip" "$(python3 -c "print(max(0, $putt - 0.5))")" "$(python3 -c "print($done + 0.9)")" "$COURSE" "$DEST/courses/$slug"
+    loop "$clip" "$(python3 -c "print(max(0, $putt - 0.5))")" "$(python3 -c "print($done + 1.2)")" "$COURSE" "$DEST/courses/$slug"
 done
 
 still() { ffmpeg -v error -y -ss "$2" -i "$FOOTAGE/$1.mp4" -frames:v 1 -vf "$SCREEN" -q:v 3 "$3"; }
 still reflection 1.45 "$DEST/beats/aim.jpg"
 still reflection 2.6 "$DEST/beats/mirror.jpg"
-still grand-finale "$(python3 -c "print($(when grand-finale "both in") + 0.25)")" "$DEST/beats/double-ace.jpg"
+still grand-finale "$(python3 -c "print($(when grand-finale "both in") + 1.8)")" "$DEST/beats/double-ace.jpg"
 
 ffmpeg -v error -y -i "$OUT/trailer/double-putt-trailer.mp4" -c:v libx264 -preset slow -crf 24 -profile:v high \
     -pix_fmt yuv420p -c:a aac -b:a 160k -movflags +faststart "$DEST/trailer.mp4"

@@ -22,6 +22,6 @@
     {"name": "island-green", "hole": "Island Green", "round": "auto",
      "swings": [{"aim": "solution"}]},
     {"name": "grand-finale", "hole": "Grand Finale", "round": "auto",
-     "swings": [{"aim": "solution", "side": 1}], "tail": 3.5}
+     "swings": [{"aim": "solution", "side": 1}], "tail": 5}
   ]
 }
