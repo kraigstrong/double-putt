@@ -128,16 +128,18 @@ struct ScorecardView: View {
     }
 }
 
-private struct ScoreMark: View {
+/// A hole's score in scorecard notation (see ScorecardView), or a dash before it's played.
+struct ScoreMark: View {
     let score: Int?
     let par: Int
+    var size: CGFloat = 28
 
     var body: some View {
         if let score {
             Text("\(score)")
-                .font(.rounded(15, .black).monospacedDigit())
+                .font(.rounded(size * 0.54, .black).monospacedDigit())
                 .foregroundStyle(score <= 2 ? Color.ink : .white)
-                .frame(width: 28, height: 28)
+                .frame(width: size, height: size)
                 .background {
                     if score <= 2 {
                         Circle().fill(Color.putt)
