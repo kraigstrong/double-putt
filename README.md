@@ -3,7 +3,8 @@
 [![CI](https://github.com/kraigstrong/double-putt/actions/workflows/ci.yml/badge.svg)](https://github.com/kraigstrong/double-putt/actions/workflows/ci.yml)
 
 Mini golf where one swing plays two greens. Every swing hits both balls with the same shot — or, with **Mirror**,
-green B's ball gets the shot flipped left-to-right.
+green B's ball gets the shot flipped left-to-right. It runs on iPhone (held upright) and iPad (either way round); the
+art redraws whenever the screen changes size mid-hole, with play held still until it's done.
 
 ## Run it
 
