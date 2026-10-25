@@ -25,8 +25,9 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-hole difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
-- Version 0.1, build 4. Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each upload.
-- iPhone only, portrait, full screen. Sound follows the silent switch (ambient), so it never surprises anyone.
+- Version 0.1, build 5. Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each upload.
+- iPhone (portrait) and iPad (either way round), from build 5; archive with Xcode 27.1, whose SDK runs the app full
+  screen on iPhone Duo. Sound follows the silent switch (ambient), so it never surprises anyone.
 
 ### In BrightBench (a separate session)
 - [ ] `brightbench.app/api/double-putt/events`: validates batches against `docs/analytics.md` and keeps daily
@@ -100,6 +101,24 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
 - The Stadium: on Grandstand a ball banks off the stands like a wall.
 - Starbase: a robot bounces the ball like a bumper; a lit force field is a wall and a dark one lets the ball
   through; robots and fields keep moving while you aim.
+
+On an iPad, if there's one to hand:
+- Held upright, the course is big, with the nine's scorecard in the left column (the hole you're on highlighted)
+  and the setting's landmark on the right, below the power meter.
+- On its side, the course turns: tees on the left, one green above the other. Dragging left aims right, Mirror
+  flips the second green's shot top to bottom, and flags and "ACE!" stand upright.
+- Turning it mid-hole (or resizing its window) fades the course, redraws it and carries on: a rolling ball and the
+  movers pick up where they were.
+- Free Play shows five or so cards across; Courses and the Trophy Shelf sit two side by side; the title's buttons
+  stay phone-width.
+
+On an iPhone Duo, if there's one to hand:
+- Closed, it plays like a phone, the course clear of the camera.
+- Opened like a book, the course turns and fills the screen; held upright, it stands up with the scorecard and
+  landmark beside it if there's room.
+- Opening or closing it mid-hole fades, redraws and carries on.
+- Bent part way open, nothing you tap sits in the fold: the bars split either side of it, and held upright the
+  power meter moves up out of it.
 
 ## Test Information
 The Beta App Description and What to Test are in `appstore/double-putt/testflight/en-US/`, and the Beta App Review
