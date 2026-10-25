@@ -24,7 +24,7 @@
     {"text": "SLOPES.", "in": 15.75, "out": 17.45},
     {"text": "SPACE STATIONS.", "in": 17.75, "out": 19.45},
     {"text": "NINE COURSES.\n81 HOLES.", "in": 19.75, "out": 21.5},
-    {"text": "FIND THE\nDOUBLE ACE.", "in": 21.6, "out": 22.95},
+    {"text": "CHASE THE\nDOUBLE ACE.", "in": 21.6, "out": 22.95},
     {"end_card": true, "in": 24.35, "out": 26.1, "fade": 0.4, "pop": false}
   ]
 }
