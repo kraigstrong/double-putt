@@ -139,8 +139,9 @@ final class GameModel {
     private(set) var bests: [String: Int] = UserDefaults.standard.dictionary(forKey: "bests") as? [String: Int] ?? [:]
     private(set) var tutorialDone = UserDefaults.standard.bool(forKey: "tutorialDone")
 
-    /// Screen area (points) covered by HUD; the scene fits the course into what's left.
-    @ObservationIgnored var insets: UIEdgeInsets = .zero {
+    /// Screen area (points) covered by HUD, and the safe areas down the sides; the scene fits the course into what's
+    /// left.
+    @ObservationIgnored var insets: (hud: UIEdgeInsets, sides: UIEdgeInsets) = (.zero, .zero) {
         didSet { if insets != oldValue { scene?.layoutInsets = insets } }
     }
 

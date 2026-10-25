@@ -129,7 +129,10 @@ struct GameView: View {
 
     private func updateInsets(_ geo: GeometryProxy) {
         let s = geo.safeAreaInsets
-        game.insets = UIEdgeInsets(top: s.top + Self.topBar + 10, left: 14, bottom: s.bottom + Self.bottomBar + 14, right: 52)
+        // The sides' safe areas (a Duo keeps its camera and status bar down one side) go in as well: the course
+        // stays clear of them, but still centres on the whole screen when there's room.
+        game.insets = (hud: UIEdgeInsets(top: s.top + Self.topBar + 10, left: 14, bottom: s.bottom + Self.bottomBar + 14, right: 52),
+                       sides: UIEdgeInsets(top: 0, left: s.leading, bottom: 0, right: s.trailing))
     }
 
     private func localCourseFrame(_ geo: GeometryProxy) -> CGRect {

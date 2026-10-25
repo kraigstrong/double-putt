@@ -29,7 +29,7 @@ final class GameScene: SKScene {
     private var accumulator = 0.0
     private var lastUpdate: TimeInterval?
 
-    var layoutInsets: UIEdgeInsets = .zero { didSet { layoutCamera() } }
+    var layoutInsets: (hud: UIEdgeInsets, sides: UIEdgeInsets) = (.zero, .zero) { didSet { layoutCamera() } }
     private let cam = SKCameraNode()
     private let worldNode = SKNode()
     private let groundNode = SKSpriteNode()
@@ -126,11 +126,11 @@ final class GameScene: SKScene {
 
     private func layoutCamera() {
         // Wait for a real view and HUD insets; rendering art for a placeholder size is wasted work.
-        guard view != nil, size.width > 10, size.height > 10, layoutInsets != .zero else { return }
+        guard view != nil, size.width > 10, size.height > 10, layoutInsets.hud != .zero else { return }
         let margin = CourseArt.borderOut + 6
         let fullW = Course.width + 2 * margin, fullH = Course.height + 2 * margin
-        let i = layoutInsets
-        let availW = size.width - i.left - i.right, availH = size.height - i.top - i.bottom
+        let i = layoutInsets.hud, sides = layoutInsets.sides
+        let availW = size.width - i.left - i.right - sides.left - sides.right, availH = size.height - i.top - i.bottom
         let upright = min(availW / fullW, availH / fullH)
         let sideways = min(availW / fullH, availH / fullW)
         // A wide screen (a Duo opened, an iPad on its side) shows the course turned a quarter, tees on the left, when
@@ -142,8 +142,12 @@ final class GameScene: SKScene {
         cam.setScale(1 / s)
         cam.zRotation = turned ? .pi / 2 : 0
         overlayNode.setScale(s)
-        // The course's centre goes in the middle of the space the HUD leaves.
-        let free = CGPoint(x: i.left + availW / 2, y: i.bottom + availH / 2)
+        // The course's centre goes in the middle of the space the HUD leaves, moved off it only as far as it takes to
+        // keep clear of the safe areas down the sides.
+        let half = (turned ? fullH : fullW) * s / 2
+        let ideal = i.left + (size.width - i.left - i.right) / 2
+        let lo = sides.left + i.left + half, hi = size.width - sides.right - i.right - half
+        let free = CGPoint(x: lo <= hi ? min(max(ideal, lo), hi) : (lo + hi) / 2, y: i.bottom + availH / 2)
         let offset = toWorld(CGVector(dx: free.x - size.width / 2, dy: free.y - size.height / 2))
         cam.position = CGPoint(x: Course.width / 2 - offset.dx / s, y: Course.height / 2 - offset.dy / s)
         let o = CourseArt.borderOut
