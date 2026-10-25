@@ -40,28 +40,48 @@ struct SlopeFlow {
     private(set) var tracks: [Track] = []
     var isEmpty: Bool { tracks.isEmpty }
 
+    /// A hill or bowl standing alone gets a grid of its own, centred on it, since a small one can fall between the
+    /// green's lines: lines through its middle and halfway out, each way. Starbase's wells keep the green's grid (their
+    /// rings already show them).
+    static func centredMounds(_ level: Level, scifi: Bool) -> [Mound] { scifi ? [] : level.loneMounds }
+    /// Where a centred mound's lines cross it, from its middle.
+    static func lines(_ m: Mound) -> [Double] { [-m.radius / 2, 0, m.radius / 2] }
+
     init(level: Level) {
         guard level.hasGround else { return }
+        let centred = Self.centredMounds(level, scifi: Theme.for(level).scifi)
+        func offCentred(_ p: Vec) -> Bool { !centred.contains { ($0.center - p).lengthSquared < $0.radius * $0.radius } }
         let gap = Self.grid
         var x = gap
         while x < Course.width - 1 {
-            if abs(x - Course.half) > 1 { addTracks(vertical: true, fixed: x, length: Course.height, level) }
+            if abs(x - Course.half) > 1 { addTracks(vertical: true, fixed: x, from: 0, to: Course.height, level, on: offCentred) }
             x += gap
         }
         var y = gap
         while y < Course.height - 1 {
-            addTracks(vertical: false, fixed: y, length: Course.width, level)
+            addTracks(vertical: false, fixed: y, from: 0, to: Course.width, level, on: offCentred)
             y += gap
+        }
+        for m in centred {
+            func inside(_ p: Vec) -> Bool { (p - m.center).lengthSquared < m.radius * m.radius }
+            for d in Self.lines(m) {
+                let h = (m.radius * m.radius - d * d).squareRoot()
+                addTracks(vertical: true, fixed: m.center.x + d, from: m.center.y - h, to: m.center.y + h, level, on: inside)
+                addTracks(vertical: false, fixed: m.center.y + d, from: m.center.x - h, to: m.center.x + h, level, on: inside)
+            }
         }
     }
 
-    /// Splits one grid line into tracks: the stretches on sloped ground clear of walls, cups and the like.
-    private mutating func addTracks(vertical: Bool, fixed: Double, length: Double, _ level: Level) {
+    /// Splits one grid line, from `from` to `to`, into tracks: the stretches on sloped ground (that `on` takes) clear
+    /// of walls, cups and the like.
+    private mutating func addTracks(vertical: Bool, fixed: Double, from: Double, to: Double, _ level: Level,
+                                    on: (Vec) -> Bool) {
         var runStart: Double?
-        var s = 0.0
-        while s <= length {
+        var s = from
+        // Steps past `to`, so the last run always closes.
+        while s < to + 1 {
             let p = vertical ? Vec(fixed, s) : Vec(s, fixed)
-            let open = s < length && level.isSloped(at: p) && !Self.blocked(p, level)
+            let open = s < to && level.isSloped(at: p) && on(p) && !Self.blocked(p, level)
             if open && runStart == nil { runStart = s }
             if !open, let a = runStart {
                 if s - 1 - a >= 8 {
