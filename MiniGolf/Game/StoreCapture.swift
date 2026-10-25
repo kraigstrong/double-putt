@@ -6,8 +6,9 @@ import UIKit
 /// Marketing captures, from Xcode builds only: App Store screenshots, the App Store preview and the trailer's
 /// footage. `Tools/capture/` drives it (see README). Launched with `-storeCapture <clip>` and the clip's script as JSON
 /// in the DP_CAPTURE_CLIP environment variable (an entry of Tools/capture/clips.json), the app opens the clip's hole
-/// and plays its swings as a player would (a drag on one ball, Same or Mirror, then Putt), saving the frames it draws,
-/// the HUD included, to Documents/StoreCapture: NNNNN.jpg, any stills asked for as still-N.png, then done.txt.
+/// and plays its swings as a player would (a drag on one ball, Same or Mirror, then Putt), or opens the clip's screen
+/// (the Trophy Shelf), saving the frames it draws, the HUD included, to Documents/StoreCapture: NNNNN.jpg, any stills
+/// asked for as still-N.png, then done.txt.
 ///
 /// Frame by frame, as Bigger Fish's footage plays: the scene comes off its view and an SKRenderer steps it, its
 /// update, actions and particles alike, exactly a 60th of a second at a time, however long a frame takes to save
@@ -17,14 +18,19 @@ import UIKit
 /// it happens (the result card comes up without its fade). The game's sounds are logged by name against the same
 /// clock (cues.txt) and saved as WAVs (sounds/), so the scripts can rebuild the soundtrack: the simulator records none.
 ///
-/// It stages a fresh saved state (the tutorial done, a round if the clip plays one) over whatever the app had, so the
-/// scripts run it on a simulator of its own. Analytics are off.
+/// It stages a fresh saved state (the tutorial done, a round if the clip plays one, the trophies it lists) over whatever
+/// the app had, so the scripts run it on a simulator of its own. Analytics are off.
 enum StoreCapture {
     /// A clip's script: one entry of Tools/capture/clips.json.
     struct Clip: Decodable {
         var name: String
-        /// The hole, by name.
-        var hole: String
+        /// The hole, by name (unless the clip shows a screen).
+        var hole: String?
+        /// A screen shown instead of a hole, as it stands.
+        var screen: Screen?
+        /// Trophies won, staged: per course in order, its cabinet's three shelves of three holes, "x" a trophy and "."
+        /// an empty slot ("xx. x.x ..x"). Courses left out have none.
+        var trophies: [String]?
         /// Played in a round: the scores of the holes before it on its course, or "auto" for a round going well.
         var round: Round?
         /// The hole's hint showing the whole clip.
@@ -33,9 +39,21 @@ enum StoreCapture {
         var touch: Bool?
         /// Seconds before the first swing (default 0.8).
         var lead: Double?
-        var swings: [Swing]
-        /// Seconds kept after the last swing settles (default 2.5): the result card comes up in them.
+        var swings: [Swing]?
+        /// Seconds kept after the last swing settles, or a screen is held (default 2.5): the result card comes up in
+        /// them.
         var tail: Double?
+    }
+
+    enum Screen: String, Decodable {
+        /// The Trophy Shelf.
+        case trophies
+
+        var shown: AppState.Screen {
+            switch self {
+            case .trophies: .trophies
+            }
+        }
     }
 
     enum Round: Decodable {
@@ -143,14 +161,16 @@ enum StoreCapture {
 
     // MARK: Staged state
 
-    /// Before the game reads its saved state: a fresh one, with the tutorial done and the clip's round in progress.
+    /// Before the game reads its saved state: a fresh one, with the tutorial done, the clip's trophies won and its round
+    /// in progress.
     @MainActor static func stage() {
         guard isActive else { return }
         let defaults = UserDefaults.standard
         if let domain = Bundle.main.bundleIdentifier { defaults.removePersistentDomain(forName: domain) }
         defaults.set(true, forKey: "tutorialDone")
         defaults.set(true, forKey: "mirrorTaught")
-        guard let clip, let round = clip.round, let index = levelIndex(clip.hole),
+        if let trophies = clip?.trophies { stage(trophies: trophies) }
+        guard let clip, let round = clip.round, let hole = clip.hole, let index = levelIndex(hole),
               let nine = Nine.all(levelCount: GameModel.levels.count).first(where: { $0.holes.contains(index) }) else { return }
         let played = index - nine.holes.lowerBound
         let scores: [Int]
@@ -165,24 +185,48 @@ enum StoreCapture {
             }
         }
         guard scores.count == played else {
-            return fail("\(clip.hole) is hole \(played + 1) of \(nine.name), so its round needs \(played) scores, not \(scores.count)")
+            return fail("\(hole) is hole \(played + 1) of \(nine.name), so its round needs \(played) scores, not \(scores.count)")
         }
         let rest = [Int?](repeating: nil, count: nine.holes.count - played)
         let state = RoundState(nine: nine.id, scores: scores.map { Optional($0) } + rest, current: played)
         defaults.set(try? JSONEncoder().encode(state), forKey: "round")
     }
 
-    /// Opens the clip's hole and records it once it's on screen.
+    /// The trophies a clip lists (Clip.trophies), as the game saves them.
+    @MainActor private static func stage(trophies cabinets: [String]) {
+        let nines = Nine.all(levelCount: GameModel.levels.count)
+        guard cabinets.count <= nines.count else {
+            return fail("trophies for \(cabinets.count) courses, but there are \(nines.count)")
+        }
+        var won: [String: Double] = [:]
+        for (nine, cabinet) in zip(nines, cabinets) {
+            let slots = cabinet.filter { $0 != " " }
+            guard slots.count == nine.holes.count, slots.allSatisfy({ $0 == "x" || $0 == "." }) else {
+                return fail("\(nine.name)'s trophies are \(nine.holes.count) slots, each x or ., not \"\(cabinet)\"")
+            }
+            for (index, slot) in zip(nine.holes, slots) where slot == "x" {
+                won[GameModel.levels[index].name] = Date.now.timeIntervalSince1970
+            }
+        }
+        UserDefaults.standard.set(won, forKey: "trophies")
+    }
+
+    /// Opens the clip's hole, or its screen, and records it once it's up.
     @MainActor static func open(_ app: AppState) {
         guard isActive else { return }
         guard let clip else { return fail("no clip: DP_CAPTURE_CLIP holds its JSON (Tools/capture/clips.json)") }
-        guard let index = levelIndex(clip.hole) else { return fail("no hole called \(clip.hole)") }
         SoundFX.shared.captureClock = { clock }
         SoundFX.shared.captureCue = { name, volume in cues.append(String(format: "%.4f %@ %.3f", clock, name, volume)) }
-        if clip.round != nil, app.game.round != nil {
-            app.continueRound()
+        if let screen = clip.screen {
+            app.screen = screen.shown
         } else {
-            app.play(level: index)
+            guard let hole = clip.hole else { return fail("\(clip.name) has no hole or screen") }
+            guard let index = levelIndex(hole) else { return fail("no hole called \(hole)") }
+            if clip.round != nil, app.game.round != nil {
+                app.continueRound()
+            } else {
+                app.play(level: index)
+            }
         }
         Task { await record(clip, app: app) }
     }
@@ -206,37 +250,32 @@ enum StoreCapture {
         return queue
     }()
 
+    /// A clip being recorded: what's on screen, and how it moves from frame to frame.
+    @MainActor private struct Take {
+        let window: UIWindow
+        /// Plays the clip to `seconds` in; true once it's over.
+        let advance: (Double) -> Bool
+        /// Puts the frame on screen, to be saved; false if it couldn't be drawn.
+        let show: () -> Bool
+        /// What happened when, for done.txt.
+        let timeline: () -> [String]
+    }
+
     @MainActor private static func record(_ clip: Clip, app: AppState) async {
-        let scene = app.scene, game = app.game
-        // The menu art loaded, the game screen up and the course laid out.
-        let deadline = Date().addingTimeInterval(90)
-        while !(app.artReady && app.screen == .game && scene.view?.window != nil && game.courseFrame != .zero) {
-            guard Date() < deadline else { return fail("the hole never came on screen") }
-            try? await Task.sleep(for: .milliseconds(50))
+        let take: Take?
+        if let screen = clip.screen {
+            take = await screenTake(screen, clip: clip, app: app)
+        } else {
+            take = await holeTake(clip, app: app)
         }
-        // Past the game screen's fade in.
-        try? await Task.sleep(for: .seconds(1))
-        guard let view = scene.view, let window = view.window else { return fail("the hole's view went away") }
-        // Laid out for the screen; now off the view, which shows a stand-in, so only the stepper runs it (Stepper). The
-        // game screen shows the stand-in too, so SwiftUI doesn't put the scene back.
-        scene.scaleMode = .fill
-        let standIn = SKScene(size: view.bounds.size)
-        app.captureStandIn = standIn
-        view.presentScene(standIn)
-        guard scene.view == nil else { return fail("the hole's scene stayed on its view") }
-        guard let stepper = Stepper(scene: scene) else { return fail("no Metal device to draw frames with") }
+        guard let take else { return }
         do {
             try SoundFX.shared.exportSounds(to: directory.appendingPathComponent("sounds", isDirectory: true))
         } catch {
             return fail("couldn't save the sounds: \(error.localizedDescription)")
         }
-        let overlay = UIImageView(frame: view.bounds)
-        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(overlay)
 
-        let screenScale = window.screen.scale
-        let pixels = CGSize(width: (view.bounds.width * screenScale).rounded(), height: (view.bounds.height * screenScale).rounded())
-        let director = Director(clip: clip, scene: scene, game: game)
+        let window = take.window
         let request = request
         let first = Int((request.from * framesPerSecond).rounded())
         let last = request.to.isFinite ? Int((request.to * framesPerSecond).rounded()) : Int.max
@@ -245,13 +284,11 @@ enum StoreCapture {
         let started = Date()
         while true {
             clock = Double(frame) / framesPerSecond
-            let finished = director.tick(at: clock)
-            stepper.step(to: clock)
+            let finished = take.advance(clock)
             let footage = request.frames && frame >= first && frame <= last && (frame - first) % request.every == 0
             let due = stills.filter { $0.frame <= frame }
             if footage || !due.isEmpty {
-                guard let drawn = stepper.image(pixels: pixels) else { return fail("couldn't draw frame \(frame)") }
-                overlay.image = UIImage(cgImage: drawn, scale: screenScale, orientation: .up)
+                guard take.show() else { return fail("couldn't draw frame \(frame)") }
                 // Lets SwiftUI draw the model's changes first.
                 try? await Task.sleep(for: .milliseconds(1))
                 if footage {
@@ -284,12 +321,83 @@ enum StoreCapture {
         do {
             try ((["# seconds sound volume (before the mixer, at \(SoundFX.mixerVolume))"] + cues).joined(separator: "\n") + "\n")
                 .write(to: directory.appendingPathComponent("cues.txt"), atomically: true, encoding: .utf8)
-            try (([summary, "seconds event:"] + director.timeline).joined(separator: "\n") + "\n")
+            try (([summary, "seconds event:"] + take.timeline()).joined(separator: "\n") + "\n")
                 .write(to: directory.appendingPathComponent("done.txt"), atomically: true, encoding: .utf8)
         } catch {
             return fail("couldn't save the cues: \(error.localizedDescription)")
         }
         print("[StoreCapture] \(clip.name): \(summary)")
+    }
+
+    /// Waits for the menu art and `ready`, then past the screen's fade in; false if it doesn't come in 90 seconds.
+    @MainActor private static func settle(_ app: AppState, until ready: () -> Bool) async -> Bool {
+        let deadline = Date().addingTimeInterval(90)
+        while !(app.artReady && ready()) {
+            guard Date() < deadline else { return false }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        try? await Task.sleep(for: .seconds(1))
+        return true
+    }
+
+    /// The clip's hole once it's on screen, played by its Director and stepped a frame at a time (Stepper).
+    @MainActor private static func holeTake(_ clip: Clip, app: AppState) async -> Take? {
+        let scene = app.scene, game = app.game
+        // The game screen up and the course laid out.
+        guard await settle(app, until: { app.screen == .game && scene.view?.window != nil && game.courseFrame != .zero }) else {
+            fail("the hole never came on screen")
+            return nil
+        }
+        guard let view = scene.view, let window = view.window else {
+            fail("the hole's view went away")
+            return nil
+        }
+        // Laid out for the screen; now off the view, which shows a stand-in, so only the stepper runs it (Stepper). The
+        // game screen shows the stand-in too, so SwiftUI doesn't put the scene back.
+        scene.scaleMode = .fill
+        let standIn = SKScene(size: view.bounds.size)
+        app.captureStandIn = standIn
+        view.presentScene(standIn)
+        guard scene.view == nil else {
+            fail("the hole's scene stayed on its view")
+            return nil
+        }
+        guard let stepper = Stepper(scene: scene) else {
+            fail("no Metal device to draw frames with")
+            return nil
+        }
+        let overlay = UIImageView(frame: view.bounds)
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(overlay)
+
+        let screenScale = window.screen.scale
+        let pixels = CGSize(width: (view.bounds.width * screenScale).rounded(), height: (view.bounds.height * screenScale).rounded())
+        let director = Director(clip: clip, scene: scene, game: game)
+        return Take(window: window,
+                    advance: { now in
+                        let finished = director.tick(at: now)
+                        stepper.step(to: now)
+                        return finished
+                    },
+                    show: {
+                        guard let drawn = stepper.image(pixels: pixels) else { return false }
+                        overlay.image = UIImage(cgImage: drawn, scale: screenScale, orientation: .up)
+                        return true
+                    },
+                    timeline: { director.timeline })
+    }
+
+    /// The clip's screen once it's up, held as it stands for the clip's tail.
+    @MainActor private static func screenTake(_ screen: Screen, clip: Clip, app: AppState) async -> Take? {
+        func window() -> UIWindow? {
+            UIApplication.shared.connectedScenes.lazy.compactMap { ($0 as? UIWindowScene)?.keyWindow }.first
+        }
+        guard await settle(app, until: { app.screen == screen.shown && window() != nil }), let window = window() else {
+            fail("the \(screen.rawValue) screen never came up")
+            return nil
+        }
+        let held = clip.tail ?? 2.5
+        return Take(window: window, advance: { $0 >= held - 1e-6 }, show: { true }, timeline: { [] })
     }
 
     /// The window as drawn, HUD and all, `scale` times the screen's resolution, with no alpha.
@@ -408,6 +516,7 @@ enum StoreCapture {
         }
 
         private let clip: Clip
+        private let swings: [Swing]
         private let scene: GameScene
         private let game: GameModel
         private var steps: [Step] = []
@@ -421,6 +530,7 @@ enum StoreCapture {
 
         init(clip: Clip, scene: GameScene, game: GameModel) {
             self.clip = clip
+            swings = clip.swings ?? []
             self.scene = scene
             self.game = game
         }
@@ -429,8 +539,8 @@ enum StoreCapture {
         func tick(at now: Double) -> Bool {
             while true {
                 if steps.isEmpty {
-                    guard swing < clip.swings.count else { return true }
-                    plan(clip.swings[swing], first: swing == 0, last: swing == clip.swings.count - 1)
+                    guard swing < swings.count else { return true }
+                    plan(swings[swing], first: swing == 0, last: swing == swings.count - 1)
                     swing += 1
                 }
                 let begun = begun ?? now
@@ -451,7 +561,7 @@ enum StoreCapture {
             switch swing.aim {
             case .solution:
                 guard let solution else {
-                    fail("\(clip.hole) has no stored double ace")
+                    fail("\(game.level.name) has no stored double ace")
                     steps = [.wait(0)]
                     return
                 }

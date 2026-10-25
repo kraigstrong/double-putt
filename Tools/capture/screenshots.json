@@ -6,6 +6,7 @@
     {"name": "springboard", "clip": "springboard", "at": 3.6, "caption": "BOUNCE OFF SPRINGBOARDS"},
     {"name": "slopes", "clip": "two-tiers", "at": 2.6, "caption": "READ THE SLOPES"},
     {"name": "space", "clip": "teleporter", "at": 4.6, "caption": "MEADOWS TO SPACE STATIONS"},
-    {"name": "double-ace", "clip": "grand-finale", "at": 9.5, "caption": "FIND THE DOUBLE ACE"}
+    {"name": "double-ace", "clip": "grand-finale", "at": 9.5, "caption": "CHASE THE DOUBLE ACE"},
+    {"name": "trophies", "clip": "trophy-shelf", "at": 0.5, "caption": "FILL THE TROPHY SHELF"}
   ]
 }

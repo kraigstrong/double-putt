@@ -1,5 +1,5 @@
 {
-  "about": "Scripted clips for the capture tools (Tools/capture/footage.sh, screenshots.sh, trailer.sh; see README). Each plays one hole as a player would: per swing a drag on one ball (side 0 the left green's, 1 the right's) to its aim, Same or Mirror tapped after the drag (\"toggle\": \"before\" to tap it first), a moment's hold, then Putt. \"aim\": \"solution\" is the hole's stored double ace, struck on the solver's tick when it has movers; otherwise [degrees, power] as the guide takes them (ball A's direction, 0 right and 90 up, and 0-1). \"round\": \"auto\" plays it in a round going well (or give the earlier holes' scores). Timings in seconds: lead, and each swing's wait, drag and hold, and tail after the last swing settles; \"hint\": true shows the hole's hint, \"touch\": false hides the fingertip. MiniGolf/Game/StoreCapture.swift has the defaults.",
+  "about": "Scripted clips for the capture tools (Tools/capture/footage.sh, screenshots.sh, trailer.sh; see README). Each plays one hole as a player would: per swing a drag on one ball (side 0 the left green's, 1 the right's) to its aim, Same or Mirror tapped after the drag (\"toggle\": \"before\" to tap it first), a moment's hold, then Putt. \"aim\": \"solution\" is the hole's stored double ace, struck on the solver's tick when it has movers; otherwise [degrees, power] as the guide takes them (ball A's direction, 0 right and 90 up, and 0-1). \"round\": \"auto\" plays it in a round going well (or give the earlier holes' scores). Timings in seconds: lead, and each swing's wait, drag and hold, and tail after the last swing settles; \"hint\": true shows the hole's hint, \"touch\": false hides the fingertip. A clip can show a screen instead of a hole, held for its tail: \"screen\": \"trophies\" is the Trophy Shelf. \"trophies\" stages the ones won: per course in order, its cabinet's three shelves of three holes, x a trophy and . an empty slot (courses left out have none). MiniGolf/Game/StoreCapture.swift has the defaults.",
   "clips": [
     {"name": "reflection", "hole": "Reflection", "round": "auto",
      "swings": [{"aim": "solution"}]},
@@ -22,6 +22,8 @@
     {"name": "island-green", "hole": "Island Green", "round": "auto",
      "swings": [{"aim": "solution"}]},
     {"name": "grand-finale", "hole": "Grand Finale", "round": "auto",
-     "swings": [{"aim": "solution", "side": 1}], "tail": 5}
+     "swings": [{"aim": "solution", "side": 1}], "tail": 5},
+    {"name": "trophy-shelf", "screen": "trophies",
+     "trophies": ["xxx xx. xxx", "x.x xxx .x.", "xx. .x. x.x", "x.. .x. ..x", ".x. ... x..", "..x ... .x.", "... x.. ..."]}
   ]
 }
