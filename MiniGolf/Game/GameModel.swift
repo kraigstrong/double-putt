@@ -108,6 +108,9 @@ final class GameModel {
     var tutorial: TutorialStep?
     /// Where the course sits on screen (scene/view points), so HUD pieces can hug it.
     var courseFrame: CGRect = .zero
+    /// The course is turned a quarter to fill a wide screen (a Duo opened, an iPad on its side): tees on the left,
+    /// one green above the other.
+    var courseTurned = false
     /// Bumped when a hole is entered (not on retry), e.g. to flash the hint.
     private(set) var loadToken = 0
     private(set) var newBest = false
