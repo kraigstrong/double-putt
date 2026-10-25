@@ -129,6 +129,47 @@ struct RootView: View {
         // A store capture steps time itself, frame by frame, and SwiftUI's animations would run on the wall clock in
         // between: the HUD changes on the frame it happens instead.
         .transaction { if StoreCapture.isActive { $0.animation = nil; $0.disablesAnimations = true } }
+        .modifier(DebugCanvas())
         #endif
     }
 }
+
+#if DEBUG
+/// `-canvas 951x669` lays the app out at that size in points, scaled to fit the screen: an iPhone Duo opened, say, or
+/// an iPad turned, on any simulator (neither can be folded or turned from the command line). With `-canvasTurn 4` it
+/// turns every 4 seconds, swapping width and height, to try out a resize mid-hole.
+private struct DebugCanvas: ViewModifier {
+    @State private var size: CGSize? = {
+        let parts = UserDefaults.standard.string(forKey: "canvas")?.split(separator: "x").compactMap { Double($0) } ?? []
+        return parts.count == 2 ? CGSize(width: parts[0], height: parts[1]) : nil
+    }()
+
+    func body(content: Content) -> some View {
+        canvas(content).task {
+            let every = UserDefaults.standard.double(forKey: "canvasTurn")
+            guard every > 0 else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(every))
+                if let s = size { size = CGSize(width: s.height, height: s.width) }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func canvas(_ content: Content) -> some View {
+        if let size {
+            GeometryReader { geo in
+                content
+                    .frame(width: size.width, height: size.height)
+                    .clipped()
+                    .scaleEffect(min(geo.size.width / size.width, geo.size.height / size.height))
+                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
+            }
+            .ignoresSafeArea()
+            .background(Color.black)
+        } else {
+            content
+        }
+    }
+}
+#endif

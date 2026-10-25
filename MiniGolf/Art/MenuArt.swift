@@ -1,25 +1,66 @@
 import MachO
-import UIKit
+import Observation
+import SwiftUI
 
 /// Menu artwork: every hole's card and the title's backdrop. They take seconds to draw, so the loading screen draws
 /// them once per build, saves them to Caches, and loads them from there on later launches. The menus only ever show
 /// art that's ready, so they never draw while you scroll.
 @MainActor
+@Observable
 final class MenuArt {
     static let shared = MenuArt()
-    private var cards: [String: UIImage] = [:]
-    private var titleArt: (size: CGSize, image: UIImage)?
+    @ObservationIgnored private var cards: [String: UIImage] = [:]
+    /// Title backdrops by screen size (see `titleKey`): the few most recently shown, oldest first in `titleOrder`.
+    private var titles: [String: UIImage] = [:]
+    @ObservationIgnored private var titleOrder: [String] = []
+    /// A backdrop is a full screen of pixels (some 20 MB on an iPad), so only this many are kept in memory; the rest
+    /// stay in the cache on disk.
+    private static let titlesKept = 3
+    /// The size the title screen is waiting on, and the wait-then-draw for it.
+    @ObservationIgnored private var wantedTitle: String?
+    @ObservationIgnored private var titleTask: Task<Void, Never>?
 
     /// A hole's card, once `prepare` has run.
     func card(_ level: Level) -> UIImage? { cards[level.name] }
 
-    /// The title's backdrop for a screen of `size`: the one `prepare` loaded, or drawn now if the size has changed.
-    func title(size: CGSize) -> UIImage {
-        if let titleArt, titleArt.size == size { return titleArt.image }
-        let image = Self.drawTitle(size: size)
-        titleArt = (size, image)
-        return image
+    /// The title's backdrop for a screen of `size` at `scale`. A size it hasn't got (an iPad turned or resized, a Duo
+    /// opened) is drawn in the background, or loaded from the cache, once the size has settled; until then the
+    /// backdrop of the nearest shape stands in, filled to the screen.
+    func title(size: CGSize, scale: CGFloat) -> UIImage? {
+        let key = Self.titleKey(size)
+        if let image = titles[key] {
+            titleOrder.removeAll { $0 == key }
+            titleOrder.append(key)
+            return image
+        }
+        if wantedTitle != key {
+            wantedTitle = key
+            titleTask?.cancel()
+            let file = Self.folder().appendingPathComponent("title-\(key).jpg")
+            titleTask = Task {
+                // A window being resized passes through many sizes: only draw the one it stops at.
+                try? await Task.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled else { return }
+                let image = await Task.detached(priority: .userInitiated) {
+                    Self.cached(file) { Self.drawTitle(size: size, scale: scale) }
+                }.value
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeInOut(duration: 0.4)) { self.keepTitle(image, key) }
+                self.wantedTitle = nil
+            }
+        }
+        let aspect = size.height / max(size.width, 1)
+        return titles.values.min { abs($0.size.height / $0.size.width - aspect) < abs($1.size.height / $1.size.width - aspect) }
     }
+
+    private func keepTitle(_ image: UIImage, _ key: String) {
+        titles[key] = image
+        titleOrder.removeAll { $0 == key }
+        titleOrder.append(key)
+        while titleOrder.count > Self.titlesKept { titles[titleOrder.removeFirst()] = nil }
+    }
+
+    nonisolated private static func titleKey(_ size: CGSize) -> String { "\(Int(size.width))x\(Int(size.height))" }
 
     /// Load the title and every hole's card from the cache, drawing (and saving) any that aren't there yet, several
     /// at once. `progress` hears the share done after each one.
@@ -27,25 +68,30 @@ final class MenuArt {
         let folder = Self.folder()
         // Two of the five columns across Free Play: a touch wider than a card (see CourseRow), so it stays crisp.
         let cardWidth = (screen.width * 0.4 * scale).rounded(.up)
-        // The title first: it takes the longest. Its name is nil.
-        let jobs: [(name: String?, file: URL, draw: () -> UIImage)] =
-            [(nil, folder.appendingPathComponent("title-\(Int(screen.width))x\(Int(screen.height)).jpg"), { Self.drawTitle(size: screen) })]
+        // An iPad turns, so it gets the title for the other way round too.
+        var screens = [screen]
+        if UIDevice.current.userInterfaceIdiom == .pad { screens.append(CGSize(width: screen.height, height: screen.width)) }
+        // The titles first: they take the longest. Their names are their sizes' keys.
+        let jobs: [(name: String, title: Bool, file: URL, draw: () -> UIImage)] =
+            screens.map { size in
+                (Self.titleKey(size), true, folder.appendingPathComponent("title-\(Self.titleKey(size)).jpg"), { Self.drawTitle(size: size, scale: scale) })
+            }
             + levels.map { level in
-                (level.name, folder.appendingPathComponent("card-\(Self.fileName(level.name))-\(Int(cardWidth)).jpg"),
+                (level.name, false, folder.appendingPathComponent("card-\(Self.fileName(level.name))-\(Int(cardWidth)).jpg"),
                  { CourseArt.card(level, pixelWidth: cardWidth) })
             }
-        await withTaskGroup(of: (String?, UIImage).self) { group in
+        await withTaskGroup(of: (String, Bool, UIImage).self) { group in
             // One short of a job per core: with every thread drawing, the progress updates (and the rest of the app's
             // async work) would wait for the drawing to finish.
             var queue = jobs.makeIterator()
             func start() {
                 guard let job = queue.next() else { return }
-                group.addTask { (job.name, Self.cached(job.file, job.draw)) }
+                group.addTask { (job.name, job.title, Self.cached(job.file, job.draw)) }
             }
             for _ in 0..<max(1, ProcessInfo.processInfo.activeProcessorCount - 1) { start() }
             var done = 0
-            for await (name, image) in group {
-                if let name { cards[name] = image } else { titleArt = (screen, image) }
+            for await (name, title, image) in group {
+                if title { keepTitle(image, name) } else { cards[name] = image }
                 done += 1
                 progress(Double(done) / Double(jobs.count))
                 start()
@@ -53,14 +99,14 @@ final class MenuArt {
         }
     }
 
-    nonisolated private static func drawTitle(size: CGSize) -> UIImage {
+    nonisolated private static func drawTitle(size: CGSize, scale: CGFloat) -> UIImage {
         let level = Levels.course.first { $0.name == "Reflection" } ?? Levels.course[0]
         let w: CGFloat = 520
         let h = w * max(size.height, 1) / max(size.width, 1)
         // Course top edge ~58% down the screen: logo over the meadow, cups just above the buttons.
         let top = Course.height + CourseArt.borderOut
         let rect = CGRect(x: Course.width / 2 - w / 2, y: top - h * 0.42, width: w, height: h)
-        return CourseArt.scenic(level, rect: rect, pixelWidth: size.width * 3)
+        return CourseArt.scenic(level, rect: rect, pixelWidth: size.width * scale)
     }
 
     // MARK: - Cache

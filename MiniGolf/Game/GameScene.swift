@@ -53,7 +53,14 @@ final class GameScene: SKScene {
     private var pointsPerUnit: CGFloat = 1
     private var renderedPPU: CGFloat = 0
     private var renderedLevel: String?
+    /// The part of the world the ground art covers: what was on screen when it was drawn, plus a margin.
+    private var paintedRect = CGRect.null
     private var textureCache: [String: SKTexture] = [:]
+    /// The screen changed size mid-hole and the art is being redrawn for it (see `redraw`): nothing moves till it's done.
+    private var redrawing = false
+    private var pendingRedraw: DispatchWorkItem?
+    /// Hides the old art, stretched to the new size, while the redraw waits and draws.
+    private let redrawCover = SKSpriteNode(color: .black, size: .zero)
 
     private var dragStart: CGPoint?
     /// Which side the current drag started over (0 = A, 1 = B).
@@ -131,9 +138,57 @@ final class GameScene: SKScene {
                            y: size.height / 2 - (Course.height + o - cam.position.y) * s,
                            width: (Course.width + 2 * o) * s, height: (Course.height + 2 * o) * s)
         if model.courseFrame != frame { model.courseFrame = frame }
-        let ppu = s * (view?.contentScaleFactor ?? UIScreen.main.scale)
-        if renderedLevel != level.name || abs(ppu - renderedPPU) / ppu > 0.15 {
+        if renderedLevel != level.name {
             buildArt(ppu: ppu)
+        } else if abs(ppu - renderedPPU) / ppu > 0.15 || !paintedRect.contains(visibleRect) {
+            redraw()
+        }
+    }
+
+    /// Pixels per course unit for the current layout.
+    private var ppu: CGFloat { pointsPerUnit * (view?.contentScaleFactor ?? 3) }
+
+    /// The screen changed size mid-hole (a Duo opened or closed, an iPad turned or its window resized), so the art no
+    /// longer fits it. Play holds still under a cover while the art is redrawn, then carries on where it was. A resize
+    /// often comes in a few steps, so the redraw waits for them to settle.
+    private func redraw() {
+        pendingRedraw?.cancel()
+        pendingRedraw = nil
+        if model.paused {
+            // The pause menu hides the course and nothing's moving: redraw now, ready for Resume (and finish any
+            // redraw that was waiting when the game was paused).
+            finishRedraw()
+            return
+        }
+        redrawing = true
+        if redrawCover.parent == nil {
+            redrawCover.color = theme.rough
+            redrawCover.alpha = 0
+            redrawCover.zPosition = 1000
+            cam.addChild(redrawCover)
+        }
+        // The camera's children are in screen points; a square covers the screen however the camera turns.
+        let side = max(size.width, size.height) + 100
+        redrawCover.size = CGSize(width: side, height: side)
+        redrawCover.removeAllActions()
+        redrawCover.run(.fadeIn(withDuration: 0.1))
+        let work = DispatchWorkItem { [weak self] in self?.finishRedraw() }
+        pendingRedraw = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: work)
+    }
+
+    private func finishRedraw() {
+        pendingRedraw = nil
+        buildArt(ppu: ppu)
+        redrawing = false
+        // The wait isn't play time: the next frame picks up from here.
+        lastUpdate = nil
+        redrawCover.removeAllActions()
+        if model.paused {
+            // A paused scene doesn't run actions, so a fade would wait for Resume: the pause menu hides it anyway.
+            redrawCover.removeFromParent()
+        } else {
+            redrawCover.run(.sequence([.fadeOut(withDuration: 0.3), .removeFromParent()]))
         }
     }
 
@@ -157,6 +212,7 @@ final class GameScene: SKScene {
         let seed = CourseArt.stableSeed(level.name)
 
         let groundRect = visibleRect.insetBy(dx: -60, dy: -60).integral
+        paintedRect = groundRect
         groundNode.texture = SKTexture(image: CourseArt.ground(theme, rect: groundRect, ppu: ppu * 0.6, seed: seed))
         groundNode.size = groundRect.size
         groundNode.position = groundRect.origin
@@ -850,6 +906,11 @@ final class GameScene: SKScene {
         model.setMirrored(false)
         dragStart = nil
         dragNode.path = nil
+        // A new hole draws its art for the screen as it is now, so a redraw on its way isn't needed.
+        pendingRedraw?.cancel()
+        pendingRedraw = nil
+        redrawing = false
+        redrawCover.removeFromParent()
         renderedLevel = nil
         layoutCamera()
         if renderedLevel == nil, renderedPPU > 0 { buildArt(ppu: renderedPPU) }
@@ -863,8 +924,8 @@ final class GameScene: SKScene {
         let dt = min(currentTime - (lastUpdate ?? currentTime), 1.0 / 20)
         lastUpdate = currentTime
 
-        if model.paused {
-            // Nothing moves while paused.
+        if model.paused || redrawing {
+            // Nothing moves while paused, or while the art redraws for a new screen size.
         } else if model.isRolling && ballsReleased {
             accumulator += dt
             var events: [PhysicsEvent] = []
@@ -902,7 +963,7 @@ final class GameScene: SKScene {
             syncMovers(at: world.time)
         }
 
-        if !model.paused && !flow.isEmpty {
+        if !model.paused && !redrawing && !flow.isEmpty {
             flow.update(dt: dt)
             drawFlow()
         }
@@ -1071,7 +1132,7 @@ final class GameScene: SKScene {
     // MARK: - Input
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard model.canAim, dragStart == nil, let t = touches.first, let v = view else { return }
+        guard model.canAim, !redrawing, dragStart == nil, let t = touches.first, let v = view else { return }
         dragStart = t.location(in: v)
         dragSide = convertPoint(fromView: dragStart!).x > Course.half ? 1 : 0
         tickBucket = model.aim.map { Int($0.power * 10) } ?? -1
