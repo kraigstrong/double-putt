@@ -13,12 +13,13 @@ concurrency:
 jobs:
   build:
     name: Build
-    runs-on: macos-26
+    # Xcode 27.1's iOS 27.1 SDK is what lets the app run full screen on iPhone Duo, so CI builds with it.
+    runs-on: xcode-27
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - name: Select Xcode 27.1
+        run: sudo xcode-select -s /Applications/Xcode_27.1.app && xcodebuild -version
       - name: Build for the iOS Simulator (Debug)
         run: |
           xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf \

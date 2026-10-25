@@ -7,6 +7,7 @@ green B's ball gets the shot flipped left-to-right.
 
 ## Run it
 
+Build with Xcode 27.1 or later: its iOS 27.1 SDK is what runs the app full screen on iPhone Duo (CI uses it too).
 Open `MiniGolf.xcodeproj` in Xcode and run, or from the terminal:
 
 ```bash
