@@ -7,7 +7,9 @@ green B's ball gets the shot flipped left-to-right. It runs on iPhone (held upri
 art redraws whenever the screen changes size mid-hole, with play held still until it's done. On a wide screen (an iPad
 on its side, an iPhone Duo opened like a book) the course turns a quarter to fill it: tees on the left, one green above
 the other, and Mirror flips top to bottom. Where an upright course leaves a column free (an iPad, a Duo opened and held
-upright), the nine's scorecard sits in it: this round's scores, or your bests in Free Play, with the hole you're on.
+upright), the nine's scorecard sits in it: this round's scores, or your bests in Free Play, with the hole you're on;
+the setting's landmark stands in the spare space on the right. On an iPhone Duo bent part way open, the controls keep
+out of the crease.
 
 ## Run it
 
@@ -248,6 +250,7 @@ xcrun simctl launch booted com.kraigstrong.doubleputt -level 3 -aim 70.25,0.71,m
 xcrun simctl launch booted com.kraigstrong.doubleputt -dumpArt 1   # writes course PNGs to the app's Documents/art
 xcrun simctl launch booted com.kraigstrong.doubleputt -canvas 951x669   # lays out at that size: a Duo opened, an iPad turned
 xcrun simctl launch booted com.kraigstrong.doubleputt -dumpLandmarks 1   # writes each setting's landmark to Documents/landmarks
+xcrun simctl launch booted com.kraigstrong.doubleputt -fold vertical   # fakes a Duo bent part open (or `horizontal`)
 ```
 
 ## Screenshots, footage and the trailer
