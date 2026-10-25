@@ -41,7 +41,8 @@ bumpers and **force fields** that are a wall while lit and open while dark) that
 never stop, so when you putt matters as much as how, and from Midway on, **kicker pads** (springboards that launch the
 ball a set way at a set speed) and **carousels** (spinning disks that drag the ball along with them). A ball that stops
 in a mover's path or on a carousel slides to the nearest clear spot that's no nearer a cup. Sloped ground shows a grid
-tinted from blue (low) to red (high), with dots gliding along it downhill, faster where it's steeper.
+tinted from blue (low) to red (high), with dots gliding along it downhill, faster where it's steeper; a hill or bowl
+standing on its own gets a grid centred on it.
 
 In Debug (Xcode) builds, long-press the title logo to toggle **dev mode** (every course unlocked; pause menu gets a
 full-path guide toggle, Show Ace and Reset). TestFlight and App Store builds don't have it.

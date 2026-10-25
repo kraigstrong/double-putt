@@ -125,8 +125,30 @@ extension Level {
     func isSloped(at p: Vec) -> Bool {
         guard patches.isEmpty || surface(at: p).isTurf else { return false }
         return slopes.contains { $0.box.contains(p) }
-            || mounds.contains { ($0.center - p).lengthSquared < $0.radius * $0.radius }
+            || mounds.contains { ($0.center - p).lengthSquared < $0.radius * $0.radius && Self.sideBox(of: $0).contains(p) }
             || terrain.features.contains { $0.area.contains(p) }
+    }
+
+    /// The side a mound stands on. One that reaches under the middle wall still pushes a ball there, but only its
+    /// own green shows it: a sliver of grid by the wall would read as a stray mark.
+    static func sideBox(of m: Mound) -> Box { sideArea(m.center.x < Course.half ? .a : .b) }
+
+    /// The hills and bowls standing alone, clear of slope boxes, contours and other mounds on their side. Where a
+    /// mound shares its ground, the green's grid runs on through it.
+    var loneMounds: [Mound] {
+        mounds.indices.filter { i in
+            let m = mounds[i], side = Self.sideBox(of: m)
+            func reaches(_ b: Box) -> Bool {
+                let minX = max(b.minX, side.minX), maxX = min(b.maxX, side.maxX)
+                guard minX < maxX else { return false }
+                let nearest = Vec(max(minX, min(m.center.x, maxX)), max(b.minY, min(m.center.y, b.maxY)))
+                return (nearest - m.center).lengthSquared < m.radius * m.radius
+            }
+            return !slopes.contains { reaches($0.box) } && !terrain.features.contains { reaches($0.area) }
+                && !mounds.indices.contains { j in
+                    j != i && side.contains(mounds[j].center) && (mounds[j].center - m.center).length < m.radius + mounds[j].radius
+                }
+        }.map { mounds[$0] }
     }
 
     /// The pull a ball feels at `p`: the same pieces `World.step` applies, added up.

@@ -10,12 +10,16 @@ extension Painter {
     // MARK: Terrain
 
     /// Sloped ground: a grid tinted by height, from blue at the low end of each side to red at the high end. The
-    /// scene's dots (SlopeFlow) glide along its lines downhill, so the grid shows the shape and the dots the pull.
+    /// scene's dots (SlopeFlow) glide along its lines downhill, so the grid shows the shape and the dots the pull. A
+    /// hill or bowl standing alone gets a grid of its own, centred on it (`SlopeFlow.centredMounds`).
     func slopeGrid(_ level: Level, _ t: Theme) {
         guard level.hasGround else { return }
         func rect(_ b: Box) -> CGRect { CGRect(x: b.minX, y: b.minY, width: b.width, height: b.height) }
         var parts: [CGPath] = level.slopes.map { CourseArt.rounded(rect($0.box), 10, square: Corners(CourseArt.walledSides($0.box, level))) }
-        parts += level.mounds.map { circle(CGPoint(x: $0.center.x, y: $0.center.y), CGFloat($0.radius)) }
+        parts += level.mounds.map {
+            circle(CGPoint(x: $0.center.x, y: $0.center.y), CGFloat($0.radius))
+                .intersection(CGPath(rect: rect(Level.sideBox(of: $0)), transform: nil))
+        }
         parts += level.terrain.features.map { CGPath(rect: rect($0.area), transform: nil) }
         guard let first = parts.first else { return }
         var region = parts.dropFirst().reduce(first) { $0.union($1) }
@@ -41,6 +45,8 @@ extension Painter {
         clipped(felt) { stroke(region, UIColor.white.withAlphaComponent(0.2), 1) }
 
         let gap = SlopeFlow.grid, step = 4.0, buckets = 24
+        let centred = SlopeFlow.centredMounds(level, scifi: t.scifi)
+        func inCentred(_ p: Vec) -> Bool { centred.contains { ($0.center - p).lengthSquared < $0.radius * $0.radius } }
         for side in [Side.a, .b] {
             let x0 = side.offset, x1 = side.offset + Course.half
             // Each side spans the whole blue-to-red scale over its own sloped ground.
@@ -54,9 +60,9 @@ extension Painter {
             guard lo <= hi else { continue }
             // One path per colour band, so thousands of short segments stroke in a couple of dozen calls.
             let paths = (0..<buckets).map { _ in CGMutablePath() }
-            func segment(_ a: Vec, _ b: Vec) {
+            func segment(_ a: Vec, _ b: Vec, mound: Bool = false) {
                 let mid = Vec((a.x + b.x) / 2, (a.y + b.y) / 2)
-                guard level.isSloped(at: mid) else { return }
+                guard level.isSloped(at: mid), mound || !inCentred(mid) else { return }
                 let f = hi - lo < 1e-3 ? 0.5 : (level.groundHeight(at: mid) - lo) / (hi - lo)
                 let k = max(0, min(buckets - 1, Int(f * Double(buckets))))
                 paths[k].move(to: CGPoint(x: a.x, y: a.y))
@@ -67,6 +73,16 @@ extension Painter {
             }
             for y in stride(from: gap, to: Course.height - 1, by: gap) {
                 for x in stride(from: x0, to: x1, by: step) { segment(Vec(x, y), Vec(min(x + step, x1), y)) }
+            }
+            for m in centred where m.center.x >= x0 && m.center.x < x1 {
+                for d in SlopeFlow.lines(m) {
+                    let h = (m.radius * m.radius - d * d).squareRoot(), n = Int((2 * h / step).rounded(.up))
+                    for i in 0..<n {
+                        let u0 = -h + 2 * h * Double(i) / Double(n), u1 = -h + 2 * h * Double(i + 1) / Double(n)
+                        segment(m.center + Vec(d, u0), m.center + Vec(d, u1), mound: true)
+                        segment(m.center + Vec(u0, d), m.center + Vec(u1, d), mound: true)
+                    }
+                }
             }
             clipped(region) {
                 clipped(felt) {
