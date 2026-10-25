@@ -26,17 +26,21 @@ struct GameView: View {
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
 
+                let fold = foldBand(geo)
+                let crease = fold.flatMap { $0.height > $0.width ? $0 : nil }
                 VStack(spacing: 6) {
-                    topBar(compact: geo.size.width < 420).frame(height: Self.topBar).padding(.horizontal, geo.size.width < 420 ? 8 : 12)
+                    topBar(compact: geo.size.width < 420, crease: crease, inset: geo.size.width < 420 ? 8 : 12)
+                        .frame(height: Self.topBar).padding(.horizontal, geo.size.width < 420 ? 8 : 12)
                     Spacer()
-                    bottomBar(compact: geo.size.width < 420).frame(height: Self.bottomBar).padding(.horizontal, geo.size.width < 420 ? 8 : 10).padding(.bottom, 4)
+                    bottomBar(compact: geo.size.width < 420, crease: crease, inset: geo.size.width < 420 ? 8 : 10)
+                        .frame(height: Self.bottomBar).padding(.horizontal, geo.size.width < 420 ? 8 : 10).padding(.bottom, 4)
                 }
 
-                powerMeter(geo)
-                holePanel(geo)
+                powerMeter(geo, fold: fold)
+                holePanel(geo, fold: fold)
 
                 let course = localCourseFrame(geo)
-                let tip = tipSpot(course)
+                let tip = tipSpot(course, crease: crease)
                 // Hints sit below the tees (empty on every hole); the tutorial uses the open middle of Reflection.
                 if showHint && game.tutorial == nil && !game.showResult {
                     HintBanner(text: game.level.hint)
@@ -59,11 +63,13 @@ struct GameView: View {
 
                 if game.tutorial == .aim { DragDemo(frame: localCourseFrame(geo), turned: game.courseTurned) }
 
+                // Across a fold down the middle, the cards move to the left half, clear of the crease.
+                let shift = crease.map { $0.minX / 2 - geo.size.width / 2 } ?? 0
                 if game.paused {
-                    PauseMenu(app: app).transition(.opacity)
+                    PauseMenu(app: app, shift: shift).transition(.opacity)
                 }
                 if game.showResult {
-                    ResultCard(app: app).transition(.opacity)
+                    ResultCard(app: app, shift: shift).transition(.opacity)
                 }
                 if game.showScorecard {
                     ScorecardView(game: game, final: game.round?.isFinished ?? true) {
@@ -141,40 +147,62 @@ struct GameView: View {
     }
 
     /// Where hints and tips go: the strip below the tees, empty on every hole. Turned, that strip runs down the
-    /// course's left end, too narrow for words, so they hang across the top edge instead, under the bar.
-    private func tipSpot(_ course: CGRect) -> (center: CGPoint, width: CGFloat) {
+    /// course's left end, too narrow for words, so they hang across the top edge instead, under the bar (left of a
+    /// crease down the middle, if there's one).
+    private func tipSpot(_ course: CGRect, crease: CGRect?) -> (center: CGPoint, width: CGFloat) {
         if game.courseTurned {
+            if let crease {
+                let room = crease.minX - course.minX - 24
+                return (CGPoint(x: course.minX + 12 + room / 2, y: course.minY + 26), max(min(room, 520), 1))
+            }
             return (CGPoint(x: course.midX, y: course.minY + 26), max(min(course.width * 0.6, 520), 1))
         }
         return (CGPoint(x: course.midX, y: course.maxY - course.height * 0.055), max(course.width, 1))
     }
 
+    /// The fold of an iPhone Duo bent part way open: a band across the middle of the screen (in this view's space),
+    /// margins included, that controls keep out of, since they're hard to tap in the crease. Nil flat open, closed,
+    /// and on every other device.
+    private func foldBand(_ geo: GeometryProxy) -> CGRect? {
+        #if DEBUG
+        if let band = DebugFold.band(in: geo.size) { return band }
+        #endif
+        guard #available(iOS 27.1, *), let region = geo.reservedRegions(kind: .division).first(where: \.isActive) else { return nil }
+        let m = region.margins
+        return CGRect(x: region.frame.minX - m.leading, y: region.frame.minY - m.top,
+                      width: region.frame.width + m.leading + m.trailing, height: region.frame.height + m.top + m.bottom)
+    }
+
+    /// A bar laid out either side of a crease down the middle: `left` up to it, `right` after it. `inset` is the bar's
+    /// own padding, which `crease` (in the view's space) doesn't count.
+    @ViewBuilder
+    private func across<Left: View, Right: View>(_ crease: CGRect?, inset: CGFloat, spacing: CGFloat,
+                                                 @ViewBuilder left: () -> Left, @ViewBuilder right: () -> Right) -> some View {
+        if let crease {
+            HStack(spacing: 0) {
+                HStack(spacing: spacing) { left() }.frame(width: max(crease.minX - inset, 0))
+                Color.clear.frame(width: crease.width)
+                HStack(spacing: spacing) { right() }.frame(maxWidth: .infinity)
+            }
+        } else {
+            HStack(spacing: spacing) {
+                left()
+                right()
+            }
+        }
+    }
+
     // MARK: Bars
 
-    private func topBar(compact: Bool) -> some View {
-        HStack(spacing: compact ? 6 : 8) {
+    private func topBar(compact: Bool, crease: CGRect?, inset: CGFloat) -> some View {
+        across(crease, inset: inset, spacing: compact ? 6 : 8) {
             GlassIconButton(symbol: "pause.fill", size: compact ? 38 : 42) { game.paused = true }
             ScoreChip(index: 0, strokes: game.strokes[0], sunk: game.sunk[0])
             Spacer(minLength: 0)
-            VStack(spacing: 1) {
-                HStack(spacing: 5) {
-                    Text(game.level.name).font(.rounded(compact ? 18 : 20, .heavy)).lineLimit(1).minimumScaleFactor(0.7)
-                    // Tapping the name brings the hole's hint back; the bulb says so.
-                    if !game.level.hint.isEmpty {
-                        Image(systemName: showHint && game.tutorial == nil ? "lightbulb.fill" : "lightbulb")
-                            .font(.system(size: compact ? 12 : 13, weight: .bold))
-                            .foregroundStyle(showHint && game.tutorial == nil ? Color.putt : .white.opacity(0.8))
-                    }
-                }
-                Text(subtitle)
-                    .font(.rounded(10, .bold)).tracking(1.2).opacity(0.75)
-                    .lineLimit(1).minimumScaleFactor(0.6)
-            }
-            .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.5), radius: 3, y: 1)
-            .contentShape(Rectangle())
-            .onTapGesture { withAnimation { showHint.toggle() } }
+            holeName(compact: compact)
             Spacer(minLength: 0)
+        } right: {
+            if crease != nil { Spacer(minLength: 0) }
             ScoreChip(index: 1, strokes: game.strokes[1], sunk: game.sunk[1])
             // A round is played as it lies; only Free Play can start a hole over. The gap keeps the name centered.
             if game.inRound {
@@ -185,8 +213,29 @@ struct GameView: View {
         }
     }
 
-    private func bottomBar(compact: Bool) -> some View {
-        HStack(spacing: compact ? 6 : 8) {
+    private func holeName(compact: Bool) -> some View {
+        VStack(spacing: 1) {
+            HStack(spacing: 5) {
+                Text(game.level.name).font(.rounded(compact ? 18 : 20, .heavy)).lineLimit(1).minimumScaleFactor(0.7)
+                // Tapping the name brings the hole's hint back; the bulb says so.
+                if !game.level.hint.isEmpty {
+                    Image(systemName: showHint && game.tutorial == nil ? "lightbulb.fill" : "lightbulb")
+                        .font(.system(size: compact ? 12 : 13, weight: .bold))
+                        .foregroundStyle(showHint && game.tutorial == nil ? Color.putt : .white.opacity(0.8))
+                }
+            }
+            Text(subtitle)
+                .font(.rounded(10, .bold)).tracking(1.2).opacity(0.75)
+                .lineLimit(1).minimumScaleFactor(0.6)
+        }
+        .foregroundStyle(.white)
+        .shadow(color: .black.opacity(0.5), radius: 3, y: 1)
+        .contentShape(Rectangle())
+        .onTapGesture { withAnimation { showHint.toggle() } }
+    }
+
+    private func bottomBar(compact: Bool, crease: CGRect?, inset: CGFloat) -> some View {
+        across(crease, inset: inset, spacing: compact ? 6 : 8) {
             SwingToggle(mirrored: game.mirrored, turned: game.courseTurned, segment: compact ? 50 : 58) { game.setMirrored($0) }
                 .overlay(alignment: .topTrailing) { if game.tutorial == .mirror { BouncingArrow().offset(x: -21, y: -44) } }
             Spacer(minLength: 0)
@@ -203,6 +252,8 @@ struct GameView: View {
             .opacity(game.aim == nil ? 0.5 : 1)
             .disabled(!game.canAim || game.aim == nil)
             Spacer(minLength: 0)
+        } right: {
+            if crease != nil { Spacer(minLength: 0) }
             PuttButton(enabled: game.canPutt, rolling: game.isRolling) { game.putt() }
                 .overlay(alignment: .top) { if game.tutorial == .putt { BouncingArrow().offset(y: -44) } }
         }
@@ -210,25 +261,39 @@ struct GameView: View {
 
     /// The nine's scorecard in the column left of an upright course, when it's wide enough to read: an iPad, or a Duo
     /// opened and held upright. Phones don't have the room, and a turned course fills the width.
+    /// A fold across the middle (a Duo stood up part open) puts it in the upper half, which faces you.
     @ViewBuilder
-    private func holePanel(_ geo: GeometryProxy) -> some View {
+    private func holePanel(_ geo: GeometryProxy, fold: CGRect?) -> some View {
         let course = localCourseFrame(geo)
         let column = course.minX
         if !game.courseTurned, course.width > 0, column - 24 >= 120 {
+            let across = fold.flatMap { $0.width > $0.height ? $0 : nil }
             HolePanel(game: game, width: min(column - 24, 250))
-                .position(x: column / 2, y: course.midY)
+                .position(x: column / 2, y: across.map { (course.minY + $0.minY) / 2 } ?? course.midY)
         }
     }
 
+    /// Beside the course, centred on it; a fold across the middle (a Duo stood up part open) moves it out of the
+    /// crease, shortened to fit: into the upper half, since the lower holds the landmark (see GameScene.landmarkSpot)
+    /// and the bottom bar's controls, unless the upper's too short for it.
     @ViewBuilder
-    private func powerMeter(_ geo: GeometryProxy) -> some View {
+    private func powerMeter(_ geo: GeometryProxy, fold: CGRect?) -> some View {
         let frame = localCourseFrame(geo)
         if frame.width > 0 {
             let x = min(frame.maxX + (geo.size.width - frame.maxX) / 2, geo.size.width - 24)
+            let height = GameScene.powerMeterHeight(courseHeight: frame.height)
+            let spot: (y: CGFloat, height: CGFloat) = {
+                guard let fold, fold.width > fold.height, fold.minY < frame.midY + height / 2, fold.maxY > frame.midY - height / 2 else {
+                    return (frame.midY, height)
+                }
+                let above = fold.minY - frame.minY, below = frame.maxY - fold.maxY
+                let up = above >= 220 || above > below
+                return (up ? frame.minY + above / 2 : fold.maxY + below / 2, min(height, (up ? above : below) - 16))
+            }()
             PowerMeter(power: game.aim?.power, enabled: game.canAim,
                        nudge: { game.nudge(power: $0) }, set: { game.setPower($0) })
-                .frame(height: GameScene.powerMeterHeight(courseHeight: frame.height))
-                .position(x: x, y: frame.midY)
+                .frame(height: spot.height)
+                .position(x: x, y: spot.y)
         }
     }
 }
@@ -538,6 +603,8 @@ private struct DragDemo: View {
 private struct PauseMenu: View {
     static let maxWidth: CGFloat = 380
     let app: AppState
+    /// Moves the card sideways (off a crease down the middle); the dimming still covers the screen.
+    var shift: CGFloat = 0
     private var game: GameModel { app.game }
 
     var body: some View {
@@ -590,12 +657,15 @@ private struct PauseMenu: View {
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
             .padding(.horizontal, 28)
+            .offset(x: shift)
         }
     }
 }
 
 private struct ResultCard: View {
     let app: AppState
+    /// Moves the card sideways (off a crease down the middle); the dimming still covers the screen.
+    var shift: CGFloat = 0
     @State private var shown = false
     private var game: GameModel { app.game }
 
@@ -664,6 +734,7 @@ private struct ResultCard: View {
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
             .padding(.horizontal, 26)
+            .offset(x: shift)
             .scaleEffect(shown ? 1 : 0.9)
             .opacity(shown ? 1 : 0)
         }
@@ -678,3 +749,17 @@ private struct ResultCard: View {
         .foregroundStyle(.white)
     }
 }
+
+#if DEBUG
+/// `-fold vertical` (or `horizontal`) fakes the band of a Duo bent part open, 40pt plus 20pt margins either side
+/// across the middle of the screen, since the simulator can't be folded from the command line.
+enum DebugFold {
+    static func band(in size: CGSize) -> CGRect? {
+        switch UserDefaults.standard.string(forKey: "fold") {
+        case "vertical": CGRect(x: size.width / 2 - 40, y: 0, width: 80, height: size.height)
+        case "horizontal": CGRect(x: 0, y: size.height / 2 - 40, width: size.width, height: 80)
+        default: nil
+        }
+    }
+}
+#endif
