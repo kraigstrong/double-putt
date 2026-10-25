@@ -1,4 +1,5 @@
 import Observation
+import SpriteKit
 import SwiftUI
 
 @main
@@ -26,6 +27,11 @@ final class AppState {
     var freePlay = FreePlaySpot()
     let game: GameModel
     @ObservationIgnored let scene: GameScene
+    #if DEBUG
+    /// What the game screen's view shows instead of the game's scene during a store capture, which runs the scene
+    /// itself (StoreCapture.swift).
+    var captureStandIn: SKScene?
+    #endif
 
     init() {
         #if DEBUG
