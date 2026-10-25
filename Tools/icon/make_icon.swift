@@ -107,7 +107,7 @@ func scenery(_ c: CGContext, horizon hz: CGFloat) {
 /// Rounded mallet, face on: the milled face, and above it the half-moon crown curving away from the camera.
 func putter(_ c: CGContext) {
     let x0 = S * 0.11, x1 = S * 0.89
-    let faceBottom = S * 0.40, faceTop = S * 0.485, depth = S * 0.17
+    let faceBottom = S * 0.40, faceTop = S * 0.525, depth = S * 0.17
     let back = faceTop + depth
     groundShadow(c, CGPoint(x: S / 2, y: faceBottom + 2), rx: S * 0.43, ry: S * 0.035, alpha: 0.4)
 
