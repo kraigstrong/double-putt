@@ -22,7 +22,8 @@ struct TrophyShelfView: View {
             .padding(.horizontal, 16)
 
             ScrollView {
-                VStack(spacing: 24) {
+                // One cabinet across a phone; side by side on a wider screen, rather than stretched across it.
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 20, alignment: .top)], spacing: 24) {
                     ForEach(game.nines) { nine in
                         VStack(alignment: .leading, spacing: 10) {
                             let locked = !game.isUnlocked(nine)
