@@ -380,9 +380,11 @@ def check() -> int:
 
 SCREENSHOT, HEADER, SEARCH = "APP_SCREENSHOT", "PRODUCT_PAGE_HEADER_ASSET", "APP_STORE_SEARCH_RESULTS_ASSET"
 PREVIEW = "APP_PREVIEW"
-# The app preview goes to the 6.9" and 6.3" iPhones, and the iPhone Duo, which takes the same 886x1920 video; Apple fills
-# in smaller iPhones from these. (An iPad preview is a 1200x1600 or 1600x1200 video of its own.)
-PREVIEW_GROUPS = ("IPHONE_DYNAMIC_ISLAND_LARGE_PROFILE", "IPHONE_DYNAMIC_ISLAND_MEDIUM_PROFILE", "IPHONE_DUO_PROFILE")
+# The devices with screenshots of their own get an app preview: an 886x1920 video goes to the 6.9" and 6.5" iPhones and
+# the iPhone Duo, a 1200x1600 (or 1600x1200) one to the 13" iPad. The 6.3" iPhone has no set of its own: App Store
+# Connect shows it the 6.5"'s, and Apple fills in the smaller iPhones and iPads from these.
+PREVIEW_GROUPS = ("IPHONE_DYNAMIC_ISLAND_LARGE_PROFILE", "IPHONE_FACE_ID_LARGE_PROFILE", "IPHONE_DUO_PROFILE",
+                  "IPAD_13_PROFILE")
 # A size that fits more than one device goes to the first of these it fits: 2048x2732 fits the 13" iPad and the 12.9",
 # and the 13" is the one App Store Connect requires (it scales those down for the smaller iPads).
 PREFERRED_GROUPS = ("IPAD_13_PROFILE",)
@@ -406,12 +408,44 @@ def png_info(path: Path) -> tuple[int, int, bool]:
     return width, height, head[25] in (4, 6)
 
 
-def media(app: str, locale: str, folders: list[Path], creatives: dict[str, Path], preview: Path | None,
+def video_size(path: Path) -> tuple[int, int]:
+    """A .mp4 or .mov's picture size, from its video track's header (moov > trak > tkhd), without ffprobe."""
+    data = path.read_bytes()
+
+    def boxes(start: int, end: int):
+        while start + 8 <= end:
+            size, kind = struct.unpack(">I4s", data[start:start + 8])
+            header = 8
+            if size == 1:
+                size, header = struct.unpack(">Q", data[start + 8:start + 16])[0], 16
+            elif size == 0:
+                size = end - start
+            if size < header:
+                return
+            yield kind, start + header, start + size
+            start += size
+
+    for kind, start, end in boxes(0, len(data)):
+        if kind != b"moov":
+            continue
+        for kind, start, end in boxes(start, end):
+            if kind != b"trak":
+                continue
+            for kind, start, end in boxes(start, end):
+                if kind == b"tkhd":
+                    # Its last eight bytes are the width and height, 16.16 fixed point; a sound track's are zero.
+                    width, height = struct.unpack(">II", data[end - 8:end])
+                    if width and height:
+                        return width >> 16, height >> 16
+    raise SystemExit(f"{path}: no video track")
+
+
+def media(app: str, locale: str, folders: list[Path], creatives: dict[str, Path], previews: list[Path],
           poster: str | None, dry_run: bool) -> int:
     """Replaces the editable version's screenshots (each folder's PNGs, in name order), its product page header and
-    search results asset (`creatives`, by placement type), and its app preview video, with `poster` as the frame shown
-    before it plays. New files are uploaded and processed first; the old placements are only swapped out once every
-    one is ready, so a failure leaves the listing as it was."""
+    search results asset (`creatives`, by placement type), and its app previews (each video to the devices its size
+    fits), with `poster` as the frame shown before one plays. New files are uploaded and processed first; the old
+    placements are only swapped out once every one is ready, so a failure leaves the listing as it was."""
     load_credentials()
     app_id = os.environ.get(APPS[app]["app_id_env"])
     if not app_id:
@@ -419,11 +453,13 @@ def media(app: str, locale: str, folders: list[Path], creatives: dict[str, Path]
     client = Client()
     ref = client.call("GET", "/v1/appAssetLibraryRefData")["data"]
     ref = (ref[0] if isinstance(ref, list) else ref)["attributes"]
-    specs = {s["specId"]: s for s in ref["imageSpecs"]}
+    image_specs = {s["specId"]: s for s in ref["imageSpecs"]}
+    video_specs = {s["specId"]: s for s in ref.get("videoSpecs", [])}
 
     def groups_for(kind: str, width: int, height: int) -> list[str]:
         """The devices a file of that size and placement can go to, from Apple's reference data (so any device App Store
         Connect takes, the iPad and iPhone Duo included): the preferred one first."""
+        specs = video_specs if kind == PREVIEW else image_specs
         out = []
         for placement in ref["placementTypes"]:
             if placement["placementTypeId"] != kind:
@@ -466,12 +502,19 @@ def media(app: str, locale: str, folders: list[Path], creatives: dict[str, Path]
         if not groups:
             raise SystemExit(f"{creative}: {width}x{height} doesn't fit {kind}")
         plan[(kind, groups[0])] = [creative]
-    if preview:
+    if poster and not re.fullmatch(r"\d\d:\d\d:\d\d:\d\d", poster):
+        raise SystemExit(f"--poster {poster}: a timecode into the video, HH:MM:SS:FF (FF is the frame)")
+    for preview in previews:
         if preview.suffix.lower() not in VIDEO_SUFFIXES:
             raise SystemExit(f"{preview}: an app preview is a .mp4, .m4v or .mov")
-        if poster and not re.fullmatch(r"\d\d:\d\d:\d\d:\d\d", poster):
-            raise SystemExit(f"--poster {poster}: a timecode into the video, HH:MM:SS:FF (FF is the frame)")
-        for group in PREVIEW_GROUPS:
+        width, height = video_size(preview)
+        groups = [group for group in groups_for(PREVIEW, width, height) if group in PREVIEW_GROUPS]
+        if not groups:
+            raise SystemExit(f"{preview}: {width}x{height} isn't an app preview size for any of {', '.join(PREVIEW_GROUPS)}")
+        sizes[preview] = f"{width}x{height}"
+        for group in groups:
+            if (PREVIEW, group) in plan:
+                raise SystemExit(f"{group}: two previews, {plan[(PREVIEW, group)][0].name} and {preview.name}")
             plan[(PREVIEW, group)] = [preview]
     for (kind, group), files in plan.items():
         if kind == SCREENSHOT and len(files) > 10:
@@ -921,9 +964,10 @@ def main() -> int:
     images.add_argument("--creative", type=Path, help="a 5244x2950 PNG for the product page header and search results")
     images.add_argument("--header", type=Path, help="a 5244x2950 PNG for the product page header only")
     images.add_argument("--search", type=Path, help="a 5244x2950 PNG for the search results asset only")
-    images.add_argument("--preview", type=Path,
-                        help="the app preview video (886x1920), for the 6.9\" and 6.3\" iPhones and the iPhone Duo")
-    images.add_argument("--poster", help="the preview's poster frame, the still shown before it plays (HH:MM:SS:FF)")
+    images.add_argument("--preview", type=Path, nargs="*", default=[],
+                        help="app preview videos, each to the devices its size fits: 886x1920 for the 6.9\" and 6.5\" "
+                             "iPhones and the iPhone Duo, 1200x1600 for the 13\" iPad")
+    images.add_argument("--poster", help="the previews' poster frame, the still shown before one plays (HH:MM:SS:FF)")
     images.add_argument("--dry-run", action="store_true", help="show what would change; write nothing")
     buy = sub.add_parser("purchase", help="create the app's in-app purchases and fill in what they're missing")
     buy.add_argument("--app", choices=APPS, required=True)
@@ -952,10 +996,10 @@ def main() -> int:
         creatives = {kind: path for kind, path in ((HEADER, args.header or args.creative),
                                                    (SEARCH, args.search or args.creative)) if path}
         if args.poster and not args.preview:
-            raise SystemExit("--poster sets the frame of the --preview video it comes with")
+            raise SystemExit("--poster sets the frame of the --preview videos it comes with")
         if not args.screenshots and not creatives and not args.preview:
             raise SystemExit("nothing to do: give --screenshots folders, a --creative (or --header, --search) image, "
-                             "or a --preview video")
+                             "or --preview videos")
         try:
             return media(args.app, args.locale, args.screenshots, creatives, args.preview, args.poster, args.dry_run)
         except RuntimeError as error:
