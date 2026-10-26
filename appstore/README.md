@@ -65,7 +65,7 @@ Uploading builds isn't part of `push.py`; see [docs/testflight.md](../docs/testf
 ## Media
 
 `media` replaces the editable version's screenshots, its product page header and search results asset (`--creative`,
-or `--header` and `--search`), and its app preview (`--preview`, with `--poster` for the frame shown before it plays).
+or `--header` and `--search`), and its app previews (`--preview`, with `--poster` for the frame shown before one plays).
 New files are uploaded and processed first, and the old ones swapped out only once every one is ready, so a failure
 leaves the listing as it was.
 
@@ -81,18 +81,29 @@ files fit different devices is refused. Apple takes up to 10 screenshots a devic
 | `captioned-ipad` | 2064x2752 | iPad 13", required for an iPad app; scaled down for the smaller iPads |
 | `captioned-duo` | 2853x2007 opened, 1398x2034 closed | iPhone Duo: one set, either screen, upright or sideways. It earns the product page's optimized-for-iPhone-Duo badge, and from April 2027 every app built with the iOS 27.1 SDK needs it |
 
-The app preview (886x1920, from `Tools/capture/trailer.sh`) goes to the 6.9" and 6.3" iPhones and the iPhone Duo,
-which take the same video. An iPad preview would be a 1200x1600 (or 1600x1200) cut of its own; there isn't one yet,
-and it's optional.
+`--preview` takes one video per kind of device, and each goes where its size fits (from the same reference data),
+among the devices with a set of their own:
+
+| Video (`build/capture/trailer/`) | Size | App Store Connect |
+|---|---|---|
+| `double-putt-app-preview.mp4` | 886x1920 | iPhone 6.9", iPhone 6.5" and iPhone Duo. The 6.3" has no set of its own: it shows the 6.5"'s |
+| `double-putt-app-preview-ipad.mp4` | 1200x1600 | iPad 13"; scaled down for the smaller iPads |
+
+Both come from `Tools/capture/trailer.sh` (`--device ipad` for the iPad's), 15-30 seconds at 30 fps. The poster is a
+timecode into the video, the same for both, since they share the edit: 00:00:02:00 is "ONE SWING." over Reflection,
+both balls aimed and Putt lit.
 
 ```bash
 Tools/capture/screenshots.sh && Tools/capture/screenshots.sh --device ipad && Tools/capture/screenshots.sh --device duo
 for set in "" -6.5 -ipad -duo; do Tools/capture/frames.py build/capture/screenshots$set build/capture/captioned$set; done
 python3 appstore/push.py media --app double-putt --dry-run --screenshots build/capture/captioned \
   build/capture/captioned-6.5 build/capture/captioned-ipad build/capture/captioned-duo
+Tools/capture/trailer.sh && Tools/capture/trailer.sh --device ipad
+python3 appstore/push.py media --app double-putt --dry-run --preview build/capture/trailer/double-putt-app-preview.mp4 \
+  build/capture/trailer/double-putt-app-preview-ipad.mp4 --poster 00:00:02:00
 ```
 
-The dry run lists each device's set, its sizes, and how many screenshots it replaces. Run it again without
+The dry run lists each device's set, its sizes, and how many screenshots or previews it replaces. Run it again without
 `--dry-run` to upload.
 
 ## Credentials
