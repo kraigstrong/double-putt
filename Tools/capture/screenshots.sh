@@ -1,16 +1,22 @@
 #!/bin/bash
 # App Store screenshots: the stills listed in Tools/capture/screenshots.json, from the simulator.
 #
-#   Tools/capture/screenshots.sh [name ...]      # default: every shot, in the listing's order
+#   Tools/capture/screenshots.sh [--device iphone|ipad|duo] [name ...]   # default: the iPhone's, every shot in order
 #
-# Builds Debug, installs it on the capture simulator (lib.sh), and plays each shot's clip with -storeCapture,
+# Builds Debug, installs it on the device's capture simulator (lib.sh), and plays each shot's clip with -storeCapture,
 # saving just the stills it needs (MiniGolf/Game/StoreCapture.swift): the screen as a player sees it, HUD and all,
-# with nothing over it (no Dynamic Island). A rerun gives the same stills.
+# with nothing over it (no Dynamic Island, no camera). A rerun gives the same stills. Each device's listing, and the
+# poses a shot can take on it, are screenshots.json's.
 #
-# Output goes to build/capture/ (ignored by git):
-#   screenshots/NN-<name>.png      1320x2868 portrait PNGs with no alpha: the 6.9" size, which App Store Connect
-#                                  scales down for smaller iPhones
-#   screenshots-6.5/NN-<name>.png  1284x2778, scaled and trimmed from those, for the 6.5" slot
+# Output goes to build/capture/ (ignored by git), as PNGs with no alpha:
+#   iphone  screenshots/NN-<name>.png      1320x2868: the 6.9" size, which App Store Connect scales down for smaller
+#                                          iPhones
+#           screenshots-6.5/NN-<name>.png  1284x2778, scaled and trimmed from those, for the 6.5" slot
+#   ipad    screenshots-ipad/NN-<name>.png 2064x2752, upright, beside the scorecard and the setting's landmark: the 13"
+#                                          size, which App Store Connect requires for an iPad app
+#   duo     screenshots-duo/NN-<name>[-open].png   one set for App Store Connect's iPhone Duo slot: opened like a book
+#                                          (-open, the inner screen held sideways, laid out with -canvas 951x669 and
+#                                          saved at its 2853x2007), then closed (the outer screen, 1398x2034)
 # Then caption them with Tools/capture/frames.py.
 #
 # CAPTURE_NO_BUILD=1 reuses the last build, already installed.
@@ -18,38 +24,66 @@ set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 SHOTS="$ROOT/Tools/capture/screenshots.json"
 
-# "<number> <name> <clip> <seconds>" per shot asked for (all by default), in the listing's order.
-plan=$(python3 - "$SHOTS" "$@" <<'EOF'
+device=iphone
+if [ "${1:-}" = --device ]; then
+    device="${2:?--device iphone, ipad or duo}"
+    shift 2
+fi
+use_device "$device"
+case "$device" in
+    iphone) DIR="$OUT/screenshots" ;;
+    *) DIR="$OUT/screenshots-$device" ;;
+esac
+
+# "<file> <clip> <seconds> <canvas or -> <size>" per shot asked for (all by default), in the device's listing order.
+plan=$(python3 - "$SHOTS" "$device" "$@" <<'EOF'
 import json, sys
-shots = json.load(open(sys.argv[1]))["shots"]
-names = sys.argv[2:]
-unknown = set(names) - {s["name"] for s in shots}
+config = json.load(open(sys.argv[1]))
+device, names = sys.argv[2], sys.argv[3:]
+shots = {s["name"]: s for s in config["shots"]}
+listing = config["devices"][device]
+unknown = set(names) - set(shots)
 if unknown:
-    sys.exit(f"unknown shots: {', '.join(sorted(unknown))} (one of: {', '.join(s['name'] for s in shots)})")
-for number, shot in enumerate(shots, 1):
-    if not names or shot["name"] in names:
-        print(number, shot["name"], shot["clip"], shot["at"])
+    sys.exit(f"unknown shots: {', '.join(sorted(unknown))} (one of: {', '.join(shots)})")
+for number, entry in enumerate(listing["shots"], 1):
+    name, _, pose = entry.partition("@")
+    if names and name not in names:
+        continue
+    if pose and pose not in listing.get("poses", {}):
+        sys.exit(f"{device}: {entry} has no pose called {pose}")
+    laid = listing["poses"][pose] if pose else {}
+    print(f"{number:02d}-{name}" + (f"-{pose}" if pose else ""), shots[name]["clip"], shots[name]["at"],
+          laid.get("canvas", "-"), laid.get("size", listing["size"]))
 EOF
 )
-mkdir -p "$OUT/screenshots" "$OUT/screenshots-6.5"
+[ -n "$plan" ] || { echo "$device's listing has none of those shots" >&2; exit 1; }
+mkdir -p "$DIR"
+[ "$device" = iphone ] && mkdir -p "$OUT/screenshots-6.5"
 build_and_install
 failed=0
-# One launch per clip, saving all of its stills.
-for clip in $(awk '{ print $3 }' <<< "$plan" | awk '!seen[$0]++'); do
-    times=$(awk -v c="$clip" '$3 == c { printf "%s%s", sep, $4; sep = "," }' <<< "$plan")
-    play_clip "$clip" -captureNoFrames -captureStills "$times" || { failed=1; continue; }
+# One launch per clip and pose, saving all of its stills.
+while read -r clip canvas; do
+    times=$(awk -v c="$clip" -v k="$canvas" '$2 == c && $4 == k { printf "%s%s", sep, $3; sep = "," }' <<< "$plan")
+    args=(-captureNoFrames -captureStills "$times")
+    [ "$canvas" != - ] && args+=(-canvas "$canvas")
+    # Not from this loop's input, which simctl would read.
+    play_clip "$clip" "${args[@]}" < /dev/null || { failed=1; continue; }
     index=0
-    while read -r number name _ _; do
-        file="$(printf '%02d' "$number")-$name.png"
-        rm -f "$OUT"/screenshots/??-"$name".png "$OUT"/screenshots-6.5/??-"$name".png
-        cp "$FRAMES/still-$index.png" "$OUT/screenshots/$file"
-        size="$(sips -g pixelWidth -g pixelHeight "$OUT/screenshots/$file" | awk '/pixel/ { printf "%s%s", sep, $2; sep = "x" }')"
-        [ "$size" = 1320x2868 ] || echo "$name: $size, not the 6.9\" size (1320x2868); is the capture simulator an iPhone 17 Pro Max?" >&2
-        # 6.5": scaled to its width, then trimmed to its height (a few pixels off the top and bottom).
-        sips --resampleWidth 1284 "$OUT/screenshots/$file" --out "$OUT/screenshots-6.5/$file" >/dev/null
-        sips --cropToHeightWidth 2778 1284 "$OUT/screenshots-6.5/$file" >/dev/null
-        echo "captured screenshots/$file ($size)"
+    while read -r stem _ _ _ want; do
+        file="$stem.png"
+        # The same shot under its old number goes (?? is the number).
+        rm -f "$DIR"/??-"${stem#??-}".png
+        [ "$device" = iphone ] && rm -f "$OUT"/screenshots-6.5/??-"${stem#??-}".png
+        cp "$FRAMES/still-$index.png" "$DIR/$file"
+        size="$(sips -g pixelWidth -g pixelHeight "$DIR/$file" | awk '/pixel/ { printf "%s%s", sep, $2; sep = "x" }')"
+        [ "$size" = "$want" ] || echo "$stem: $size, not $want; is \"$DEVICE_NAME\" the right simulator, as it boots?" >&2
+        if [ "$device" = iphone ]; then
+            # 6.5": scaled to its width, then trimmed to its height (a few pixels off the top and bottom).
+            sips --resampleWidth 1284 "$DIR/$file" --out "$OUT/screenshots-6.5/$file" >/dev/null
+            sips --cropToHeightWidth 2778 1284 "$OUT/screenshots-6.5/$file" >/dev/null
+        fi
+        echo "captured ${DIR#"$OUT/"}/$file ($size)"
         index=$((index + 1))
-    done < <(awk -v c="$clip" '$3 == c' <<< "$plan")
-done
+    done < <(awk -v c="$clip" -v k="$canvas" '$2 == c && $4 == k' <<< "$plan")
+done < <(awk '!seen[$2 " " $4]++ { print $2, $4 }' <<< "$plan")
 exit $failed

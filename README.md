@@ -261,14 +261,17 @@ A Debug build launched with `-storeCapture` (`MiniGolf/Game/StoreCapture.swift`)
 stored double ace striking on the solver's tick. It steps the scene exactly a 60th of a second a frame, however long a
 frame takes to save, and saves the whole screen, HUD included, so footage never stutters and a rerun plays the same.
 The game's sounds are logged as they play and rebuilt into the soundtrack (the simulator records none). It runs on a
-simulator of its own, "DP Capture iPhone 17 Pro Max" (made the first time), since each capture stages a fresh saved
-state: your usual simulator keeps its progress. Output goes to `build/capture/` (ignored by git). Needs ffmpeg
-(`brew install ffmpeg`) and Python 3 with Pillow and NumPy.
+simulator of its own, "DP Capture iPhone 17 Pro Max" (or "DP Capture iPad Pro 13-inch" and "DP Capture iPhone Duo"
+for those screenshots; each made the first time), since each capture stages a fresh saved state: your usual simulator
+keeps its progress. Output goes to `build/capture/` (ignored by git). Needs ffmpeg (`brew install ffmpeg`) and
+Python 3 with Pillow and NumPy.
 
 ```bash
 Tools/capture/footage.sh --look windmill   # a contact sheet, a frame every half second, and when each drag, tap and putt fell
 Tools/capture/footage.sh windmill          # 60 fps at 1320x2868 with its sound (or: windmill 4.5 6.5 for just those seconds)
 Tools/capture/screenshots.sh               # the stills in screenshots.json: 6.9" (1320x2868) and 6.5" (1284x2778), no alpha
+Tools/capture/screenshots.sh --device ipad   # the iPad's, upright: 13" (2064x2752)
+Tools/capture/screenshots.sh --device duo    # the iPhone Duo's: opened (2853x2007), then closed (1398x2034)
 Tools/capture/frames.py build/capture/screenshots build/capture/captioned   # captioned, in the game's typeface
 Tools/capture/trailer.sh --music ~/Music/track.m4a   # records what the edit needs, then both cuts
 Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # the site's loops, stills, trailer and preview image
@@ -280,7 +283,11 @@ Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # th
 - A capture plays the courses players get: a course still in development (`Levels.inDevelopment`) is left out, as in
   TestFlight and App Store builds.
 - **Screenshots** (`screenshots.json`) are a clip and a moment in it, with the caption `frames.py` sets over the
-  screen. A clip's `--look` shows where its moments fall.
+  screen. A clip's `--look` shows where its moments fall. Each device lists its own set: the iPhone's and the iPad's
+  upright (the iPad's with the scorecard and the setting's landmark beside the course), and the iPhone Duo's seven
+  opened like a book, the course turned to fill the screen, then three closed. A simulator can't open a Duo from the
+  command line, so those are laid out with `-canvas 951x669` on the closed Duo's simulator and saved at the inner
+  screen's size. `appstore/push.py media` uploads each folder to its device (see `appstore/README.md`).
 - **The trailer** (`trailer/edl.json`) cuts the clips into shots with slow camera moves and big captions, then the
   end card with the wordmark: `double-putt-trailer.mp4` (1080x1920, 60 fps, for the site) and
   `double-putt-app-preview.mp4` (886x1920, 30 fps, 15-30 seconds, the App Store preview). Each shot keeps its own game

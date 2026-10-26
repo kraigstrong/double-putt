@@ -120,6 +120,34 @@ On an iPhone Duo, if there's one to hand:
 - Bent part way open, nothing you tap sits in the fold: the bars split either side of it, and held upright the
   power meter moves up out of it.
 
+## App Store screenshots
+TestFlight needs none, but the App Store listing does, one set per device. As a universal app, Double Putt needs the
+iPhone's and the 13" iPad's. iPhone Duo screenshots earn the product page's optimized-for-iPhone-Duo badge, and from
+April 2027 every app built with the iOS 27.1 SDK needs them. Apple's sizes are in its
+[screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications).
+
+1. Capture each device's set on its own simulator (made the first time; see the README's "Screenshots, footage and
+   the trailer"):
+   ```bash
+   Tools/capture/screenshots.sh                 # iPhone: 1320x2868, and 1284x2778 from those
+   Tools/capture/screenshots.sh --device ipad   # iPad, upright: 2064x2752
+   Tools/capture/screenshots.sh --device duo    # iPhone Duo: seven opened (2853x2007), three closed (1398x2034)
+   ```
+   Each still's size is checked against the device's; a warning means the simulator isn't the one the set expects
+   (the Duo's has to be closed, as it boots).
+2. Caption them, then look them over in `build/capture/captioned*`:
+   ```bash
+   for set in "" -6.5 -ipad -duo; do Tools/capture/frames.py build/capture/screenshots$set build/capture/captioned$set; done
+   ```
+3. Upload them to the editable version, dry-run first: each folder should land on its device, the Duo's as one
+   set of ten.
+   ```bash
+   python3 appstore/push.py media --app double-putt --dry-run --screenshots build/capture/captioned \
+     build/capture/captioned-6.5 build/capture/captioned-ipad build/capture/captioned-duo
+   ```
+   Add `--preview build/capture/trailer/double-putt-app-preview.mp4` to put the app preview on the iPhones and the
+   Duo too. See [appstore/README.md](../appstore/README.md#media).
+
 ## Test Information
 The Beta App Description and What to Test are in `appstore/double-putt/testflight/en-US/`, and the Beta App Review
 notes in `appstore/double-putt/testflight/review_notes.txt`. Edit them there and push them with `push.py testflight`.

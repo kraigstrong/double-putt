@@ -3,10 +3,12 @@
 
     Tools/capture/frames.py [--only one-swing,windmill] <screenshots dir> <out dir>
 
-The screenshots are Tools/capture/screenshots.sh's (NN-<name>.png, at either App Store size); the captions and the
-order are Tools/capture/screenshots.json's. Each screen, HUD and all, is shrunk under its caption, in the game's
-typeface (SF Rounded Black, as the title's wordmark), over a soft, darkened blur of itself: no device frame. Output
-keeps the screenshots' size, with no alpha, as App Store Connect wants.
+The screenshots are one device's whole set from Tools/capture/screenshots.sh (NN-<name>[-<pose>].png, at any App Store
+size, upright or sideways), as screenshots.json lists it: a set with shots missing is refused, since uploading it
+would replace the device's listing with just those. The captions are screenshots.json's. Each screen, HUD and all, is
+shrunk under its caption, in the game's typeface (SF Rounded Black, as the title's wordmark), over a soft, darkened
+blur of itself: no device frame. Output keeps the screenshots' names and size, with no alpha, as App Store Connect
+wants.
 """
 import argparse
 import json
@@ -47,7 +49,8 @@ def lines_for(caption, size, width):
 def framed(shot, caption):
     """The screen shrunk under its caption, over a darkened blur of itself."""
     w, h = shot.size
-    unit = w / 1320
+    # Sized to the width, as on the 6.9" iPhone; a sideways screen (a Duo opened) to its height instead.
+    unit = min(w / 1320, h / 1800)
     full = shot.convert("RGB")
     canvas = full.resize((w // 8, h // 8), Image.BILINEAR).filter(ImageFilter.GaussianBlur(6)).resize((w, h), Image.BICUBIC)
     canvas = Image.blend(canvas, Image.new("RGB", (w, h), INK), 0.45)
@@ -86,19 +89,40 @@ def main():
     parser.add_argument("screenshots", type=Path)
     parser.add_argument("out", type=Path)
     args = parser.parse_args()
-    shots = json.load(open(ROOT / "Tools/capture/screenshots.json"))["shots"]
-    found = {p.stem.split("-", 1)[1]: p for p in args.screenshots.glob("[0-9][0-9]-*.png")}
-    missing = [s["name"] for s in shots if s["name"] not in found]
-    if missing:
-        sys.exit(f"missing screenshots: {', '.join(missing)} (Tools/capture/screenshots.sh)")
+    config = json.load(open(ROOT / "Tools/capture/screenshots.json"))
+    captions = {s["name"]: s["caption"] for s in config["shots"]}
+    # Each device's set, as screenshots.sh names it: NN-<shot>[-<pose>] -> the shot.
+    sets = {}
+    for device, listing in config["devices"].items():
+        if device == "about":
+            continue
+        entries = [entry.partition("@") for entry in listing["shots"]]
+        sets[device] = {f"{n:02d}-{name}" + (f"-{pose}" if pose else ""): name for n, (name, _, pose) in enumerate(entries, 1)}
+    files = sorted(args.screenshots.glob("[0-9][0-9]-*.png"))
+    if not files:
+        sys.exit(f"no screenshots in {args.screenshots} (Tools/capture/screenshots.sh)")
+    # A whole set, as uploading replaces a device's screenshots with the folder's: none missing, none left over.
+    stems = [p.stem for p in files]
+    device = next((d for d, stems_of in sets.items() if list(stems_of) == stems), None)
+    if device is None:
+        fits = [d for d, stems_of in sets.items() if set(stems) <= set(stems_of)]
+        if not fits:
+            sys.exit(f"{args.screenshots}: {', '.join(s for s in stems if all(s not in v for v in sets.values()))} "
+                     "in no device's set in screenshots.json (Tools/capture/screenshots.sh)")
+        missing = [s for s in sets[fits[0]] if s not in stems]
+        sys.exit(f"{args.screenshots}: missing {', '.join(missing)} of the {fits[0]} set "
+                 f"(Tools/capture/screenshots.sh --device {fits[0]})")
+    shots = {path: sets[device][path.stem] for path in files}
     only = set(args.only.split(",")) if args.only else None
     args.out.mkdir(parents=True, exist_ok=True)
-    for number, shot in enumerate(shots, 1):
-        if only and shot["name"] not in only:
+    done = 0
+    for path, name in shots.items():
+        if only and name not in only:
             continue
-        with Image.open(found[shot["name"]]) as image:
-            framed(image, shot["caption"]).save(args.out / f"{number:02d}-{shot['name']}.png")
-    print(f"{args.out}: {len(only) if only else len(shots)} screenshots")
+        with Image.open(path) as image:
+            framed(image, captions[name]).save(args.out / path.name)
+        done += 1
+    print(f"{args.out}: {done} screenshots")
 
 
 main()

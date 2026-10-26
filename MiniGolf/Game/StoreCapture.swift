@@ -8,7 +8,8 @@ import UIKit
 /// in the DP_CAPTURE_CLIP environment variable (an entry of Tools/capture/clips.json), the app opens the clip's hole
 /// and plays its swings as a player would (a drag on one ball, Same or Mirror, then Putt), or opens the clip's screen
 /// (the Trophy Shelf), saving the frames it draws, the HUD included, to Documents/StoreCapture: NNNNN.jpg, any stills
-/// asked for as still-N.png, then done.txt.
+/// asked for as still-N.png, then done.txt. They're the screen's size, whatever the simulator (an iPhone, an iPad, an
+/// iPhone Duo closed), or with `-canvas` the canvas's: a Duo opened, which a simulator can't do from the command line.
 ///
 /// Frame by frame, as Bigger Fish's footage plays: the scene comes off its view and an SKRenderer steps it, its
 /// update, actions and particles alike, exactly a 60th of a second at a time, however long a frame takes to save
@@ -400,13 +401,25 @@ enum StoreCapture {
         return Take(window: window, advance: { $0 >= held - 1e-6 }, show: { true }, timeline: { [] })
     }
 
-    /// The window as drawn, HUD and all, `scale` times the screen's resolution, with no alpha.
+    /// The window as drawn, HUD and all, `scale` times the screen's resolution, with no alpha. Under `-canvas`, which
+    /// lays the app out at another size and scales it to fit the screen (DebugCanvas), just the canvas, at its own size:
+    /// a Duo opened, drawn on the Duo's own simulator, comes out at the inner screen's pixels. The window is drawn
+    /// afresh at the image's resolution, so the scaling doesn't soften it.
     @MainActor private static func snapshot(_ window: UIWindow, scale: Double) -> UIImage {
         let format = UIGraphicsImageRendererFormat(for: window.traitCollection)
         format.opaque = true
         format.scale = window.screen.scale * scale
-        return UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
-            _ = window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        let bounds = window.bounds
+        var size = bounds.size, frame = bounds
+        if let canvas = DebugCanvas.launchSize {
+            // The window, scaled up and shifted so the canvas, centred on it at `fit`, fills the image.
+            let fit = min(bounds.width / canvas.width, bounds.height / canvas.height)
+            size = canvas
+            frame = CGRect(x: -(bounds.width / fit - canvas.width) / 2, y: -(bounds.height / fit - canvas.height) / 2,
+                           width: bounds.width / fit, height: bounds.height / fit)
+        }
+        return UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            _ = window.drawHierarchy(in: frame, afterScreenUpdates: true)
         }
     }
 
