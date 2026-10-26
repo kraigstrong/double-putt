@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Composes Double Putt's trailer from recorded clips, its words, the game's sounds and a music track.
 
-    Tools/capture/trailer/compose.py <edl.json> <footage dir> <out.mp4> --site|--store [--music <file>] [--preview S]
+    Tools/capture/trailer/compose.py <edl.json> <footage dir> <out.mp4> --site|--store [--ipad] [--music <file>]
+                                     [--preview S]
 
 The edit (edl.json) lists shots on one timeline: each is a stretch of a clip's footage (Tools/capture/footage.sh,
 build/capture/footage/<clip>.mp4) from "in" seconds for "dur", with a slow camera move: "zoom" (1 shows the whole
@@ -11,9 +12,11 @@ the wordmark from "blur_at" seconds into it. Captions show between two times, fa
 shot or caption to one cut ("site" or "store"); each cut's shots fill the same timeline.
 
 --site is the trailer for the site: 1080x1920, 60 fps, with the release line if the edit has one. --store is the App
-Store preview: 886x1920 (the 6.9" iPhone's), 30 fps, no release line, 15-30 seconds. The sound is each shot's own (the
-clip's .wav, rebuilt from the game's sounds) under the music, if there is a track (--music, or TRAILER_MUSIC); without
-one it's the game's sounds alone.
+Store preview: 886x1920 (the 6.9" iPhone's), 30 fps, no release line, 15-30 seconds, in Apple's format (H.264 High at
+11 Mbps, stereo 256 kbps AAC). --store --ipad is the iPad's preview, 1200x1600 from the iPad's upright footage, the
+same edit with each shot's "ipad" fields (its own camera, say) in place of the iPhone's. The sound is each shot's own
+(the clip's .wav, rebuilt from the game's sounds) under the music, if there is a track (--music, or TRAILER_MUSIC);
+without one it's the game's sounds alone.
 """
 import json
 import math
@@ -30,7 +33,7 @@ import captions  # noqa: E402
 
 FPS = 60
 RATE = 48000
-SIZES = {"site": (1080, 1920), "store": (886, 1920)}
+SIZES = {("site", "iphone"): (1080, 1920), ("store", "iphone"): (886, 1920), ("store", "ipad"): (1200, 1600)}
 
 
 def probe(path):
@@ -123,14 +126,17 @@ def soundtrack(edl, shots, footage, total, music_path):
 def main():
     edl_path, footage, out = sys.argv[1:4]
     variant = "store" if "--store" in sys.argv else "site"
+    device = "ipad" if "--ipad" in sys.argv else "iphone"
+    if (variant, device) not in SIZES:
+        sys.exit("the iPad has a store cut only: --store --ipad")
     preview = float(sys.argv[sys.argv.index("--preview") + 1]) if "--preview" in sys.argv else None
     music_path = sys.argv[sys.argv.index("--music") + 1] if "--music" in sys.argv else os.environ.get("TRAILER_MUSIC")
     if music_path and not os.path.exists(music_path):
         sys.exit(f"no music track at {music_path}")
-    W, H = SIZES[variant]
+    W, H = SIZES[(variant, device)]
     out_fps = 30 if variant == "store" else FPS
     edl = json.load(open(edl_path))
-    shots = [s for s in edl["shots"] if s.get("only", variant) == variant]
+    shots = [{**s, **s.get(device, {})} for s in edl["shots"] if s.get("only", variant) == variant]
     total = sum(s["dur"] for s in shots)
     if variant == "store" and not 15 <= total <= 30:
         sys.exit(f"the App Store preview would be {total:.2f}s; it has to be 15-30")
@@ -149,6 +155,9 @@ def main():
             layer = captions.caption((W, H), c["text"], c.get("position", "top"))
         words.append((layer, c["in"], c["out"], c.get("fade", 0.12), c.get("pop", True)))
 
+    # Apple's app preview format wants 10-12 Mbps; the site's cut keeps a constant quality instead.
+    quality = (["-level", "4.0", "-b:v", "11M", "-maxrate", "12M", "-bufsize", "24M"] if variant == "store"
+               else ["-crf", str(edl.get("crf", 17))])
     sound = soundtrack(edl, shots, footage, total, music_path)
     if not music_path:
         print("no music track (--music or TRAILER_MUSIC): the game's sounds alone", file=sys.stderr)
@@ -158,7 +167,7 @@ def main():
         encoder = subprocess.Popen(
             ["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
              "-i", wav.name, "-map", "0:v", "-map", "1:a", "-r", str(out_fps),
-             "-c:v", "libx264", "-preset", "slow", "-profile:v", "high", "-crf", str(edl.get("crf", 17)), "-pix_fmt", "yuv420p",
+             "-c:v", "libx264", "-preset", "slow", "-profile:v", "high", *quality, "-pix_fmt", "yuv420p",
              "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-ac", "2", "-movflags", "+faststart",
              "-t", f"{(preview or total):.3f}", out], stdin=subprocess.PIPE)
         written, limit = 0, round((preview or total) * FPS)
