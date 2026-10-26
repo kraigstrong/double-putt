@@ -42,6 +42,10 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 - **Free Play** plays any hole on its own: each course is a row you swipe to pick a hole, and without All Courses a
   first row holds the free holes. Next skips locked holes. A double ace on a hole, in a round or not, wins its trophy
   on the **Trophy Shelf** (one per hole).
+- **Rating prompt**: a round finished with two or more double aces, or double aces on three different holes in Free
+  Play since the app opened, earns a moment to ask; back on the menus, the game asks Apple to show its rating prompt,
+  at most once per app version. Apple decides whether it appears, and never shows it in TestFlight (Debug builds
+  always show it).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
 - **‹ ›** nudge the aim (hold to repeat). Drag the **power bar** or use its **+ / −**.
 - **Same / Mirror** picks how the swing maps onto green B's ball. **Putt** fires — nothing fires by accident.

@@ -95,6 +95,8 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
   NEW TROPHY and lands on the Trophy Shelf.
 - A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Hole.
 - Progress survives force-quitting and reopening.
+- The rating prompt can't be checked here: Apple never shows it in TestFlight. (Debug builds show it after a round
+  with two double aces, back on the title.)
 - Free to try, before buying: Courses shows Daybreak open, then the Sampler, and the rest with a lock and "Unlock"; Free Play starts
   with "Try a hole from every course" (Windmill, Sundial, Springboard, Juggler, Sparkler, Two Tiers, Grandstand,
   Teleporter), and the course rows lock everything but each one's FREE hole. Tapping anything locked opens "Unlock
