@@ -6,7 +6,8 @@ import Foundation
 //   (default)  full stats per hole: double-ace %, regions, per-side ace % and a suggested par, the most robust ace
 //   --report   one line per hole (difficulty, window, par check, mechanics) plus a summary per course
 //   --readme   the README's course tables, as markdown
-//   --verify   every stored solution still double-aces; tees clear of movers; nine holes per course; unique names
+//   --verify   every stored solution still double-aces; tees clear of movers; nine holes per course; unique names;
+//              a free hole in every released course but the free one
 //   --timing   mover holes: how exact the putt's timing has to be
 // Movers never stop, so every search strikes at the movers' start pose (clock 0) unless noted.
 //        LEVELS=Tools/levels/x.swift Tools/solve.sh --drafts   (levels in a scratch file's `Levels.drafts`)
@@ -233,6 +234,22 @@ if args.contains("--verify") {
         for name in names { print("✗ more than one hole is called \(name)"); failed = true }
         for nine in Levels.nines where nine.holes.count != 9 {
             print("✗ \(nine.name) has \(nine.holes.count) holes, not 9"); failed = true
+        }
+        // Free to try: the free course, and one named hole in every other released course.
+        let released = Levels.nines.filter { !Levels.inDevelopment.contains($0.id) }
+        for nine in released where nine.id != Levels.freeCourse {
+            let names = nine.holes.map { Levels.course[$0].name }
+            if let free = Levels.freeHoles[nine.id] {
+                if !names.contains(free) { print("✗ \(nine.name)'s free hole, \(free), isn't one of its holes"); failed = true }
+            } else {
+                print("✗ \(nine.name) has no free hole"); failed = true
+            }
+        }
+        for id in Levels.freeHoles.keys.sorted() where !released.contains(where: { $0.id == id && $0.id != Levels.freeCourse }) {
+            print("✗ a free hole is listed for \(id), which isn't a released course past the free one"); failed = true
+        }
+        if !released.contains(where: { $0.id == Levels.freeCourse }) {
+            print("✗ the free course, \(Levels.freeCourse), isn't a released course"); failed = true
         }
     }
     exit(failed ? 1 : 0)

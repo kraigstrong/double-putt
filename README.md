@@ -231,7 +231,7 @@ course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty t
 ```bash
 Tools/solve.sh              # double-ace / single-ace / water stats for every hole
 Tools/solve.sh moat         # one hole
-Tools/solve.sh --verify     # stored solutions still double-ace; tees clear; 9 holes per course; unique names
+Tools/solve.sh --verify     # stored solutions still double-ace; tees clear; 9 holes per course; unique names; free holes
 Tools/solve.sh --report --course thunderhead   # one line per hole: difficulty, window, par check, mechanics
 Tools/solve.sh --readme     # the course tables below, as markdown
 Tools/solve.sh twins --probe 90         # outcome at every power for one angle
