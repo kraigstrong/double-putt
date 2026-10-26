@@ -83,8 +83,9 @@ Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by o
 On a physical iPhone, with a fresh install (and later, as an update over the previous build):
 - The home screen shows the app icon with the fang mallet behind two balls, a sight line behind each.
 - The first launch of the build (fresh install or update) shows "Setting up the greens…" and a bar for a few
-  seconds, then the title; the next launch goes straight to the title.
-- The title says "One swing. Two greens."; How to Play runs on Twins for a first-time player.
+  seconds, then the title (How to Play, on a fresh install); the next launch goes straight there.
+- A fresh install opens on How to Play's first lesson; ✕ skips to the title, and the last lesson's card offers Play
+  Daybreak. Settings → How to Play replays it. The title says "One swing. Two greens."
 - Courses lists every course but City Muni (Debug builds only), all open. Long-pressing the logo does nothing (no
   dev mode).
 - Play a few holes in a round: strokes show as numbers when balls drop; the result card shows the hole's verdict;

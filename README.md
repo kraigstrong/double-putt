@@ -22,6 +22,12 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 
 ## How to play
 
+- **How to Play** comes first for a new player, before the title: three practice holes outside every course
+  (`Levels.lessons`), each coached by cards that wait for you to do what they ask (`MiniGolf/Game/HowToPlay.swift`).
+  **Aim and Putt** (pull back, fine-tune, Putt; one swing plays both greens), **Same or Mirror** (cups that lean
+  opposite ways) and **Water and Par** (a pond a straight-up putt finds; par per green, any ball in any cup). Misses
+  are fine: you keep putting, as in a real hole. The last card offers **Play Daybreak**. Skip it any time with ✕;
+  Settings has it too. Lessons keep no score, win no trophies and send no analytics.
 - **Courses** lists the nine-hole courses: Daybreak, Nightfall, Thunderhead, then the Funfair set (Midway, Big Top,
   Fireworks), then the putting courses of slopes and surfaces (The Links, City Muni, The Stadium), then Starbase, a
   space station of patrol robots and force fields, each harder than the last. A round shows a running score vs par
@@ -60,13 +66,13 @@ standing on its own gets a grid centred on it.
 In Debug (Xcode) builds, long-press the title logo to toggle **dev mode** (the pause menu gets a full-path guide
 toggle, Show Ace and Reset). TestFlight and App Store builds don't have it.
 
-The title's gear opens **Settings**: sound, Unlock All Holes and Restore Purchase, the privacy policy and support
-pages, and the version. The game sends
+The title's gear opens **Settings**: How to Play, sound, Unlock All Holes and Restore Purchase, the privacy policy and
+support pages, and the version. The game sends
 anonymous gameplay counts (hole difficulty and the course funnel; no names or device IDs) to brightbench.app, as
 described in `docs/analytics.md`. `docs/testflight.md` is the beta checklist and upload guide.
 Show Ace waits (fast-forwarding a long wait) for the movers to reach the stored solution's timing.
 
-Tap the hole name (the 💡) to bring the hole's hint back; Pause → **How to Play** replays the tips on the hole you're on.
+Tap the hole name (the 💡) to bring the hole's hint back.
 
 ## Layout
 
@@ -238,7 +244,9 @@ course, follow `Tools/levels/BRIEF.md`, the course design playbook (difficulty t
 ```bash
 Tools/solve.sh              # double-ace / single-ace / water stats for every hole
 Tools/solve.sh moat         # one hole
-Tools/solve.sh --verify     # stored solutions still double-ace; tees clear; 9 holes per course; unique names; free holes
+Tools/solve.sh --verify     # stored solutions still double-ace; tees clear; 9 holes per course; unique names; free holes;
+                            # How to Play's lessons too
+Tools/solve.sh --lessons --report   # How to Play's practice holes (any mode works with --lessons)
 Tools/solve.sh --report --course thunderhead   # one line per hole: difficulty, window, par check, mechanics
 Tools/solve.sh --readme     # the course tables below, as markdown
 Tools/solve.sh twins --probe 90         # outcome at every power for one angle
