@@ -25,7 +25,8 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-hole difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
-- Version 0.1, build 5. Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each upload.
+- Version 1.0, build 6 (builds 1-5 were 0.1). Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each
+  upload.
 - iPhone (portrait) and iPad (either way round), from build 5; archive with Xcode 27.1, whose SDK runs the app full
   screen on iPhone Duo. Sound follows the silent switch (ambient), so it never surprises anyone.
 
@@ -48,16 +49,16 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 ## Uploading a build
 Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by one in a PR first).
 
-1. Check out `main` at the commit you want and tag it `double-putt-v0.1-beta.B` (`double-putt-v0.1-beta.5` for
-   build 5).
+1. Check out `main` at the commit you want and tag it `double-putt-vV-beta.B`, with `V` the version
+   (`MARKETING_VERSION`): `double-putt-v1.0-beta.6` for build 6.
 2. Archive and upload: in Xcode, the MiniGolf scheme and Any iOS Device (arm64), Product > Archive, then in the
    Organizer, Distribute App > App Store Connect > Upload. Or from the command line, with the Apple ID Xcode is
    signed in with:
    ```bash
-   B=5
+   V=1.0 B=6
    xcodebuild archive -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
-     -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-0.1-$B.xcarchive
-   xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-0.1-$B.xcarchive \
+     -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-$V-$B.xcarchive
+   xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-$V-$B.xcarchive \
      -exportOptionsPlist .build/ExportOptions.plist -exportPath .build/export -allowProvisioningUpdates
    ```
    where `ExportOptions.plist` has `method` `app-store-connect`, `destination` `upload` and `teamID` `MKACSCQ588`.
