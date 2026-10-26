@@ -57,7 +57,8 @@ struct TitleView: View {
                         let continuing = game.round.map { !$0.isFinished } ?? false
                         if continuing, let round = game.round, let nine = game.roundNine {
                             PillButton(title: "Continue \(nine.name) · Hole \(round.current + 1)", symbol: "play.fill", fill: .putt) {
-                                app.continueRound()
+                                // A round saved before All Courses was needed for its course (a beta tester's, say).
+                                if game.canPlayRound(nine) { app.continueRound() } else { app.offerUnlock(.round, course: nine.id) }
                             }
                         }
                         PillButton(title: "Courses", symbol: continuing ? "flag.fill" : "play.fill",
