@@ -1,13 +1,13 @@
 import Foundation
 
 // Brute-force every first swing (angle x power x same/mirror) for each level and report what happens.
-// Usage: Tools/solve.sh [hole name filter] [--course <name>] [--fine] [--candidates] [--drafts]
+// Usage: Tools/solve.sh [hole name filter] [--course <name>] [--fine] [--candidates] [--drafts] [--lessons]
 //        [--report | --readme | --verify | --timing | --probe <angle>]
 //   (default)  full stats per hole: double-ace %, regions, per-side ace % and a suggested par, the most robust ace
 //   --report   one line per hole (difficulty, window, par check, mechanics) plus a summary per course
 //   --readme   the README's course tables, as markdown
 //   --verify   every stored solution still double-aces; tees clear of movers; nine holes per course; unique names;
-//              a free hole in every released course but the free one
+//              a free hole in every released course but the free one; How to Play's lessons double-ace too
 //   --timing   mover holes: how exact the putt's timing has to be
 // Movers never stop, so every search strikes at the movers' start pose (clock 0) unless noted.
 //        LEVELS=Tools/levels/x.swift Tools/solve.sh --drafts   (levels in a scratch file's `Levels.drafts`)
@@ -172,12 +172,13 @@ let drafts = Levels.drafts
 #else
 let drafts: [Level] = []
 #endif
-let shipped = !args.contains("--drafts") && !args.contains("--candidates")
+let shipped = !args.contains("--drafts") && !args.contains("--candidates") && !args.contains("--lessons")
 let levels = args.contains("--drafts") ? drafts
     : args.contains("--candidates") ? Candidates.all
+    : args.contains("--lessons") ? Levels.lessons
     : Levels.course
 
-/// The course a hole belongs to (nil for drafts and candidates).
+/// The course a hole belongs to (nil for drafts, candidates and lessons).
 func course(of index: Int) -> Nine? { shipped ? Levels.nines.first { $0.holes.contains(index) } : nil }
 
 /// The holes chosen by the name filter and --course, with their index in `levels`.
@@ -210,8 +211,8 @@ if let probe = value(of: "--probe"), let angle = Double(probe) {
 
 if args.contains("--verify") {
     var failed = false
-    for (_, level) in picked {
-        guard let shot = level.solution else { print("✗ \(level.name): no solution"); failed = true; continue }
+    func check(_ level: Level) {
+        guard let shot = level.solution else { print("✗ \(level.name): no solution"); failed = true; return }
         var world = World(level: level)
         world.time = level.solutionTime
         let ok = world.simulate(shot: shot.velocity, mirrored: shot.mirrored).world.allSunk
@@ -228,6 +229,7 @@ if args.contains("--verify") {
               + (roomy ? "" : String(format: "  ✗ a green comes within %.0f of a wall (needs %.0f)", level.greenClearance, Level.greenMargin))
               + (teesHold ? "" : "  ✗ a tee is on a bank too steep to hold a ball"))
     }
+    for (_, level) in picked { check(level) }
     // Bests and trophies are saved by hole name, and a round is nine holes.
     if shipped && filter == nil && courseFilter == nil {
         let names = Dictionary(grouping: Levels.course, by: \.name).filter { $0.value.count > 1 }.keys.sorted()
@@ -251,6 +253,8 @@ if args.contains("--verify") {
         if !released.contains(where: { $0.id == Levels.freeCourse }) {
             print("✗ the free course, \(Levels.freeCourse), isn't a released course"); failed = true
         }
+        // How to Play's lessons aren't in a course, but each one's double ace has to work too.
+        for level in Levels.lessons { check(level) }
     }
     exit(failed ? 1 : 0)
 }
