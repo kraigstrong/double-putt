@@ -26,20 +26,12 @@ struct TrophyShelfView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 20, alignment: .top)], spacing: 24) {
                     ForEach(game.nines) { nine in
                         VStack(alignment: .leading, spacing: 10) {
-                            let locked = !game.isUnlocked(nine)
                             HStack(alignment: .firstTextBaseline) {
                                 Text(nine.name).font(.rounded(22, .black))
                                 Spacer()
-                                if locked, let before = game.prerequisite(of: nine) {
-                                    Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
-                                        .font(.rounded(12, .bold)).foregroundStyle(Color.putt)
-                                } else {
-                                    Text("\(won(nine.holes))/\(nine.holes.count)").font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
-                                }
+                                Text("\(won(nine.holes))/\(nine.holes.count)").font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
                             }
                             cabinet(Array(nine.holes))
-                                .disabled(locked)
-                                .opacity(locked ? 0.55 : 1)
                         }
                     }
                 }

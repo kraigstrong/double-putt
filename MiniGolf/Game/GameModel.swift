@@ -126,11 +126,8 @@ final class GameModel {
     private(set) var trophies: [String: Date] = GameModel.loadTrophies()
     var showScorecard = false
     private(set) var newBestRound = false
-    /// The course the round just finished unlocked, if it was locked before.
-    private(set) var newlyUnlocked: Nine?
     var fullPathGuide = false
-    /// Every course open, Show Ace, the full-path guide and Reset. Xcode builds only: TestFlight and App Store builds
-    /// don't have it.
+    /// Show Ace, the full-path guide and Reset. Xcode builds only: TestFlight and App Store builds don't have it.
     #if DEBUG
     private(set) var devMode = UserDefaults.standard.bool(forKey: "devMode")
     #else
@@ -176,28 +173,6 @@ final class GameModel {
     func bestRound(_ nine: Nine) -> Int? { bestRounds[nine.id] }
     func medal(_ nine: Nine) -> Medal { Medal(round: bestRound(nine), par: par(of: nine)) }
 
-    /// How many courses are open from the start; each later one unlocks with a medal on the one before.
-    static let openCourses = 2
-    /// The beta opens every course, so testers can explore without earning medals first. Turn it off for the App
-    /// Store release to bring the unlocks back.
-    static let betaOpensEveryCourse = true
-
-    /// The course that has to be medalled to open this one (nil if it's open from the start).
-    func prerequisite(of nine: Nine) -> Nine? {
-        guard let i = nines.firstIndex(of: nine), i >= Self.openCourses else { return nil }
-        return nines[i - 1]
-    }
-
-    /// Earned by a medal on the course before (or open from the start). A medal on this course or a later one counts
-    /// too: the beta lets testers medal courses out of order, and once it's over, what's open should still run
-    /// unbroken from the first course to one past the furthest medal.
-    func hasEarnedUnlock(_ nine: Nine) -> Bool {
-        guard let i = nines.firstIndex(of: nine), i >= Self.openCourses else { return true }
-        return nines[(i - 1)...].contains { medal($0) != .none }
-    }
-
-    /// Dev mode and the beta open everything.
-    func isUnlocked(_ nine: Nine) -> Bool { devMode || Self.betaOpensEveryCourse || hasEarnedUnlock(nine) }
     /// A hole's number within its nine (1–9).
     func holeNumber(_ index: Int) -> Int { index - (nine(containing: index)?.holes.lowerBound ?? 0) + 1 }
     /// The nine the saved round is on.
@@ -222,7 +197,6 @@ final class GameModel {
     // MARK: Round
 
     func startRound(_ nine: Nine) {
-        newlyUnlocked = nil
         if let old = round, !old.isFinished, old.hasProgress, let oldNine = roundNine {
             analytics.roundLeft(course: oldNine.id, hole: old.current + 1)
         }
@@ -262,20 +236,14 @@ final class GameModel {
 
     private func finishRound() {
         guard let nine = roundNine, let total = round?.scores.compactMap({ $0 }).reduce(0, +) else { return }
-        let next = nines.first { prerequisite(of: $0) == nine }
-        let wasLocked = next.map { !hasEarnedUnlock($0) } ?? false
         let best = bestRounds[nine.id]
         newBestRound = best == nil || total < best!
         if newBestRound {
             bestRounds[nine.id] = total
             UserDefaults.standard.set(bestRounds, forKey: "bestRounds")
         }
-        let earned = wasLocked && next.map(hasEarnedUnlock) == true ? next : nil
-        // In the beta the next course is open already, so there's nothing to announce; the count still records it.
-        newlyUnlocked = Self.betaOpensEveryCourse ? nil : earned
         analytics.roundFinished(course: nine.id, strokes: total, par: par(of: nine),
                                 medal: Medal(round: total, par: par(of: nine)), best: newBestRound)
-        if let earned { analytics.courseUnlocked(earned.id) }
         showResult = false
         showScorecard = true
     }

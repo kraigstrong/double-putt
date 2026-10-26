@@ -31,13 +31,6 @@ struct ScorecardView: View {
                                 .foregroundStyle(.white.opacity(0.55))
                         }
                     }
-                    if let next = game.newlyUnlocked {
-                        Label("\(next.name) unlocked!", systemImage: "lock.open.fill")
-                            .font(.rounded(15, .heavy))
-                            .padding(.horizontal, 14).padding(.vertical, 7)
-                            .background(Capsule().fill(Color.putt))
-                            .foregroundStyle(Color.ink)
-                    }
                 }
                 VStack(spacing: 2) {
                     if !final { Text(nine.name).font(.rounded(26, .black)) }
