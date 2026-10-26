@@ -3,7 +3,7 @@ import SwiftUI
 /// What opened the purchase screen. The raw values are what the purchase screen's analytics report (`unlock`).
 struct UnlockOffer: Equatable {
     enum Source: String {
-        /// A finished round's scorecard.
+        /// The Sampler's scorecard.
         case scorecard
         /// The result card after a free hole.
         case freeHole = "free_hole"
@@ -27,7 +27,6 @@ struct UnlockOffer: Equatable {
 /// The All Courses purchase: the courses it opens, the price, and Restore. Laid over whatever screen opened it.
 struct UnlockView: View {
     let app: AppState
-    let offer: UnlockOffer
 
     private enum Phase: Equatable { case offer, buying, restoring, pending, failed(String) }
     @State private var phase = Phase.offer
@@ -96,13 +95,6 @@ struct UnlockView: View {
             .disabled(busy)
             .padding(.top, 4)
         if let note { Text(note).font(.rounded(13, .semibold)).foregroundStyle(.white.opacity(0.8)).multilineTextAlignment(.center) }
-        // After a round of the free course, a player not ready to buy can still see the rest of the game.
-        if offer.source == .scorecard {
-            PillButton(title: "Try a hole from every course", symbol: "flag.fill", fill: .white.opacity(0.14), text: .white, height: 46) {
-                app.showFreeHoles()
-            }
-            .disabled(busy)
-        }
         Button { restore() } label: {
             Text(phase == .restoring ? "Checking…" : "Restore Purchase").font(.rounded(14, .bold)).foregroundStyle(.white.opacity(0.7))
                 .padding(.vertical, 4).padding(.horizontal, 12).contentShape(Rectangle())
