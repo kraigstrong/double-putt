@@ -5,7 +5,7 @@ import SwiftUI
 struct SettingsView: View {
     let app: AppState
 
-    private enum Restore { case idle, checking, restored, nothing }
+    private enum Restore { case idle, checking, restored, nothing, failed }
     @State private var restore = Restore.idle
     private var purchases: Purchases { app.game.purchases }
 
@@ -96,12 +96,20 @@ struct SettingsView: View {
         case .checking: "Checking…"
         case .restored: "Restored"
         case .nothing: "Nothing to restore"
+        case .failed: "Couldn't connect"
         }
     }
 
     private func restorePurchase() {
         restore = .checking
-        Task { restore = await purchases.restore() ? .restored : .nothing }
+        Task {
+            restore = switch await purchases.restore() {
+            case .restored: .restored
+            case .nothing: .nothing
+            case .cancelled: .idle
+            case .failed: .failed
+            }
+        }
     }
 
     private var external: some View {

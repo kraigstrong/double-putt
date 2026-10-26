@@ -162,7 +162,11 @@ struct UnlockView: View {
     private func restore() {
         phase = .restoring
         Task {
-            phase = await purchases.restore() ? .offer : .failed("There's no purchase to restore on this Apple Account.")
+            switch await purchases.restore() {
+            case .restored, .cancelled: phase = .offer
+            case .nothing: phase = .failed("There's no purchase to restore on this Apple Account.")
+            case .failed: phase = .failed("Can't reach the App Store right now. Try again in a moment.")
+            }
         }
     }
 
