@@ -195,6 +195,16 @@ final class GameModel {
         return isFree(index) || canPlayRound(nine)
     }
 
+    /// Some course needs All Courses: Free Play shows the free row, and the menus show locks.
+    var hasLockedCourses: Bool { nines.contains { !canPlayRound($0) } }
+
+    /// Each course's free hole, in course order (the free course has none): Free Play's first row.
+    var freeHoles: [Int] {
+        nines.compactMap { nine in
+            Levels.freeHoles[nine.id].flatMap { name in nine.holes.first { Self.levels[$0].name == name } }
+        }
+    }
+
     /// The course after this one in the list, if any: the scorecard's Up next.
     func nine(after nine: Nine) -> Nine? {
         guard let i = nines.firstIndex(of: nine), i + 1 < nines.count else { return nil }
