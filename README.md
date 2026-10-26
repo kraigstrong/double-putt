@@ -26,8 +26,8 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
   Fireworks), then the putting courses of slopes and surfaces (The Links, City Muni, The Stadium), then Starbase, a
   space station of patrol robots and force fields, each harder than the last. A round shows a running score vs par
   and ends with a scorecard and a medal: bronze at par or better, silver 4 under, gold 8 under (best round per course
-  saved; a round in progress survives relaunches). A medal unlocks the next course; for now, in the beta, every course
-  is open.
+  saved; a round in progress survives relaunches). Every course is open, and a round's scorecard offers the next
+  one (Up next).
 - **Free Play** plays any hole on its own: each course is a row you swipe to pick a hole. A double ace on a hole, in
   a round or not, wins its trophy on the **Trophy Shelf** (one per hole).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
@@ -51,8 +51,8 @@ in a mover's path or on a carousel slides to the nearest clear spot that's no ne
 tinted from blue (low) to red (high), with dots gliding along it downhill, faster where it's steeper; a hill or bowl
 standing on its own gets a grid centred on it.
 
-In Debug (Xcode) builds, long-press the title logo to toggle **dev mode** (every course unlocked; pause menu gets a
-full-path guide toggle, Show Ace and Reset). TestFlight and App Store builds don't have it.
+In Debug (Xcode) builds, long-press the title logo to toggle **dev mode** (the pause menu gets a full-path guide
+toggle, Show Ace and Reset). TestFlight and App Store builds don't have it.
 
 The title's gear opens **Settings**: sound, the privacy policy and support pages, and the version. The game sends
 anonymous gameplay counts (hole difficulty and the course funnel; no names or device IDs) to brightbench.app, as
@@ -77,9 +77,8 @@ Tap the hole name (the 💡) to bring the hole's hint back; Pause → **How to P
 
 ## The courses
 
-Each course is nine holes played as a round. Daybreak and Nightfall are open from the start; each later course unlocks
-with a medal on the one before (during the beta, `GameModel.betaOpensEveryCourse` opens them all). In the app each course numbers its holes 1–9. The tables come from
-`Tools/solve.sh --readme`.
+Each course is nine holes played as a round, and every course is open: a medal is a goal, not a key. In the app each
+course numbers its holes 1–9. The tables come from `Tools/solve.sh --readme`.
 
 City Muni is still in development: it's in the lineup and the solver checks it, but only Debug builds play it
 (`Levels.inDevelopment`). TestFlight and App Store builds skip it.

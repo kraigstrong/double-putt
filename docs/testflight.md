@@ -16,8 +16,8 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Debug tools in Debug builds only**: dev mode (long-press the logo: every course open, Show Ace, full-path
   guide, Reset), the debug launch arguments and the mechanic test holes. TestFlight and App Store builds don't
   have them.
-- **Every course open in the beta** (`GameModel.betaOpensEveryCourse`), so testers can explore without earning
-  medals first. Turn it off before the App Store release to bring the unlocks back.
+- **Every course open**: the medal locks went in 1.0. Medals are a goal, not a key, and a finished round's scorecard
+  offers the next course.
 - [x] **The screen stays awake while playing** (aiming can take longer than auto-lock), and sleeps normally on
   the menus.
 - [x] **Coming back to the app shows the pause menu** if a hole was in play.
@@ -80,10 +80,10 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
 - The first launch of the build (fresh install or update) shows "Setting up the greens…" and a bar for a few
   seconds, then the title; the next launch goes straight to the title.
 - The title says "One swing. Two greens."; How to Play runs on Twins for a first-time player.
-- Courses lists every course but City Muni (Debug builds only), all open while the beta switch is on. With it off, Daybreak and Nightfall are open
-  and the rest locked until the previous course has a medal. Long-pressing the logo does nothing (no dev mode).
+- Courses lists every course but City Muni (Debug builds only), all open. Long-pressing the logo does nothing (no
+  dev mode).
 - Play a few holes in a round: strokes show as numbers when balls drop; the result card shows the hole's verdict;
-  finishing a round shows the scorecard and medal, and (beta switch off) a medal on Nightfall unlocks Thunderhead.
+  finishing a round shows the scorecard and medal, and its Up next starts a round of the next course.
 - Free Play shows a row per course that swipes sideways, and keeps each row where you left it until the app quits.
   Every card is there when it opens, and scrolling doesn't stutter. It plays any open hole; a double ace shows
   NEW TROPHY and lands on the Trophy Shelf.
