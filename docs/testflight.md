@@ -18,7 +18,8 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
   have them.
 - [x] **Free to try** (1.0): Daybreak and one hole of every other course are free, and one non-consumable, All
   Courses (`com.kraigstrong.doubleputt.fullgame`, $4.99, Family Sharing on), opens the rest. No medal locks: medals
-  are a goal, not a key, and a finished round's scorecard offers the next course. TestFlight purchases are in the
+  are a goal, not a key, and a finished round's scorecard offers the next course (after Daybreak, without All
+  Courses, the Sampler: the free holes as a round). TestFlight purchases are in the
   sandbox, so testers aren't charged.
 - [x] **The screen stays awake while playing** (aiming can take longer than auto-lock), and sleeps normally on
   the menus.
@@ -93,12 +94,13 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
   NEW TROPHY and lands on the Trophy Shelf.
 - A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Hole.
 - Progress survives force-quitting and reopening.
-- Free to try, before buying: Courses shows Daybreak open and the rest with a lock and "Unlock"; Free Play starts
+- Free to try, before buying: Courses shows Daybreak open, then the Sampler, and the rest with a lock and "Unlock"; Free Play starts
   with "Try a hole from every course" (Windmill, Sundial, Springboard, Juggler, Sparkler, Two Tiers, Grandstand,
   Teleporter), and the course rows lock everything but each one's FREE hole. Tapping anything locked opens "Unlock
   all 81 holes". A free hole's result card offers "8 more holes like this in …", and Next goes on to the next free
-  hole. Daybreak's scorecard has "Up next: Nightfall" with a lock, opening the purchase screen with "Try a hole from
-  every course".
+  hole. Daybreak's scorecard has "Up next: Sampler", which plays the eight free holes as a round, numbered 1-8;
+  the Sampler's scorecard has "Unlock All Holes", opening the purchase screen. Its whole-hole cards swipe, and show
+  flags and moving parts.
 - Buying (free in the TestFlight sandbox): Unlock for $4.99 shows the sandbox sheet; afterwards the screen says
   "Every course is open", every lock is gone, the free row disappears, and Settings shows All Courses · Unlocked. On
   a second device signed in to the same Apple Account (or after deleting and reinstalling), Restore Purchase brings

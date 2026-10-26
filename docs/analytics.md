@@ -39,7 +39,8 @@ This file is the contract between the app (`MiniGolf/Game/Analytics.swift`) and 
 - **`revision`**: the course content's revision, `^[a-zA-Z0-9.-]{1,48}$` (e.g. `2026-10-15.1`). Bumped whenever
   any hole's layout, par or order changes, so counts never mix two versions of a hole.
 - **`course`**: a course id, `^[a-z][a-z0-9-]{0,31}$` (`daybreak`, `nightfall`, `thunderhead`, `midway`, `bigtop`,
-  `fireworks`, and future ones). Not a fixed list on the server.
+  `fireworks`, and future ones), or `sampler` for the Sampler's rounds (each course's free hole, played as a round;
+  its holes still report their own course in their hole context). Not a fixed list on the server.
 - **Hole context** `{ course, hole, slug, revision }`: `hole` is its number in the course, integer 1–9; `slug` is
   its name in kebab case, `^[a-z][a-z0-9-]{0,47}$` (`twins`, `human-cannonball`).
 - **`mode`**: `round` (played in a course round) or `single` (Free Play).
@@ -108,8 +109,8 @@ and leaving without swinging sends nothing and isn't numbered.
 ```
 | Field | Rule |
 |---|---|
-| `source` | what opened it: `scorecard` (a finished round's Up next), `free_hole` (a free hole's result card), `course` (a locked course on Courses), `hole` (a locked hole in Free Play), `trophy` (a locked hole on the Trophy Shelf), `settings` (Unlock All Holes), `round` (Continue on a round of a locked course) |
-| `course` | the course it was opened about: present for every source but `settings`, and absent for `settings`. For `scorecard` it's the round just finished |
+| `source` | what opened it: `scorecard` (the Sampler's scorecard), `free_hole` (a free hole's result card), `course` (a locked course on Courses), `hole` (a locked hole in Free Play), `trophy` (a locked hole on the Trophy Shelf), `settings` (Unlock All Holes), `round` (Continue on a round of a locked course) |
+| `course` | the course it was opened about: present for every source but `settings`, and absent for `settings`. For `scorecard` it's `sampler` |
 | `first` | `true` the first time this install sees the purchase screen, from anywhere |
 
 Schema 2 only. Nothing about the purchase itself (bought, cancelled, restored) is ever sent, so the App Privacy label
