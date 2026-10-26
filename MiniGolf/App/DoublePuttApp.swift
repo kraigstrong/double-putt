@@ -146,12 +146,16 @@ struct RootView: View {
 #if DEBUG
 /// `-canvas 951x669` lays the app out at that size in points, scaled to fit the screen: an iPhone Duo opened, say, or
 /// an iPad turned, on any simulator (neither can be folded or turned from the command line). With `-canvasTurn 4` it
-/// turns every 4 seconds, swapping width and height, to try out a resize mid-hole.
-private struct DebugCanvas: ViewModifier {
-    @State private var size: CGSize? = {
+/// turns every 4 seconds, swapping width and height, to try out a resize mid-hole. A store capture saves the canvas at
+/// its own size (StoreCapture.swift).
+struct DebugCanvas: ViewModifier {
+    /// The size `-canvas` asks for, if any.
+    static let launchSize: CGSize? = {
         let parts = UserDefaults.standard.string(forKey: "canvas")?.split(separator: "x").compactMap { Double($0) } ?? []
         return parts.count == 2 ? CGSize(width: parts[0], height: parts[1]) : nil
     }()
+
+    @State private var size = launchSize
 
     func body(content: Content) -> some View {
         canvas(content).task {
