@@ -173,6 +173,12 @@ final class GameModel {
     func bestRound(_ nine: Nine) -> Int? { bestRounds[nine.id] }
     func medal(_ nine: Nine) -> Medal { Medal(round: bestRound(nine), par: par(of: nine)) }
 
+    /// The course after this one in the list, if any: the scorecard's Up next.
+    func nine(after nine: Nine) -> Nine? {
+        guard let i = nines.firstIndex(of: nine), i + 1 < nines.count else { return nil }
+        return nines[i + 1]
+    }
+
     /// A hole's number within its nine (1–9).
     func holeNumber(_ index: Int) -> Int { index - (nine(containing: index)?.holes.lowerBound ?? 0) + 1 }
     /// The nine the saved round is on.
