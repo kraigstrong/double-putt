@@ -35,8 +35,10 @@ struct UnlockView: View {
     private var game: GameModel { app.game }
     private var purchases: Purchases { game.purchases }
     private var busy: Bool { phase == .buying || phase == .restoring }
+    /// The courses players get (Debug builds also play the ones still in development, which are never locked).
+    private var released: [Nine] { game.nines.filter { !Levels.inDevelopment.contains($0.id) } }
     /// Every course but the free one: what the purchase opens.
-    private var courses: [Nine] { game.nines.filter { $0.id != Levels.freeCourse } }
+    private var courses: [Nine] { released.filter { $0.id != Levels.freeCourse } }
 
     var body: some View {
         ZStack {
@@ -70,7 +72,7 @@ struct UnlockView: View {
 
     @ViewBuilder private var pitch: some View {
         VStack(spacing: 4) {
-            Text("Unlock all \(GameModel.levels.count) holes").font(.rounded(26, .black)).lineLimit(1).minimumScaleFactor(0.7)
+            Text("Unlock all \(released.reduce(0) { $0 + $1.holes.count }) holes").font(.rounded(26, .black)).lineLimit(1).minimumScaleFactor(0.7)
             Text("One purchase, yours to keep.").font(.rounded(15, .semibold)).foregroundStyle(.white.opacity(0.7))
         }
         .padding(.horizontal, 30)
