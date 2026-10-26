@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Every course as a card with its par, best medal and trophies. Tapping one starts a round.
+/// Every course as a card with its par, best medal and trophies. Tapping one starts a round, or for a course that
+/// needs All Courses, opens the purchase screen.
 struct CoursesView: View {
     let app: AppState
     /// Starting this nine would end the round in progress, so ask first.
@@ -54,7 +55,9 @@ struct CoursesView: View {
     }
 
     private func play(_ nine: Nine) {
-        if let round = game.round, !round.isFinished, round.hasProgress {
+        if !game.canPlayRound(nine) {
+            app.offerUnlock(.course, course: nine.id)
+        } else if let round = game.round, !round.isFinished, round.hasProgress {
             confirmNine = nine
         } else {
             app.playRound(nine)
@@ -72,6 +75,7 @@ private struct CourseCard: View {
     var body: some View {
         let first = GameModel.levels[nine.holes.lowerBound]
         let theme = Theme.for(first)
+        let locked = !game.canPlayRound(nine)
         let best = game.bestRound(nine)
         let won = nine.holes.filter { game.hasTrophy(GameModel.levels[$0]) }.count
         let inProgress = game.round.map { $0.nine == nine.id && !$0.isFinished && $0.hasProgress } ?? false
@@ -91,9 +95,17 @@ private struct CourseCard: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
                 Spacer(minLength: 0)
-                VStack(spacing: 3) {
-                    MedalView(medal: game.medal(nine), size: 36)
-                    Text(best.map { "Best \($0)" } ?? "—").font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.75))
+                if locked {
+                    VStack(spacing: 5) {
+                        Image(systemName: "lock.fill").font(.system(size: 22, weight: .bold)).foregroundStyle(.white.opacity(0.8))
+                            .frame(width: 36, height: 30)
+                        Text("Unlock").font(.rounded(11, .heavy)).foregroundStyle(Color.putt)
+                    }
+                } else {
+                    VStack(spacing: 3) {
+                        MedalView(medal: game.medal(nine), size: 36)
+                        Text(best.map { "Best \($0)" } ?? "—").font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.75))
+                    }
                 }
             }
             .padding(14)
