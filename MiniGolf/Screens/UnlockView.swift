@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// What opened the purchase screen. The raw values are what the purchase screen's analytics will report.
+/// What opened the purchase screen. The raw values are what the purchase screen's analytics report (`unlock`).
 struct UnlockOffer: Equatable {
     enum Source: String {
         /// A finished round's scorecard.
