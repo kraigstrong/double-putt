@@ -343,11 +343,17 @@ private struct SwingToggle: View {
     }
 
     private func segment(_ title: String, icons: [String], selected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        // Turned, the arrows stack, one per green from the top, each turned: laid out as big as they're drawn. (A
+        // turned row is laid out short and wide, so it was drawn over the title.)
+        let arrows = turned ? AnyLayout(VStackLayout(spacing: 1)) : AnyLayout(HStackLayout(spacing: 2))
+        return Button(action: action) {
             VStack(spacing: 2) {
-                HStack(spacing: 2) { ForEach(icons.indices, id: \.self) { Image(systemName: icons[$0]) } }
-                    .font(.system(size: 12, weight: .black))
-                    .rotationEffect(.degrees(turned ? 90 : 0))
+                arrows {
+                    ForEach(icons.indices, id: \.self) {
+                        Image(systemName: icons[$0]).rotationEffect(.degrees(turned ? 90 : 0))
+                    }
+                }
+                .font(.system(size: 12, weight: .black))
                 Text(title).font(.rounded(12, .heavy))
             }
             .frame(width: segment, height: 48)
