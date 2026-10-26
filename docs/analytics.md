@@ -17,9 +17,10 @@ This file is the contract between the app (`MiniGolf/Game/Analytics.swift`) and 
   the protection).
 - Body: one batch, at most 64 KB. A batch the server can't fully validate is rejected whole (400), so the app
   must never send a field or value this file doesn't allow.
-- Events are queued on the device (at most 100) and sent at most 25 per batch, after a hole or round ends and
-  when the app goes to the background. Delivery is at most once: the queue is cleared before sending and failed
-  batches are dropped, never retried.
+- Events are queued on the device (at most 100) and sent at most 25 per batch: when 25 are waiting, when the app
+  goes to the background, and at launch, not after every hole (each send is a billed Redis write on the server, and
+  the same counters in one batch are added up into one). Simulator builds never collect. Delivery is at most once:
+  the queue is cleared before sending and failed batches are dropped, never retried.
 
 ```json
 { "schema": 2, "appVersion": "0.1", "build": "1", "channel": "testflight", "events": [ ... ] }

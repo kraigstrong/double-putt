@@ -79,6 +79,19 @@ final class Analytics {
     static let endpoint = URL(string: "https://brightbench.app/api/double-putt/events")!
     /// A public noise filter, not authentication: the server's strict validation is the protection.
     static let appKey = "double-putt-gameplay-v1"
+    /// Events wait on the device and go in batches: when this many are waiting, when the app goes to the background, and
+    /// at launch. Each send is a write to brightbench.app's Redis, billed per command, and the same counters in one
+    /// batch are added up into one.
+    static let batchSize = 25
+
+    /// Simulator builds never collect: runs there (captures, checks, agents) aren't play worth counting or paying for.
+    static var isSimulator: Bool {
+        #if targetEnvironment(simulator)
+        true
+        #else
+        false
+        #endif
+    }
 
     static var defaultEnabled: Bool {
         #if DEBUG
@@ -88,7 +101,7 @@ final class Analytics {
             return false
         }
         #endif
-        return isEnabled
+        return isEnabled && !isSimulator
     }
 
     /// Where this build came from: "debug" (an Xcode build), "testflight" or "appstore".
@@ -209,7 +222,6 @@ final class Analytics {
         attempt = nil
         defaults.removeObject(forKey: prefix + "attempt")
         finish(a, outcome: "finished")
-        DispatchQueue.main.async { [weak self] in self?.flush() }
     }
 
     /// The hole was left unfinished (Restart, moving on, or leaving the game screen).
@@ -323,7 +335,6 @@ final class Analytics {
         }
         event.best = best
         enqueue(stamp(event))
-        DispatchQueue.main.async { [weak self] in self?.flush() }
     }
 
     /// A medal opened the next course.
@@ -369,7 +380,10 @@ final class Analytics {
     var queue: [AnalyticsEvent] { stored.map(\.event) }
 
     private func enqueue(_ queued: Queued) {
-        defaults.set(try? JSONEncoder().encode(Array((stored + [queued]).suffix(100))), forKey: prefix + "queue")
+        let queue = Array((stored + [queued]).suffix(100))
+        defaults.set(try? JSONEncoder().encode(queue), forKey: prefix + "queue")
+        // A full batch goes, sent off the gameplay stack.
+        if queue.count >= Self.batchSize { DispatchQueue.main.async { [weak self] in self?.flush() } }
     }
 
     /// At-most-once delivery: the queue is cleared before sending, and failed batches are dropped, never retried.
