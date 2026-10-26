@@ -45,7 +45,7 @@ extension Nine {
     /// The nines that exist for these holes (debug builds can swap in a short test course).
     static func all(levelCount: Int) -> [Nine] {
         Levels.playable.nines.compactMap { n in
-            let holes = n.holes.clamped(to: 0..<levelCount)
+            let holes = n.holes.filter { $0 < levelCount }
             return holes.isEmpty ? nil : Nine(id: n.id, name: n.name, holes: holes)
         }
     }
@@ -70,7 +70,7 @@ struct RoundState: Codable, Equatable {
         guard let old = try? JSONDecoder().decode(Legacy.self, from: data), old.current < old.scores.count,
               let nine = Nine.all(levelCount: old.scores.count).first(where: { $0.holes.contains(old.current) })
         else { return nil }
-        return RoundState(nine: nine.id, scores: nine.holes.map { old.scores[$0] }, current: old.current - nine.holes.lowerBound)
+        return RoundState(nine: nine.id, scores: nine.holes.map { old.scores[$0] }, current: old.current - nine.holes[0])
     }
 }
 
@@ -185,7 +185,8 @@ final class GameModel {
     /// A round of the whole course can be played: All Courses, the free course, dev mode, or a course still in
     /// development (Debug builds only).
     func canPlayRound(_ nine: Nine) -> Bool {
-        purchases.ownsAllCourses || devMode || nine.id == Levels.freeCourse || Levels.inDevelopment.contains(nine.id)
+        purchases.ownsAllCourses || devMode || nine.id == Levels.freeCourse || nine.id == Self.samplerID
+            || Levels.inDevelopment.contains(nine.id)
     }
 
     /// The hole can be played, on its own or in a round.
@@ -204,25 +205,41 @@ final class GameModel {
         return nine
     }
 
-    /// Each course's free hole, in course order (the free course has none): Free Play's first row.
+    /// The Sampler's id among the courses' (rounds, best rounds, analytics).
+    static let samplerID = "sampler"
+
+    /// The Sampler: each course's free hole, played as a round. Courses offers it while some course is locked, but it's
+    /// always here, so a round of it saved before buying All Courses can still be finished. None when there are no free
+    /// holes to play (Debug's `-tests` holes).
+    var sampler: Nine? { freeHoles.isEmpty ? nil : Nine(id: Self.samplerID, name: "Sampler", holes: freeHoles) }
+
+    /// Each course's free hole, in course order (the free course has none): Free Play's first row, and the Sampler.
     var freeHoles: [Int] {
         nines.compactMap { nine in
             Levels.freeHoles[nine.id].flatMap { name in nine.holes.first { Self.levels[$0].name == name } }
         }
     }
 
-    /// The course after this one in the list, if any: the scorecard's Up next.
-    func nine(after nine: Nine) -> Nine? {
-        guard let i = nines.firstIndex(of: nine), i + 1 < nines.count else { return nil }
+    /// The scorecard's Up next: after the free course while some course is locked, the Sampler; after the Sampler,
+    /// nothing (its scorecard offers All Courses); otherwise the next course in the list.
+    func upNext(after nine: Nine) -> Nine? {
+        if nine.id == Levels.freeCourse && hasLockedCourses, let sampler { return sampler }
+        guard nine.id != Self.samplerID, let i = nines.firstIndex(of: nine), i + 1 < nines.count else { return nil }
         return nines[i + 1]
     }
 
     /// A hole's number within its nine (1–9).
-    func holeNumber(_ index: Int) -> Int { index - (nine(containing: index)?.holes.lowerBound ?? 0) + 1 }
+    func holeNumber(_ index: Int) -> Int { index - (nine(containing: index)?.holes[0] ?? 0) + 1 }
+    /// The hole's number as the top bar shows it: its place in the round being played (the Sampler's are from all
+    /// over), else in its course.
+    var shownHoleNumber: Int {
+        if inRound, let k = roundNine?.holes.firstIndex(of: levelIndex) { return k + 1 }
+        return holeNumber(levelIndex)
+    }
     /// The nine the saved round is on.
-    var roundNine: Nine? { round.flatMap { r in nines.first { $0.id == r.nine } } }
+    var roundNine: Nine? { round.flatMap { r in r.nine == Self.samplerID ? sampler : nines.first { $0.id == r.nine } } }
     /// The last hole of the round being played.
-    var isLastInRound: Bool { inRound && levelIndex == (roundNine?.holes.upperBound ?? 0) - 1 }
+    var isLastInRound: Bool { inRound && levelIndex == roundNine?.holes.last }
 
     /// Round score relative to par over the holes finished so far.
     var roundToPar: Int? {
@@ -249,13 +266,13 @@ final class GameModel {
         saveRound()
         inRound = true
         showScorecard = false
-        start(level: nine.holes.lowerBound)
+        start(level: nine.holes[0])
     }
 
     func continueRound() {
         guard let round, let nine = roundNine else { return }
         inRound = true
-        start(level: nine.holes.lowerBound + min(round.current, nine.holes.count - 1))
+        start(level: nine.holes[min(round.current, nine.holes.count - 1)])
     }
 
     /// Leave the round in place (it can be continued later) and play single holes.
@@ -268,13 +285,13 @@ final class GameModel {
 
     func nextInRound() {
         guard var r = round, let nine = roundNine else { return next() }
-        r.current = levelIndex - nine.holes.lowerBound + 1
+        r.current = (nine.holes.firstIndex(of: levelIndex) ?? r.current) + 1
         round = r
         saveRound()
         if r.isFinished {
             finishRound()
         } else {
-            start(level: nine.holes.lowerBound + r.current)
+            start(level: nine.holes[r.current])
         }
     }
 
@@ -480,8 +497,8 @@ final class GameModel {
 
     /// Score the finished hole. A dev-mode Show Ace still fills in the round, but earns no best or trophy.
     func recordFinish(demo: Bool = false) {
-        if inRound, var r = round, let nine = roundNine, nine.holes.contains(levelIndex) {
-            r.scores[levelIndex - nine.holes.lowerBound] = total
+        if inRound, var r = round, let k = roundNine?.holes.firstIndex(of: levelIndex) {
+            r.scores[k] = total
             round = r
             saveRound()
         }

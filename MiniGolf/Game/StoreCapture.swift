@@ -173,7 +173,7 @@ enum StoreCapture {
         if let trophies = clip?.trophies { stage(trophies: trophies) }
         guard let clip, let round = clip.round, let hole = clip.hole, let index = levelIndex(hole),
               let nine = Nine.all(levelCount: GameModel.levels.count).first(where: { $0.holes.contains(index) }) else { return }
-        let played = index - nine.holes.lowerBound
+        let played = nine.holes.firstIndex(of: index) ?? 0
         let scores: [Int]
         switch round {
         case .scores(let given):
@@ -181,7 +181,7 @@ enum StoreCapture {
         case .auto:
             // A round going well: par, with a birdie every third hole.
             scores = (0..<played).map { k in
-                let level = GameModel.levels[nine.holes.lowerBound + k]
+                let level = GameModel.levels[nine.holes[k]]
                 return level.par[0] + level.par[1] - (k % 3 == 1 ? 1 : 0)
             }
         }

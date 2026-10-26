@@ -31,7 +31,7 @@ struct TrophyShelfView: View {
                                 Spacer()
                                 Text("\(won(nine.holes))/\(nine.holes.count)").font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
                             }
-                            cabinet(Array(nine.holes))
+                            cabinet(nine.holes)
                         }
                     }
                 }

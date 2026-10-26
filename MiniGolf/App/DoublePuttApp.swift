@@ -114,14 +114,6 @@ final class AppState {
         game.analytics.unlockShown(source: source.rawValue, course: source == .settings ? nil : course)
     }
 
-    /// Free Play, at its row of free holes: from the purchase screen, for a player who isn't ready to buy.
-    func showFreeHoles() {
-        unlockOffer = nil
-        if game.showScorecard { game.closeScorecard() }
-        freePlay.course = CourseMapView.freeRow
-        screen = .levels
-    }
-
     func toggleSound() {
         soundOn.toggle()
         SoundFX.shared.isEnabled = soundOn
@@ -147,8 +139,8 @@ struct RootView: View {
                 case .settings: SettingsView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
                 case .game: GameView(app: app).transition(.opacity)
                 }
-                if let offer = app.unlockOffer {
-                    UnlockView(app: app, offer: offer).transition(.opacity).zIndex(1)
+                if app.unlockOffer != nil {
+                    UnlockView(app: app).transition(.opacity).zIndex(1)
                 }
             }
         }

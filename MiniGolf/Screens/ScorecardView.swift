@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// A nine's scorecard, in classic notation: filled circle = double ace, circle = under par, square = over par.
-/// A finished round shows its medal, and offers the next course.
+/// A finished round shows its medal, and offers the next course (or, after the Sampler, All Courses).
 struct ScorecardView: View {
     let game: GameModel
     /// The round just finished (vs. peeking mid-round).
@@ -9,10 +9,12 @@ struct ScorecardView: View {
     let close: () -> Void
     /// Start a round of this course (Up next), or offer All Courses if it needs it.
     let playNext: (Nine) -> Void
+    /// Open the purchase screen: the Sampler's scorecard, while some course is locked.
+    let unlock: () -> Void
 
     private var scores: [Int?] { game.round?.scores ?? [] }
     private var nine: Nine { game.roundNine ?? game.nines[0] }
-    private var holes: [Int] { Array(nine.holes) }
+    private var holes: [Int] { nine.holes }
 
     var body: some View {
         ZStack {
@@ -65,9 +67,12 @@ struct ScorecardView: View {
                     }
                 }
                 .frame(maxHeight: 430)
-                if final, let next = game.nine(after: nine) {
+                if final, let next = game.upNext(after: nine) {
                     PillButton(title: "Up next: \(next.name)", symbol: game.canPlayRound(next) ? "play.fill" : "lock.fill",
                                fill: .putt, height: 50) { playNext(next) }
+                    PillButton(title: "Done", symbol: "flag.checkered", fill: .white.opacity(0.14), text: .white, height: 46, action: close)
+                } else if final && nine.id == GameModel.samplerID && game.hasLockedCourses {
+                    PillButton(title: "Unlock All Holes", symbol: "lock.open.fill", fill: .putt, height: 50, action: unlock)
                     PillButton(title: "Done", symbol: "flag.checkered", fill: .white.opacity(0.14), text: .white, height: 46, action: close)
                 } else {
                     PillButton(title: final ? "Done" : "Back to Game", symbol: final ? "flag.checkered" : "play.fill", fill: .putt, height: 50, action: close)

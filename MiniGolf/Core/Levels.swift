@@ -202,12 +202,14 @@ struct Level {
     }
 }
 
-/// A nine-hole course: played as a round, one cabinet on the trophy shelf, one section in Free Play.
+/// A nine-hole course: played as a round, one cabinet on the trophy shelf, one section in Free Play. The Sampler is
+/// one too, played as a round only: a free hole from each course, so its holes aren't side by side.
 struct Nine: Identifiable, Equatable {
     let id: String
     let name: String
-    /// Indices into the holes being played (`Levels.playable.course`, or `Levels.course` for the solver).
-    let holes: Range<Int>
+    /// Indices into the holes being played (`Levels.playable.course`, or `Levels.course` for the solver), in the order
+    /// they're played.
+    let holes: [Int]
 }
 
 enum Levels {
@@ -318,7 +320,7 @@ enum Levels {
         var start = 0
         return courses.map { c in
             defer { start += c.holes.count }
-            return Nine(id: c.id, name: c.name, holes: start..<start + c.holes.count)
+            return Nine(id: c.id, name: c.name, holes: Array(start..<start + c.holes.count))
         }
     }
 
