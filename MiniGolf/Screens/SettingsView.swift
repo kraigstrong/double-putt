@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Settings, from the title screen's gear: sound, All Courses and Restore Purchase, the privacy policy and support
-/// pages, and the version.
+/// Settings, from the title screen's gear: How to Play, sound, All Courses and Restore Purchase, the privacy policy and
+/// support pages, and the version.
 struct SettingsView: View {
     let app: AppState
 
@@ -32,6 +32,11 @@ struct SettingsView: View {
 
             ScrollView {
                 VStack(spacing: 12) {
+                    Button { app.startTutorial(returningTo: .settings) } label: {
+                        row(symbol: "figure.golf", title: "How to Play") { onward }
+                    }
+                    .buttonStyle(PressStyle(scale: 0.97))
+
                     Button { app.toggleSound() } label: {
                         row(symbol: app.soundOn ? "speaker.wave.2.fill" : "speaker.slash.fill", title: "Sound") {
                             Text(app.soundOn ? "On" : "Off").font(.rounded(16, .heavy))
@@ -110,6 +115,10 @@ struct SettingsView: View {
             case .failed: .failed
             }
         }
+    }
+
+    private var onward: some View {
+        Image(systemName: "chevron.right").font(.system(size: 14, weight: .bold)).foregroundStyle(.white.opacity(0.6))
     }
 
     private var external: some View {

@@ -1162,6 +1162,7 @@ final class GameScene: SKScene {
         model.isDemo = false
         giveRelief()
         model.analytics.settled(strokes: model.strokes, sunk: world.balls.map { $0.sunkIn != nil })
+        model.swingSettled()
         guard world.allSunk else { return }
         model.recordFinish(demo: demo)
         let doubleAce = model.strokes == [1, 1]
