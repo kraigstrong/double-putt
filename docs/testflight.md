@@ -29,7 +29,7 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-hole difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
-- Version 1.0, build 6 (builds 1-5 were 0.1). Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each
+- Version 1.0, build 7 (builds 1-5 were 0.1). Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each
   upload.
 - iPhone (portrait) and iPad (either way round), from build 5; archive with Xcode 27.1, whose SDK runs the app full
   screen on iPhone Duo. Sound follows the silent switch (ambient), so it never surprises anyone.
@@ -54,12 +54,12 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by one in a PR first).
 
 1. Check out `main` at the commit you want and tag it `double-putt-vV-beta.B`, with `V` the version
-   (`MARKETING_VERSION`): `double-putt-v1.0-beta.6` for build 6.
+   (`MARKETING_VERSION`): `double-putt-v1.0-beta.7` for build 7.
 2. Archive and upload: in Xcode, the MiniGolf scheme and Any iOS Device (arm64), Product > Archive, then in the
    Organizer, Distribute App > App Store Connect > Upload. Or from the command line, with the Apple ID Xcode is
    signed in with:
    ```bash
-   V=1.0 B=6
+   V=1.0 B=7
    xcodebuild archive -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
      -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-$V-$B.xcarchive
    xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-$V-$B.xcarchive \
@@ -211,3 +211,4 @@ The feedback email and the review contact are personal, so they come from the 1P
 | 0.1 (3) | 2026-10-19 | `2229304` (tag `double-putt-v0.1-beta.3`) | The Stadium (course 9) and Starbase (course 10), the new app icon, Free Play's swipe rows, and Fog Bank reworked to a 5% window. City Muni stays Debug-only. `xcodebuild -exportArchive` failed with "Failed to Use Accounts" (no Xcode account with App Store Connect access for the team, even after signing in again), and the App Store Connect API key's App Manager role can't cloud-sign, so it was uploaded from Xcode's Organizer. What to Test set and submitted to Friends with `push.py testflight --build 3 --submit`; beta review approved right away. |
 | 0.1 (4) | 2026-10-25 | `9feea13` (tag `double-putt-v0.1-beta.4`) | Holes and greens in place of pairs (analytics schema 2), Free Play's cached cards with a loading screen on a build's first launch, the slope grid centred on a lone hill or bowl, the fang-mallet icon, and Settings' Support on Double Putt's own page. `xcodebuild -exportArchive` failed again with "Failed to Use Accounts" (and this Mac has no distribution certificate for the API key to sign with), so it was uploaded from Xcode's Organizer. What to Test set and submitted to Friends with `push.py testflight --build 4 --submit`; beta review approved right away. |
 | 0.1 (5) | 2026-10-25 | `5ffaa30` (tag `double-putt-v0.1-beta.5`) | The first universal build: iPad either way round and iPhone Duo (the course turned a quarter on wide screens, the nine's scorecard and a landmark per setting beside the course, roomier menus, a redraw when the screen resizes, controls kept out of a Duo's fold, one window). Archived with Xcode 27.1 and uploaded with `xcodebuild -exportArchive`: cloud signing worked from the command line this time. What to Test set and submitted to Friends with `push.py testflight --build 5 --submit`. |
+| 1.0 (6) | 2026-10-26 | `d2ff046` (tag `double-putt-v1.0-beta.6`) | The free-to-try release candidate: Daybreak and a hole of every other course free, All Courses ($4.99) for the rest, no medal locks, purchase-screen analytics. Archived and uploaded with `xcodebuild -exportArchive`; What to Test set with `push.py testflight --build 6` (Internal only, not sent to Friends). Kraig's feedback on it led to build 7. |
