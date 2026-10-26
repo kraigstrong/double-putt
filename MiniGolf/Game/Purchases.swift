@@ -14,6 +14,10 @@ final class Purchases {
 
     enum Outcome { case bought, pending, cancelled, failed }
 
+    /// `nothing` only when the App Store was reached and the account has no purchase; `failed` when it couldn't be
+    /// asked (offline, say), so the account may well own All Courses.
+    enum RestoreOutcome { case restored, nothing, cancelled, failed }
+
     /// Cached, so the menus draw right at launch and offline; StoreKit confirms it.
     private(set) var ownsAllCourses: Bool
     private(set) var product: Product?
@@ -103,11 +107,20 @@ final class Purchases {
         }
     }
 
-    /// Syncs with the App Store (it may ask to sign in), then checks again. True if All Courses is owned.
-    func restore() async -> Bool {
-        try? await AppStore.sync()
+    /// Syncs with the App Store (it may ask to sign in), then checks again.
+    func restore() async -> RestoreOutcome {
+        var reached = true
+        var cancelled = false
+        do {
+            try await AppStore.sync()
+        } catch StoreKitError.userCancelled {
+            cancelled = true
+        } catch {
+            reached = false
+        }
         await refresh()
-        return ownsAllCourses
+        if ownsAllCourses { return .restored }
+        return cancelled ? .cancelled : reached ? .nothing : .failed
     }
 
     private func setOwned(_ owned: Bool) {
