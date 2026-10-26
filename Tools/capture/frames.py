@@ -3,10 +3,10 @@
 
     Tools/capture/frames.py [--only one-swing,windmill] <screenshots dir> <out dir>
 
-The screenshots are Tools/capture/screenshots.sh's (NN-<name>.png, at either App Store size); the captions and the
-order are Tools/capture/screenshots.json's. Each screen, HUD and all, is shrunk under its caption, in the game's
-typeface (SF Rounded Black, as the title's wordmark), over a soft, darkened blur of itself: no device frame. Output
-keeps the screenshots' size, with no alpha, as App Store Connect wants.
+The screenshots are a folder of Tools/capture/screenshots.sh's (NN-<name>[-<pose>].png, at any App Store size, upright
+or sideways); the captions are Tools/capture/screenshots.json's. Each screen, HUD and all, is shrunk under its
+caption, in the game's typeface (SF Rounded Black, as the title's wordmark), over a soft, darkened blur of itself: no
+device frame. Output keeps the screenshots' names and size, with no alpha, as App Store Connect wants.
 """
 import argparse
 import json
@@ -47,7 +47,8 @@ def lines_for(caption, size, width):
 def framed(shot, caption):
     """The screen shrunk under its caption, over a darkened blur of itself."""
     w, h = shot.size
-    unit = w / 1320
+    # Sized to the width, as on the 6.9" iPhone; a sideways screen (a Duo opened) to its height instead.
+    unit = min(w / 1320, h / 1800)
     full = shot.convert("RGB")
     canvas = full.resize((w // 8, h // 8), Image.BILINEAR).filter(ImageFilter.GaussianBlur(6)).resize((w, h), Image.BICUBIC)
     canvas = Image.blend(canvas, Image.new("RGB", (w, h), INK), 0.45)
@@ -86,19 +87,32 @@ def main():
     parser.add_argument("screenshots", type=Path)
     parser.add_argument("out", type=Path)
     args = parser.parse_args()
-    shots = json.load(open(ROOT / "Tools/capture/screenshots.json"))["shots"]
-    found = {p.stem.split("-", 1)[1]: p for p in args.screenshots.glob("[0-9][0-9]-*.png")}
-    missing = [s["name"] for s in shots if s["name"] not in found]
-    if missing:
-        sys.exit(f"missing screenshots: {', '.join(missing)} (Tools/capture/screenshots.sh)")
+    captions = {s["name"]: s["caption"] for s in json.load(open(ROOT / "Tools/capture/screenshots.json"))["shots"]}
+    files = sorted(args.screenshots.glob("[0-9][0-9]-*.png"))
+    if not files:
+        sys.exit(f"no screenshots in {args.screenshots} (Tools/capture/screenshots.sh)")
+    # NN-<shot>[-<pose>]: the longest shot name it starts with.
+    shots = {}
+    for path in files:
+        rest = path.stem[3:]
+        names = [n for n in captions if rest == n or rest.startswith(n + "-")]
+        if not names:
+            sys.exit(f"{path.name}: no shot called that in screenshots.json")
+        shots[path] = max(names, key=len)
+    numbers = [int(p.name[:2]) for p in files]
+    if numbers != list(range(1, len(files) + 1)):
+        sys.exit(f"{args.screenshots}: numbered {', '.join(f'{n:02d}' for n in numbers)}, so some are missing or "
+                 "left over (Tools/capture/screenshots.sh)")
     only = set(args.only.split(",")) if args.only else None
     args.out.mkdir(parents=True, exist_ok=True)
-    for number, shot in enumerate(shots, 1):
-        if only and shot["name"] not in only:
+    done = 0
+    for path, name in shots.items():
+        if only and name not in only:
             continue
-        with Image.open(found[shot["name"]]) as image:
-            framed(image, shot["caption"]).save(args.out / f"{number:02d}-{shot['name']}.png")
-    print(f"{args.out}: {len(only) if only else len(shots)} screenshots")
+        with Image.open(path) as image:
+            framed(image, captions[name]).save(args.out / path.name)
+        done += 1
+    print(f"{args.out}: {done} screenshots")
 
 
 main()
