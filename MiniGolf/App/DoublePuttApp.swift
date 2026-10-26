@@ -27,6 +27,8 @@ final class AppState {
     var freePlay = FreePlaySpot()
     /// The purchase screen, while it's up, and what opened it.
     var unlockOffer: UnlockOffer?
+    /// Where How to Play goes back to when it ends: the title for a new player, or Settings.
+    var tutorialReturn = Screen.title
     let game: GameModel
     @ObservationIgnored let scene: GameScene
     #if DEBUG
@@ -76,13 +78,26 @@ final class AppState {
             if d.string(forKey: "guide") == "full" { game.fullPathGuide = true }
             if let parts = d.string(forKey: "aim")?.split(separator: ","), parts.count >= 2,
                let angle = Double(parts[0]), let power = Double(parts[1]) {
-                game.tutorial = nil
                 game.setMirrored(parts.count > 2 && parts[2] == "mirror")
                 game.setAim(Shot(angle: angle, power: power))
             }
         }
         StoreCapture.open(self)
         #endif
+    }
+
+    /// How to Play, from its first lesson.
+    func startTutorial(returningTo screen: Screen) {
+        tutorialReturn = screen
+        game.leaveRound()
+        game.start(lesson: .aim)
+        self.screen = .game
+    }
+
+    /// How to Play is over, finished or skipped: back where it was opened, or on into a round of `nine`.
+    func endTutorial(playing nine: Nine? = nil) {
+        game.endLessons()
+        if let nine { playRound(nine) } else { screen = tutorialReturn }
     }
 
     /// A single hole from the course map (outside the round).

@@ -74,18 +74,6 @@ struct RoundState: Codable, Equatable {
     }
 }
 
-enum TutorialStep: Int {
-    case aim, mirror, putt
-
-    var text: String {
-        switch self {
-        case .aim: return "Pull back anywhere to aim. Both balls take the shot."
-        case .mirror: return "Tap Mirror. The other ball's shot flips."
-        case .putt: return "Fine-tune with ‹ › or the power bar, then tap Putt."
-        }
-    }
-}
-
 /// Game state the UI observes. The scene owns the simulation and writes results here.
 @MainActor
 @Observable
@@ -105,7 +93,11 @@ final class GameModel {
     var paused = false {
         didSet { if paused != oldValue { analytics.setPaused(paused) } }
     }
-    var tutorial: TutorialStep?
+    /// The How to Play lesson being played, if any: its practice hole stands in for a course's. It stays after the
+    /// lessons end, while the game screen fades out, until the next hole starts.
+    private(set) var lesson: Lesson?
+    /// The lesson's card, while one is up (none while the balls roll).
+    private(set) var lessonStep: LessonStep?
     /// Where the course sits on screen (scene/view points), so HUD pieces can hug it.
     var courseFrame: CGRect = .zero
     /// The course is turned a quarter to fill a wide screen (a Duo opened, an iPad on its side): tees on the left,
@@ -134,6 +126,7 @@ final class GameModel {
     let devMode = false
     #endif
     private(set) var bests: [String: Int] = UserDefaults.standard.dictionary(forKey: "bests") as? [String: Int] ?? [:]
+    /// How to Play was finished or skipped, so the game no longer opens on it.
     private(set) var tutorialDone = UserDefaults.standard.bool(forKey: "tutorialDone")
 
     /// Screen area (points) covered by HUD, and the safe areas down the sides; the scene fits the course into what's
@@ -146,13 +139,13 @@ final class GameModel {
     @ObservationIgnored let analytics = Analytics()
     /// The All Courses purchase.
     let purchases = Purchases()
-    /// The tips were asked for again (How to Play), so they're generic: the Mirror tip doesn't depend on the hole.
-    @ObservationIgnored private var replayingTips = false
+    /// Each ball's strokes before the last swing, so a lesson can tell a splash (a stroke more than the swing).
+    @ObservationIgnored private var swingStrokes = [0, 0]
     /// First swing of the last attempt, restored on Retry so you can tweak it.
     @ObservationIgnored var lastOpeningShot: Shot?
 
     static var levels = Levels.playable.course
-    var level: Level { Self.levels[levelIndex] }
+    var level: Level { lesson?.level ?? Self.levels[levelIndex] }
     var theme: Theme { Theme.for(level) }
     var levelCount: Int { Self.levels.count }
     var total: Int { strokes[0] + strokes[1] }
@@ -201,7 +194,7 @@ final class GameModel {
     /// The course whose free hole is being played on its own, while the rest of it needs All Courses: the result card
     /// offers its other holes.
     var sampledCourse: Nine? {
-        guard !inRound, isFree(levelIndex), let nine = nine(containing: levelIndex), !canPlayRound(nine) else { return nil }
+        guard !inRound, lesson == nil, isFree(levelIndex), let nine = nine(containing: levelIndex), !canPlayRound(nine) else { return nil }
         return nine
     }
 
@@ -337,21 +330,39 @@ final class GameModel {
         }
     }
 
+    // MARK: How to Play
+
+    /// Play a lesson's practice hole from its first card.
+    func start(lesson: Lesson) {
+        self.lesson = lesson
+        lessonStep = lesson.firstStep
+        lastOpeningShot = nil
+        paused = false
+        scene?.loadLevel()
+    }
+
+    /// The balls stopped with one still out: a lesson says what to do next.
+    func swingSettled() {
+        guard lesson != nil, !isComplete else { return }
+        let splashed = strokes.indices.contains { strokes[$0] - swingStrokes[$0] > 1 }
+        lessonStep = splashed ? .splash : sunk.contains(true) ? .oneIn : .again
+    }
+
+    /// The lessons are over, finished or skipped: the game won't open on them again.
+    func endLessons() {
+        lessonStep = nil
+        tutorialDone = true
+        UserDefaults.standard.set(true, forKey: "tutorialDone")
+    }
+
     // MARK: Actions
 
     func start(level index: Int) {
         levelIndex = max(0, min(index, levelCount - 1))
         lastOpeningShot = nil
         paused = false
-        replayingTips = false
-        if levelIndex == 0 && !tutorialDone {
-            tutorial = .aim
-        } else if level.name == "Reflection" && !UserDefaults.standard.bool(forKey: "mirrorTaught") {
-            // Opened straight from Free Play on a fresh install: teach aiming first; the Mirror tip follows the drag.
-            tutorial = tutorialDone ? .mirror : .aim
-        } else {
-            tutorial = nil
-        }
+        lesson = nil
+        lessonStep = nil
         scene?.loadLevel()
         loadToken += 1
         analytics.holeStarted(holeContext, mode: inRound ? "round" : "single", par: par)
@@ -360,10 +371,11 @@ final class GameModel {
     /// Start the hole over. Free Play only: a round is played as it lies.
     func restart() {
         guard !inRound else { return }
+        if let lesson { return start(lesson: lesson) }
         paused = false
         scene?.loadLevel()
         analytics.holeStarted(holeContext, mode: inRound ? "round" : "single", par: par)
-        if let shot = lastOpeningShot, tutorial == nil {
+        if let shot = lastOpeningShot {
             setMirrored(shot.mirrored)
             aim = shot
         }
@@ -387,9 +399,10 @@ final class GameModel {
             aim = a
         }
         mirrored = on
-        if tutorial == .mirror && on {
-            tutorial = .putt
-            UserDefaults.standard.set(true, forKey: "mirrorTaught")
+        if lessonStep == .mirror && on {
+            lessonStep = .puttMirror
+        } else if lessonStep == .puttMirror && !on {
+            lessonStep = .mirror
         }
     }
 
@@ -399,23 +412,20 @@ final class GameModel {
         aim = s
     }
 
-    /// The last tip asks you to fine-tune; doing it is enough.
-    private func completeTutorialIfFineTuning() {
-        if tutorial == .putt { dismissTutorial() }
+    /// The lesson card asking you to fine-tune moves on once you do.
+    private func lessonFineTuned() {
+        if lessonStep == .fineTune { lessonStep = .putt }
     }
 
-    func dismissTutorial() {
-        tutorial = nil
-        replayingTips = false
-        tutorialDone = true
-        UserDefaults.standard.set(true, forKey: "tutorialDone")
-        UserDefaults.standard.set(true, forKey: "mirrorTaught")
-    }
-
+    /// A drag to aim ended: a lesson card asking for one moves on.
     func finishedAiming() {
-        guard tutorial == .aim, aim != nil else { return }
-        let teachMirror = replayingTips || level.solution?.mirrored == true
-        tutorial = teachMirror && !mirrored ? .mirror : .putt
+        guard aim != nil else { return }
+        switch lessonStep {
+        case .pull: lessonStep = .fineTune
+        case .aimOne: lessonStep = mirrored ? .puttMirror : .mirror
+        case .water: lessonStep = .doubleAce
+        default: break
+        }
     }
 
     /// Left-right flip of a direction in degrees.
@@ -426,7 +436,7 @@ final class GameModel {
 
     func nudge(angle: Double = 0, power: Double = 0) {
         guard canAim else { return }
-        completeTutorialIfFineTuning()
+        lessonFineTuned()
         var a = aim ?? Shot(angle: 90, power: 0.5, mirrored: mirrored)
         // Turning the steered ball counter-clockwise turns ball A clockwise when B is steered in Mirror.
         let d = mirrored && aimSide == 1 ? -angle : angle
@@ -440,7 +450,7 @@ final class GameModel {
     /// Set power directly (power bar drag). Starts a straight-up aim if there isn't one yet.
     func setPower(_ p: Double) {
         guard canAim else { return }
-        completeTutorialIfFineTuning()
+        lessonFineTuned()
         var a = aim ?? Shot(angle: 90, power: p, mirrored: mirrored)
         a.power = min(max(p, 0.02), 1)
         a.mirrored = mirrored
@@ -450,11 +460,8 @@ final class GameModel {
     func putt() {
         guard let shot = aim, canPutt else { return }
         if total == 0 { lastOpeningShot = shot }
-        if tutorial == .putt || tutorial == .mirror || tutorial == .aim {
-            tutorial = nil
-            tutorialDone = true
-            UserDefaults.standard.set(true, forKey: "tutorialDone")
-        }
+        swingStrokes = strokes
+        lessonStep = nil
         scene?.putt(shot)
         analytics.swing(mirrored: shot.mirrored, strokes: strokes, sunk: sunk)
     }
@@ -482,13 +489,6 @@ final class GameModel {
         #endif
     }
 
-    /// Show the tips again on the hole being played; the hole and the round carry on untouched.
-    func replayTutorial() {
-        paused = false
-        replayingTips = true
-        tutorial = .aim
-    }
-
     func demo() {
         paused = false
         analytics.holeDiscarded()
@@ -504,7 +504,8 @@ final class GameModel {
         }
         newBest = false
         newTrophy = false
-        guard !demo else { return }
+        // A lesson's practice hole keeps no score.
+        guard !demo, lesson == nil else { return }
         analytics.holeFinished(strokes: strokes)
         newBest = best == nil || total < best!
         if newBest {
@@ -545,6 +546,5 @@ final class GameModel {
         UserDefaults.standard.removeObject(forKey: "bests")
         tutorialDone = false
         UserDefaults.standard.set(false, forKey: "tutorialDone")
-        UserDefaults.standard.set(false, forKey: "mirrorTaught")
     }
 }

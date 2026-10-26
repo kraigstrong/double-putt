@@ -1,4 +1,4 @@
-// How to Play: three practice holes, each teaching one idea. They're not in any course; MiniGolf/Game/Lessons.swift
+// How to Play: three practice holes, each teaching one idea. They're not in any course; MiniGolf/Game/HowToPlay.swift
 // has the cards that coach each one.
 extension Levels {
     static let lessons: [Level] = [aimAndPutt(), sameOrMirror(), waterAndPar()]

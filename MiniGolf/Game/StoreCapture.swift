@@ -169,7 +169,6 @@ enum StoreCapture {
         let defaults = UserDefaults.standard
         if let domain = Bundle.main.bundleIdentifier { defaults.removePersistentDomain(forName: domain) }
         defaults.set(true, forKey: "tutorialDone")
-        defaults.set(true, forKey: "mirrorTaught")
         if let trophies = clip?.trophies { stage(trophies: trophies) }
         guard let clip, let round = clip.round, let hole = clip.hole, let index = levelIndex(hole),
               let nine = Nine.all(levelCount: GameModel.levels.count).first(where: { $0.holes.contains(index) }) else { return }

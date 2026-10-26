@@ -28,6 +28,21 @@ struct GameView: View {
 
                 let fold = foldBand(geo)
                 let crease = fold.flatMap { $0.height > $0.width ? $0 : nil }
+                let course = localCourseFrame(geo)
+                let tip = tipSpot(course, crease: crease)
+                // Lesson cards sit in the strip below the tees, so they never cover the play area, and under the bars,
+                // so the arrows pointing at controls show over them. A drag can start on one, like anywhere else.
+                ZStack {
+                    if let lesson = game.lesson, let step = game.lessonStep {
+                        LessonCard(lesson: lesson, step: step)
+                            .transition(.move(edge: game.courseTurned ? .top : .bottom).combined(with: .opacity))
+                    }
+                }
+                .frame(width: tip.width)
+                .position(tip.center)
+                .allowsHitTesting(false)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: game.lessonStep)
+
                 VStack(spacing: 6) {
                     topBar(compact: geo.size.width < 420, crease: crease, inset: geo.size.width < 420 ? 8 : 12)
                         .frame(height: Self.topBar).padding(.horizontal, geo.size.width < 420 ? 8 : 12)
@@ -39,29 +54,15 @@ struct GameView: View {
                 powerMeter(geo, fold: fold)
                 holePanel(geo, fold: fold)
 
-                let course = localCourseFrame(geo)
-                let tip = tipSpot(course, crease: crease)
-                // Hints sit below the tees (empty on every hole); the tutorial uses the open middle of Reflection.
-                if showHint && game.tutorial == nil && !game.showResult {
+                // Hints sit below the tees (empty on every hole); a lesson's practice hole has none.
+                if showHint && game.lesson == nil && !game.showResult {
                     HintBanner(text: game.level.hint)
                         .frame(width: tip.width)
                         .position(tip.center)
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                         .onTapGesture { withAnimation { showHint = false } }
                 }
-                // Tips sit in the strip below the tees so they never cover the play area.
-                ZStack {
-                    if let step = game.tutorial {
-                        TutorialCard(step: step) { withAnimation { game.dismissTutorial() } }
-                            .transition(.move(edge: game.courseTurned ? .top : .bottom).combined(with: .opacity))
-                    }
-                }
-                .frame(width: tip.width)
-                .position(tip.center)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: game.tutorial)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showHint)
-
-                if game.tutorial == .aim { DragDemo(frame: localCourseFrame(geo), turned: game.courseTurned) }
+                if game.lessonStep == .pull { DragDemo(frame: localCourseFrame(geo), turned: game.courseTurned) }
 
                 // Across a fold down the middle, the cards move to the left half, clear of the crease.
                 let shift = crease.map { $0.minX / 2 - geo.size.width / 2 } ?? 0
@@ -135,10 +136,14 @@ struct GameView: View {
     }
 
     private var subtitle: String {
+        if let lesson = game.lesson { return "LESSON \(lesson.rawValue + 1) OF \(Lesson.allCases.count) · PAR \(game.par)" }
         var s = "HOLE \(game.shownHoleNumber) · PAR \(game.par)"
         if game.inRound { s += " · " + (game.roundToPar.map { "ROUND \(GameModel.toPar($0))" } ?? "ROUND E") }
         return s
     }
+
+    /// The lesson card on screen points an arrow at this control.
+    private func arrow(_ control: LessonControl) -> Bool { game.lessonStep?.arrows.contains(control) ?? false }
 
     /// Aiming can outlast auto-lock, so the screen stays on while a hole is in play; paused, it sleeps as usual.
     private func keepAwake(_ on: Bool) { UIApplication.shared.isIdleTimerDisabled = on }
@@ -216,6 +221,9 @@ struct GameView: View {
             // A round is played as it lies; only Free Play can start a hole over. The gap keeps the name centered.
             if game.inRound {
                 Color.clear.frame(width: compact ? 38 : 42, height: compact ? 38 : 42)
+            } else if game.lesson != nil {
+                // Out of How to Play, where it's always in reach for a new player who'd rather just play.
+                GlassIconButton(symbol: "xmark", size: compact ? 38 : 42) { app.endTutorial() }
             } else {
                 GlassIconButton(symbol: "arrow.counterclockwise", size: compact ? 38 : 42) { game.restart() }
             }
@@ -228,9 +236,9 @@ struct GameView: View {
                 Text(game.level.name).font(.rounded(compact ? 18 : 20, .heavy)).lineLimit(1).minimumScaleFactor(0.7)
                 // Tapping the name brings the hole's hint back; the bulb says so.
                 if !game.level.hint.isEmpty {
-                    Image(systemName: showHint && game.tutorial == nil ? "lightbulb.fill" : "lightbulb")
+                    Image(systemName: showHint ? "lightbulb.fill" : "lightbulb")
                         .font(.system(size: compact ? 12 : 13, weight: .bold))
-                        .foregroundStyle(showHint && game.tutorial == nil ? Color.putt : .white.opacity(0.8))
+                        .foregroundStyle(showHint ? Color.putt : .white.opacity(0.8))
                 }
             }
             Text(subtitle)
@@ -246,7 +254,7 @@ struct GameView: View {
     private func bottomBar(compact: Bool, crease: CGRect?, inset: CGFloat) -> some View {
         across(crease, inset: inset, spacing: compact ? 6 : 8) {
             SwingToggle(mirrored: game.mirrored, turned: game.courseTurned, segment: compact ? 50 : 58) { game.setMirrored($0) }
-                .overlay(alignment: .topTrailing) { if game.tutorial == .mirror { BouncingArrow().offset(x: -21, y: -44) } }
+                .overlay(alignment: .topTrailing) { if arrow(.mirror) { BouncingArrow().offset(x: -21, y: -36) } }
             Spacer(minLength: 0)
             HStack(spacing: 4) {
                 RepeatButton(symbol: "chevron.left", size: compact ? 36 : 40) { game.nudge(angle: 0.25) }
@@ -260,22 +268,24 @@ struct GameView: View {
             }
             .opacity(game.aim == nil ? 0.5 : 1)
             .disabled(!game.canAim || game.aim == nil)
+            .overlay(alignment: .top) { if arrow(.aim) { BouncingArrow().offset(y: -36) } }
             Spacer(minLength: 0)
         } right: {
             if crease != nil { Spacer(minLength: 0) }
             PuttButton(enabled: game.canPutt, rolling: game.isRolling) { game.putt() }
-                .overlay(alignment: .top) { if game.tutorial == .putt { BouncingArrow().offset(y: -44) } }
+                .overlay(alignment: .top) { if arrow(.putt) { BouncingArrow().offset(y: -36) } }
         }
     }
 
     /// The nine's scorecard in the column left of an upright course, when it's wide enough to read: an iPad, or a Duo
     /// opened and held upright. Phones don't have the room, and a turned course fills the width.
-    /// A fold across the middle (a Duo stood up part open) puts it in the upper half, which faces you.
+    /// A fold across the middle (a Duo stood up part open) puts it in the upper half, which faces you. A lesson's
+    /// practice hole isn't on a scorecard.
     @ViewBuilder
     private func holePanel(_ geo: GeometryProxy, fold: CGRect?) -> some View {
         let course = localCourseFrame(geo)
         let column = course.minX
-        if !game.courseTurned, course.width > 0, column - 24 >= 120 {
+        if !game.courseTurned, game.lesson == nil, course.width > 0, column - 24 >= 120 {
             let across = fold.flatMap { $0.width > $0.height ? $0 : nil }
             HolePanel(game: game, width: min(column - 24, 250))
                 .position(x: column / 2, y: across.map { (course.minY + $0.minY) / 2 } ?? course.midY)
@@ -301,6 +311,7 @@ struct GameView: View {
             }()
             PowerMeter(power: game.aim?.power, enabled: game.canAim,
                        nudge: { game.nudge(power: $0) }, set: { game.setPower($0) })
+                .overlay(alignment: .leading) { if arrow(.power) { BouncingArrow(pointing: .right).offset(x: -30) } }
                 .frame(height: spot.height)
                 .position(x: x, y: spot.y)
         }
@@ -544,33 +555,26 @@ private struct HintBanner: View {
     }
 }
 
-private struct TutorialCard: View {
-    let step: TutorialStep
-    let close: () -> Void
+/// A How to Play card: which lesson this is, and what to do next.
+private struct LessonCard: View {
+    let lesson: Lesson
+    let step: LessonStep
 
     var body: some View {
         HStack(spacing: 10) {
             VStack(spacing: 4) {
-                ForEach(0..<3, id: \.self) { k in
-                    Capsule().fill(k <= step.rawValue ? Color.putt : .white.opacity(0.3))
-                        .frame(width: 5, height: k == step.rawValue ? 12 : 5)
+                ForEach(Lesson.allCases, id: \.self) { k in
+                    Capsule().fill(k.rawValue <= lesson.rawValue ? Color.putt : .white.opacity(0.3))
+                        .frame(width: 5, height: k == lesson ? 12 : 5)
                 }
             }
             Text(step.text)
-                .font(.rounded(13, .bold))
+                .font(.rounded(14, .bold))
                 .foregroundStyle(.white)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
-            Button(action: close) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .black))
-                    .foregroundStyle(.white.opacity(0.8))
-                    .frame(width: 26, height: 26)
-                    .background(Circle().fill(.white.opacity(0.15)))
-            }
-            .buttonStyle(PressStyle())
         }
-        .padding(.leading, 12).padding(.trailing, 8).padding(.vertical, 8)
+        .padding(.horizontal, 12).padding(.vertical, 10)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.white.opacity(0.2), lineWidth: 1))
         .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
@@ -580,14 +584,16 @@ private struct TutorialCard: View {
 }
 
 private struct BouncingArrow: View {
+    enum Pointing { case down, right }
+    var pointing = Pointing.down
     @State private var up = false
 
     var body: some View {
-        Image(systemName: "arrowtriangle.down.fill")
+        Image(systemName: pointing == .down ? "arrowtriangle.down.fill" : "arrowtriangle.right.fill")
             .font(.system(size: 22, weight: .black))
             .foregroundStyle(Color.putt)
             .shadow(color: .black.opacity(0.4), radius: 3, y: 2)
-            .offset(y: up ? -8 : 0)
+            .offset(x: pointing == .right && up ? -8 : 0, y: pointing == .down && up ? -8 : 0)
             .onAppear { withAnimation(.easeInOut(duration: 0.5).repeatForever()) { up = true } }
             .allowsHitTesting(false)
     }
@@ -629,9 +635,14 @@ private struct PauseMenu: View {
                 Text("Paused").font(.rounded(30, .black)).padding(.bottom, 4)
                 PillButton(title: "Resume", symbol: "play.fill", fill: .putt) { game.paused = false }
                 if !game.inRound {
-                    PillButton(title: "Restart Hole", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 50) { game.restart() }
+                    PillButton(title: game.lesson == nil ? "Restart Hole" : "Restart Lesson", symbol: "arrow.counterclockwise",
+                               fill: .white.opacity(0.14), text: .white, height: 50) { game.restart() }
                 }
-                if game.inRound {
+                if game.lesson != nil {
+                    let skipping = app.tutorialReturn == .title
+                    PillButton(title: skipping ? "Skip Lessons" : "Back to Settings", symbol: skipping ? "forward.fill" : "gearshape.fill",
+                               fill: .white.opacity(0.14), text: .white, height: 50) { app.endTutorial() }
+                } else if game.inRound {
                     PillButton(title: "Scorecard", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 50) {
                         game.paused = false
                         game.showScorecard = true
@@ -647,11 +658,8 @@ private struct PauseMenu: View {
                         app.backToFreePlay()
                     }
                 }
-                HStack(spacing: 12) {
-                    PillButton(title: app.soundOn ? "Sound On" : "Sound Off", symbol: app.soundOn ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                               fill: .white.opacity(0.14), text: .white, height: 46) { app.toggleSound() }
-                    PillButton(title: "How to Play", symbol: "questionmark", fill: .white.opacity(0.14), text: .white, height: 46) { game.replayTutorial() }
-                }
+                PillButton(title: app.soundOn ? "Sound On" : "Sound Off", symbol: app.soundOn ? "speaker.wave.2.fill" : "speaker.slash.fill",
+                           fill: .white.opacity(0.14), text: .white, height: 46) { app.toggleSound() }
                 if game.devMode {
                     VStack(spacing: 10) {
                         Text("DEV").font(.rounded(11, .black)).tracking(2).foregroundStyle(.white.opacity(0.5))
@@ -688,8 +696,8 @@ private struct ResultCard: View {
         ZStack {
             Color.black.opacity(0.45).ignoresSafeArea()
             VStack(spacing: 14) {
-                // Holes earn a trophy for a double ace (medals are for nine-hole rounds).
-                if game.strokes == [1, 1] {
+                // Holes earn a trophy for a double ace (medals are for nine-hole rounds); lessons don't.
+                if game.strokes == [1, 1] && game.lesson == nil {
                     VStack(spacing: 8) {
                         TrophyView(accent: Color(game.theme.accent), size: 92)
                             .scaleEffect(shown ? 1 : 0.2)
@@ -727,6 +735,17 @@ private struct ResultCard: View {
                 }
                 .font(.rounded(15, .semibold))
                 .foregroundStyle(.white.opacity(0.75))
+                if let lesson = game.lesson {
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        Image(systemName: "lightbulb.fill").foregroundStyle(Color.putt)
+                        Text(lesson.takeaway).fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                    }
+                    .font(.rounded(16, .bold))
+                    .foregroundStyle(.white)
+                    .padding(14)
+                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.white.opacity(0.1)))
+                }
                 // A free hole of a course that needs All Courses: the rest of the course is one tap from here.
                 if let course = game.sampledCourse {
                     Button { app.offerUnlock(.freeHole, course: course.id) } label: {
@@ -739,23 +758,27 @@ private struct ResultCard: View {
                     }
                     .buttonStyle(PressStyle(scale: 0.96))
                 }
-                HStack(spacing: 12) {
-                    if game.inRound {
-                        PillButton(title: "Card", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 52) {
-                            game.showScorecard = true
-                        }
-                        PillButton(title: game.isLastInRound ? "Finish" : "Next", symbol: game.isLastInRound ? "flag.checkered" : "arrow.right", fill: .putt, height: 52) {
-                            game.nextInRound()
-                        }
-                    } else {
-                        PillButton(title: "Retry", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
-                        let last = game.nextHole == nil
-                        PillButton(title: last ? "Free Play" : "Next", symbol: last ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
-                            if last { app.backToFreePlay() } else { game.next() }
+                if let lesson = game.lesson {
+                    lessonButtons(lesson).padding(.top, 6)
+                } else {
+                    HStack(spacing: 12) {
+                        if game.inRound {
+                            PillButton(title: "Card", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 52) {
+                                game.showScorecard = true
+                            }
+                            PillButton(title: game.isLastInRound ? "Finish" : "Next", symbol: game.isLastInRound ? "flag.checkered" : "arrow.right", fill: .putt, height: 52) {
+                                game.nextInRound()
+                            }
+                        } else {
+                            PillButton(title: "Retry", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
+                            let last = game.nextHole == nil
+                            PillButton(title: last ? "Free Play" : "Next", symbol: last ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
+                                if last { app.backToFreePlay() } else { game.next() }
+                            }
                         }
                     }
+                    .padding(.top, 6)
                 }
-                .padding(.top, 6)
             }
             .frame(maxWidth: PauseMenu.maxWidth)
             .padding(26)
@@ -767,6 +790,27 @@ private struct ResultCard: View {
             .opacity(shown ? 1 : 0)
         }
         .onAppear { withAnimation(.spring(response: 0.5, dampingFraction: 0.65)) { shown = true } }
+    }
+
+    /// Again, or on to the next lesson. After the last, a new player goes on to the first course's round, on a button
+    /// of its own so the course's name fits.
+    @ViewBuilder
+    private func lessonButtons(_ lesson: Lesson) -> some View {
+        if lesson.next == nil, app.tutorialReturn == .title, let first = game.nines.first {
+            VStack(spacing: 10) {
+                PillButton(title: "Play \(first.name)", symbol: "play.fill", fill: .putt, height: 52) { app.endTutorial(playing: first) }
+                PillButton(title: "Done", symbol: "checkmark", fill: .white.opacity(0.14), text: .white, height: 46) { app.endTutorial() }
+            }
+        } else {
+            HStack(spacing: 12) {
+                PillButton(title: "Again", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
+                if let next = lesson.next {
+                    PillButton(title: "Next", symbol: "arrow.right", fill: .putt, height: 52) { game.start(lesson: next) }
+                } else {
+                    PillButton(title: "Done", symbol: "checkmark", fill: .putt, height: 52) { app.endTutorial() }
+                }
+            }
+        }
     }
 
     private func score(_ i: Int) -> some View {
