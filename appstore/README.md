@@ -26,7 +26,7 @@ python3 appstore/push.py testflight --app double-putt --dry-run                 
 python3 appstore/push.py testflight --app double-putt --build 4 --dry-run           # and build 4's What to Test
 python3 appstore/push.py testflight --app double-putt --build 4 --submit --dry-run  # to Friends, beta review
 python3 appstore/push.py testflight --app double-putt --invite EMAIL --dry-run      # a tester, to Friends
-python3 appstore/push.py media --app double-putt --screenshots DIR DIR --creative FILE --dry-run
+python3 appstore/push.py media --app double-putt --screenshots DIR DIR --creative FILE --dry-run   # see Media
 ```
 
 - **A push writes to the editable version** (Prepare for Submission and the like). Nothing goes public until that
@@ -61,6 +61,39 @@ Environment: `ASCC_BETA_FEEDBACK_EMAIL`, and `ASCC_REVIEW_FIRST_NAME`, `ASCC_REV
 Double Putt's were copied from Bigger Fish's TestFlight settings on 2026-10-15.
 
 Uploading builds isn't part of `push.py`; see [docs/testflight.md](../docs/testflight.md).
+
+## Media
+
+`media` replaces the editable version's screenshots, its product page header and search results asset (`--creative`,
+or `--header` and `--search`), and its app preview (`--preview`, with `--poster` for the frame shown before it plays).
+New files are uploaded and processed first, and the old ones swapped out only once every one is ready, so a failure
+leaves the listing as it was.
+
+Each `--screenshots` folder is one device's set, uploaded in name order. Which device a file goes to comes from its
+size, checked against App Store Connect's own list of display types, so it takes any device Apple does; a folder whose
+files fit different devices is refused. Apple takes up to 10 screenshots a device. Double Putt's sets come from
+`Tools/capture/` (see the [README](../README.md#screenshots-footage-and-the-trailer)), captioned by `frames.py`:
+
+| Folder (`build/capture/`) | Size | App Store Connect |
+|---|---|---|
+| `captioned` | 1320x2868 | iPhone 6.9" (Dynamic Island, large); scaled down for the smaller iPhones that have no set of their own |
+| `captioned-6.5` | 1284x2778 | iPhone 6.5" (Face ID, large) |
+| `captioned-ipad` | 2064x2752 | iPad 13", required for an iPad app; scaled down for the smaller iPads |
+| `captioned-duo` | 2853x2007 opened, 1398x2034 closed | iPhone Duo: one set, either screen, upright or sideways. It earns the product page's optimized-for-iPhone-Duo badge, and from April 2027 every app built with the iOS 27.1 SDK needs it |
+
+The app preview (886x1920, from `Tools/capture/trailer.sh`) goes to the 6.9" and 6.3" iPhones and the iPhone Duo,
+which take the same video. An iPad preview would be a 1200x1600 (or 1600x1200) cut of its own; there isn't one yet,
+and it's optional.
+
+```bash
+Tools/capture/screenshots.sh && Tools/capture/screenshots.sh --device ipad && Tools/capture/screenshots.sh --device duo
+for set in "" -6.5 -ipad -duo; do Tools/capture/frames.py build/capture/screenshots$set build/capture/captioned$set; done
+python3 appstore/push.py media --app double-putt --dry-run --screenshots build/capture/captioned \
+  build/capture/captioned-6.5 build/capture/captioned-ipad build/capture/captioned-duo
+```
+
+The dry run lists each device's set, its sizes, and how many screenshots it replaces. Run it again without
+`--dry-run` to upload.
 
 ## Credentials
 
