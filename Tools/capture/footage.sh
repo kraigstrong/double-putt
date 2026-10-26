@@ -4,13 +4,15 @@
 #   Tools/capture/footage.sh <clip> [from to]      # 60 fps at the screen's full size, with its sound; from/to in seconds
 #   Tools/capture/footage.sh --look <clip>          # a contact sheet: a frame every half second, a quarter size
 #   Tools/capture/footage.sh --all                  # every clip that isn't recorded yet
+#   Tools/capture/footage.sh --device ipad ...      # any of those on the iPad (or duo); the iPhone's is the default
 #
-# Builds Debug, installs it on the capture simulator (lib.sh), and launches it with -storeCapture: the app plays the
-# clip's swings frame by frame and saves every frame, HUD included (MiniGolf/Game/StoreCapture.swift). A rerun plays
-# the same, so a --look at a clip, then a recording of just the seconds wanted, gives what the look showed.
+# Builds Debug, installs it on the device's capture simulator (lib.sh), and launches it with -storeCapture: the app
+# plays the clip's swings frame by frame and saves every frame, HUD included (MiniGolf/Game/StoreCapture.swift). A
+# rerun plays the same, so a --look at a clip, then a recording of just the seconds wanted, gives what the look showed.
 #
-# Output goes to build/capture/footage/ (ignored by git):
-#   <clip>[-<from>-<to>].mp4   1320x2868, 60 fps H.264, with the game's sounds rebuilt (soundtrack.py) as AAC
+# Output goes to build/capture/footage/ for the iPhone, footage-<device>/ for another (ignored by git):
+#   <clip>[-<from>-<to>].mp4   the screen's size (the iPhone's 1320x2868, the iPad's 2064x2752 upright), 60 fps H.264,
+#                              with the game's sounds rebuilt (soundtrack.py) as AAC
 #   <clip>[-<from>-<to>].wav   that sound on its own, for the trailer's mix
 #   <clip>-look.jpg            with --look: the contact sheet, eight to a row
 #   <clip>.txt                 how the clip went: each drag, Mirror tap, Putt and finish, in seconds
@@ -18,9 +20,19 @@
 # Needs ffmpeg, and Python 3 with NumPy. CAPTURE_NO_BUILD=1 reuses the last build, already installed.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
-FOOTAGE="$OUT/footage"
 
-usage() { sed -n '2,6p' "$0"; exit 1; }
+usage() { sed -n '2,7p' "$0"; exit 1; }
+device=iphone
+if [ "${1:-}" = --device ]; then
+    device="${2:-}"
+    [ -n "$device" ] || usage
+    shift 2
+fi
+use_device "$device"
+case "$device" in
+    iphone) FOOTAGE="$OUT/footage" ;;
+    *) FOOTAGE="$OUT/footage-$device" ;;
+esac
 command -v ffmpeg >/dev/null || { echo "needs ffmpeg: brew install ffmpeg" >&2; exit 1; }
 python3 -c 'import numpy' 2>/dev/null || { echo "needs NumPy: python3 -m pip install numpy" >&2; exit 1; }
 
