@@ -3,10 +3,12 @@
 
     Tools/capture/frames.py [--only one-swing,windmill] <screenshots dir> <out dir>
 
-The screenshots are a folder of Tools/capture/screenshots.sh's (NN-<name>[-<pose>].png, at any App Store size, upright
-or sideways); the captions are Tools/capture/screenshots.json's. Each screen, HUD and all, is shrunk under its
-caption, in the game's typeface (SF Rounded Black, as the title's wordmark), over a soft, darkened blur of itself: no
-device frame. Output keeps the screenshots' names and size, with no alpha, as App Store Connect wants.
+The screenshots are one device's whole set from Tools/capture/screenshots.sh (NN-<name>[-<pose>].png, at any App Store
+size, upright or sideways), as screenshots.json lists it: a set with shots missing is refused, since uploading it
+would replace the device's listing with just those. The captions are screenshots.json's. Each screen, HUD and all, is
+shrunk under its caption, in the game's typeface (SF Rounded Black, as the title's wordmark), over a soft, darkened
+blur of itself: no device frame. Output keeps the screenshots' names and size, with no alpha, as App Store Connect
+wants.
 """
 import argparse
 import json
@@ -87,22 +89,30 @@ def main():
     parser.add_argument("screenshots", type=Path)
     parser.add_argument("out", type=Path)
     args = parser.parse_args()
-    captions = {s["name"]: s["caption"] for s in json.load(open(ROOT / "Tools/capture/screenshots.json"))["shots"]}
+    config = json.load(open(ROOT / "Tools/capture/screenshots.json"))
+    captions = {s["name"]: s["caption"] for s in config["shots"]}
+    # Each device's set, as screenshots.sh names it: NN-<shot>[-<pose>] -> the shot.
+    sets = {}
+    for device, listing in config["devices"].items():
+        if device == "about":
+            continue
+        entries = [entry.partition("@") for entry in listing["shots"]]
+        sets[device] = {f"{n:02d}-{name}" + (f"-{pose}" if pose else ""): name for n, (name, _, pose) in enumerate(entries, 1)}
     files = sorted(args.screenshots.glob("[0-9][0-9]-*.png"))
     if not files:
         sys.exit(f"no screenshots in {args.screenshots} (Tools/capture/screenshots.sh)")
-    # NN-<shot>[-<pose>]: the longest shot name it starts with.
-    shots = {}
-    for path in files:
-        rest = path.stem[3:]
-        names = [n for n in captions if rest == n or rest.startswith(n + "-")]
-        if not names:
-            sys.exit(f"{path.name}: no shot called that in screenshots.json")
-        shots[path] = max(names, key=len)
-    numbers = [int(p.name[:2]) for p in files]
-    if numbers != list(range(1, len(files) + 1)):
-        sys.exit(f"{args.screenshots}: numbered {', '.join(f'{n:02d}' for n in numbers)}, so some are missing or "
-                 "left over (Tools/capture/screenshots.sh)")
+    # A whole set, as uploading replaces a device's screenshots with the folder's: none missing, none left over.
+    stems = [p.stem for p in files]
+    device = next((d for d, stems_of in sets.items() if list(stems_of) == stems), None)
+    if device is None:
+        fits = [d for d, stems_of in sets.items() if set(stems) <= set(stems_of)]
+        if not fits:
+            sys.exit(f"{args.screenshots}: {', '.join(s for s in stems if all(s not in v for v in sets.values()))} "
+                     "in no device's set in screenshots.json (Tools/capture/screenshots.sh)")
+        missing = [s for s in sets[fits[0]] if s not in stems]
+        sys.exit(f"{args.screenshots}: missing {', '.join(missing)} of the {fits[0]} set "
+                 f"(Tools/capture/screenshots.sh --device {fits[0]})")
+    shots = {path: sets[device][path.stem] for path in files}
     only = set(args.only.split(",")) if args.only else None
     args.out.mkdir(parents=True, exist_ok=True)
     done = 0
