@@ -26,10 +26,14 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
   Fireworks), then the putting courses of slopes and surfaces (The Links, City Muni, The Stadium), then Starbase, a
   space station of patrol robots and force fields, each harder than the last. A round shows a running score vs par
   and ends with a scorecard and a medal: bronze at par or better, silver 4 under, gold 8 under (best round per course
-  saved; a round in progress survives relaunches). Every course is open, and a round's scorecard offers the next
-  one (Up next).
-- **Free Play** plays any hole on its own: each course is a row you swipe to pick a hole. A double ace on a hole, in
-  a round or not, wins its trophy on the **Trophy Shelf** (one per hole).
+  saved; a round in progress survives relaunches). A round's scorecard offers the next course (Up next).
+- **Free to try**: Daybreak and one hole of every other course are free (`Levels.freeCourse`, `Levels.freeHoles`).
+  One purchase, **All Courses** ($4.99, Family Sharing on, courses added later included), opens the rest, and there
+  are no medal locks: every course it opens can be played straight away. Anything locked opens the purchase screen;
+  so do the scorecard's Up next after Daybreak and a free hole's result card ("8 more holes like this in …").
+- **Free Play** plays any hole on its own: each course is a row you swipe to pick a hole, and without All Courses a
+  first row holds the free holes. Next skips locked holes. A double ace on a hole, in a round or not, wins its trophy
+  on the **Trophy Shelf** (one per hole).
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
 - **‹ ›** nudge the aim (hold to repeat). Drag the **power bar** or use its **+ / −**.
 - **Same / Mirror** picks how the swing maps onto green B's ball. **Putt** fires — nothing fires by accident.
@@ -54,7 +58,8 @@ standing on its own gets a grid centred on it.
 In Debug (Xcode) builds, long-press the title logo to toggle **dev mode** (the pause menu gets a full-path guide
 toggle, Show Ace and Reset). TestFlight and App Store builds don't have it.
 
-The title's gear opens **Settings**: sound, the privacy policy and support pages, and the version. The game sends
+The title's gear opens **Settings**: sound, Unlock All Holes and Restore Purchase, the privacy policy and support
+pages, and the version. The game sends
 anonymous gameplay counts (hole difficulty and the course funnel; no names or device IDs) to brightbench.app, as
 described in `docs/analytics.md`. `docs/testflight.md` is the beta checklist and upload guide.
 Show Ace waits (fast-forwarding a long wait) for the movers to reach the stored solution's timing.
@@ -77,7 +82,7 @@ Tap the hole name (the 💡) to bring the hole's hint back; Pause → **How to P
 
 ## The courses
 
-Each course is nine holes played as a round, and every course is open: a medal is a goal, not a key. In the app each
+Each course is nine holes played as a round. A medal is a goal, not a key: with All Courses every course is open. In the app each
 course numbers its holes 1–9. The tables come from `Tools/solve.sh --readme`.
 
 City Muni is still in development: it's in the lineup and the solver checks it, but only Debug builds play it
@@ -250,7 +255,13 @@ xcrun simctl launch booted com.kraigstrong.doubleputt -dumpArt 1   # writes cour
 xcrun simctl launch booted com.kraigstrong.doubleputt -canvas 951x669   # lays out at that size: a Duo opened, an iPad turned
 xcrun simctl launch booted com.kraigstrong.doubleputt -dumpLandmarks 1   # writes each setting's landmark to Documents/landmarks
 xcrun simctl launch booted com.kraigstrong.doubleputt -fold vertical   # fakes a Duo bent part open (or `horizontal`)
+xcrun simctl launch booted com.kraigstrong.doubleputt -owned NO   # plays as if All Courses isn't owned (or YES)
 ```
+
+Dev mode, store captures and courses still in development are never locked. To buy for real, run from Xcode: the
+scheme's StoreKit configuration (`DoublePutt.storekit`) sells All Courses locally, and Xcode's Debug > StoreKit >
+Manage Transactions refunds or deletes the purchase to try again. Until the app has run from Xcode on a
+simulator, a `simctl` launch there finds nothing to sell.
 
 ## Screenshots, footage and the trailer
 
