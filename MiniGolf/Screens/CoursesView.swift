@@ -28,8 +28,8 @@ struct CoursesView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 12)], spacing: 12) {
                     ForEach(Array(game.nines.enumerated()), id: \.element.id) { k, nine in
                         CourseCard(number: k + 1, nine: nine, game: game) { play(nine) }
-                        if nine.id == Levels.freeCourse && game.hasLockedCourses {
-                            CourseCard(number: nil, nine: game.sampler, game: game) { play(game.sampler) }
+                        if nine.id == Levels.freeCourse && game.hasLockedCourses, let sampler = game.sampler {
+                            CourseCard(number: nil, nine: sampler, game: game) { play(sampler) }
                         }
                     }
                 }

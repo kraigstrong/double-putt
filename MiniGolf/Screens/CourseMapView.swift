@@ -27,7 +27,7 @@ struct CourseMapView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        if game.hasLockedCourses {
+                        if game.hasLockedCourses && !game.freeHoles.isEmpty {
                             freeRow.id(Self.freeRow)
                         }
                         ForEach(game.nines) { nine in

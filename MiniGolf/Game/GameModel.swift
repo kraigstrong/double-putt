@@ -209,8 +209,9 @@ final class GameModel {
     static let samplerID = "sampler"
 
     /// The Sampler: each course's free hole, played as a round. Courses offers it while some course is locked, but it's
-    /// always here, so a round of it saved before buying All Courses can still be finished.
-    var sampler: Nine { Nine(id: Self.samplerID, name: "Sampler", holes: freeHoles) }
+    /// always here, so a round of it saved before buying All Courses can still be finished. None when there are no free
+    /// holes to play (Debug's `-tests` holes).
+    var sampler: Nine? { freeHoles.isEmpty ? nil : Nine(id: Self.samplerID, name: "Sampler", holes: freeHoles) }
 
     /// Each course's free hole, in course order (the free course has none): Free Play's first row, and the Sampler.
     var freeHoles: [Int] {
@@ -222,7 +223,7 @@ final class GameModel {
     /// The scorecard's Up next: after the free course while some course is locked, the Sampler; after the Sampler,
     /// nothing (its scorecard offers All Courses); otherwise the next course in the list.
     func upNext(after nine: Nine) -> Nine? {
-        if nine.id == Levels.freeCourse && hasLockedCourses { return sampler }
+        if nine.id == Levels.freeCourse && hasLockedCourses, let sampler { return sampler }
         guard nine.id != Self.samplerID, let i = nines.firstIndex(of: nine), i + 1 < nines.count else { return nil }
         return nines[i + 1]
     }
