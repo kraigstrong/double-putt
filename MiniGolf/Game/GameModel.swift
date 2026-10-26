@@ -298,6 +298,8 @@ final class GameModel {
         }
         analytics.roundFinished(course: nine.id, strokes: total, par: par(of: nine),
                                 medal: Medal(round: total, par: par(of: nine)), best: newBestRound)
+        // A hole's score of 2 is a double ace: each green takes at least a stroke.
+        if (round?.scores.filter { $0 == 2 }.count ?? 0) >= 2 { reviewEarned = true }
         showResult = false
         showScorecard = true
     }
@@ -517,6 +519,29 @@ final class GameModel {
             newTrophy = true
             saveTrophies()
         }
+        if strokes == [1, 1] && !inRound {
+            freePlayDoubleAces.insert(level.name)
+            if freePlayDoubleAces.count >= 3 { reviewEarned = true }
+        }
+    }
+
+    // MARK: Rating
+
+    /// A moment to ask for a rating: a round finished with two or more double aces, or double aces on three different
+    /// holes in Free Play since the app opened. The menu asks once the game screen closes (`takeReviewMoment`).
+    @ObservationIgnored private var reviewEarned = false
+    /// Holes double-aced in Free Play since the app opened.
+    @ObservationIgnored private var freePlayDoubleAces: Set<String> = []
+
+    /// Whether to ask for a rating now, back on the menus: a moment was earned, and this version hasn't asked before.
+    /// Apple decides whether its prompt actually shows (a few times a year at most, and never in TestFlight).
+    func takeReviewMoment() -> Bool {
+        guard reviewEarned else { return false }
+        reviewEarned = false
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        guard UserDefaults.standard.string(forKey: "reviewAskedVersion") != version else { return false }
+        UserDefaults.standard.set(version, forKey: "reviewAskedVersion")
+        return true
     }
 
     private static func loadTrophies() -> [String: Date] {

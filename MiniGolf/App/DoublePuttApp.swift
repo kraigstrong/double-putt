@@ -1,5 +1,6 @@
 import Observation
 import SpriteKit
+import StoreKit
 import SwiftUI
 
 @main
@@ -145,6 +146,7 @@ final class AppState {
 struct RootView: View {
     let app: AppState
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.requestReview) private var requestReview
 
     var body: some View {
         ZStack {
@@ -166,6 +168,14 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: app.screen)
+        // Back on the menus after a great round or run of double aces: ask for a rating once the screen has settled.
+        .onChange(of: app.screen) { old, new in
+            guard old == .game, new != .game, app.game.takeReviewMoment() else { return }
+            Task {
+                try? await Task.sleep(for: .seconds(0.8))
+                requestReview()
+            }
+        }
         .animation(.easeInOut(duration: 0.25), value: app.unlockOffer)
         .onChange(of: scenePhase) { _, phase in if phase == .background { app.game.analytics.backgrounded() } }
         #if DEBUG
