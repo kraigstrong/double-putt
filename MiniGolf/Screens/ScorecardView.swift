@@ -12,7 +12,7 @@ struct ScorecardView: View {
 
     private var scores: [Int?] { game.round?.scores ?? [] }
     private var nine: Nine { game.roundNine ?? game.nines[0] }
-    private var holes: [Int] { Array(nine.holes) }
+    private var holes: [Int] { nine.holes }
 
     var body: some View {
         ZStack {

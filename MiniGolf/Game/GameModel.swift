@@ -45,7 +45,7 @@ extension Nine {
     /// The nines that exist for these holes (debug builds can swap in a short test course).
     static func all(levelCount: Int) -> [Nine] {
         Levels.playable.nines.compactMap { n in
-            let holes = n.holes.clamped(to: 0..<levelCount)
+            let holes = n.holes.filter { $0 < levelCount }
             return holes.isEmpty ? nil : Nine(id: n.id, name: n.name, holes: holes)
         }
     }
@@ -70,7 +70,7 @@ struct RoundState: Codable, Equatable {
         guard let old = try? JSONDecoder().decode(Legacy.self, from: data), old.current < old.scores.count,
               let nine = Nine.all(levelCount: old.scores.count).first(where: { $0.holes.contains(old.current) })
         else { return nil }
-        return RoundState(nine: nine.id, scores: nine.holes.map { old.scores[$0] }, current: old.current - nine.holes.lowerBound)
+        return RoundState(nine: nine.id, scores: nine.holes.map { old.scores[$0] }, current: old.current - nine.holes[0])
     }
 }
 
@@ -218,11 +218,11 @@ final class GameModel {
     }
 
     /// A hole's number within its nine (1–9).
-    func holeNumber(_ index: Int) -> Int { index - (nine(containing: index)?.holes.lowerBound ?? 0) + 1 }
+    func holeNumber(_ index: Int) -> Int { index - (nine(containing: index)?.holes[0] ?? 0) + 1 }
     /// The nine the saved round is on.
     var roundNine: Nine? { round.flatMap { r in nines.first { $0.id == r.nine } } }
     /// The last hole of the round being played.
-    var isLastInRound: Bool { inRound && levelIndex == (roundNine?.holes.upperBound ?? 0) - 1 }
+    var isLastInRound: Bool { inRound && levelIndex == roundNine?.holes.last }
 
     /// Round score relative to par over the holes finished so far.
     var roundToPar: Int? {
@@ -249,13 +249,13 @@ final class GameModel {
         saveRound()
         inRound = true
         showScorecard = false
-        start(level: nine.holes.lowerBound)
+        start(level: nine.holes[0])
     }
 
     func continueRound() {
         guard let round, let nine = roundNine else { return }
         inRound = true
-        start(level: nine.holes.lowerBound + min(round.current, nine.holes.count - 1))
+        start(level: nine.holes[min(round.current, nine.holes.count - 1)])
     }
 
     /// Leave the round in place (it can be continued later) and play single holes.
@@ -268,13 +268,13 @@ final class GameModel {
 
     func nextInRound() {
         guard var r = round, let nine = roundNine else { return next() }
-        r.current = levelIndex - nine.holes.lowerBound + 1
+        r.current = (nine.holes.firstIndex(of: levelIndex) ?? r.current) + 1
         round = r
         saveRound()
         if r.isFinished {
             finishRound()
         } else {
-            start(level: nine.holes.lowerBound + r.current)
+            start(level: nine.holes[r.current])
         }
     }
 
@@ -480,8 +480,8 @@ final class GameModel {
 
     /// Score the finished hole. A dev-mode Show Ace still fills in the round, but earns no best or trophy.
     func recordFinish(demo: Bool = false) {
-        if inRound, var r = round, let nine = roundNine, nine.holes.contains(levelIndex) {
-            r.scores[levelIndex - nine.holes.lowerBound] = total
+        if inRound, var r = round, let k = roundNine?.holes.firstIndex(of: levelIndex) {
+            r.scores[k] = total
             round = r
             saveRound()
         }

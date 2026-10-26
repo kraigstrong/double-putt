@@ -73,7 +73,7 @@ private struct CourseCard: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
-        let first = GameModel.levels[nine.holes.lowerBound]
+        let first = GameModel.levels[nine.holes[0]]
         let theme = Theme.for(first)
         let locked = !game.canPlayRound(nine)
         let best = game.bestRound(nine)

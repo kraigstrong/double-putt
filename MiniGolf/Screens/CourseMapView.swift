@@ -93,8 +93,8 @@ struct FreePlaySpot {
         guard let k = nines.firstIndex(where: { $0.holes.contains(hole) }) else { return }
         let nine = nines[k]
         // Two cards show in full. Bring the hole in second, so the one before it shows too.
-        let first = cards[nine.id] ?? nine.holes.lowerBound
-        if !(first...first + 1).contains(hole) { cards[nine.id] = max(hole - 1, nine.holes.lowerBound) }
+        let first = cards[nine.id] ?? nine.holes[0]
+        if !(first...first + 1).contains(hole) { cards[nine.id] = max(hole - 1, nine.holes[0]) }
         // So do two courses.
         let top = course.flatMap { id in nines.firstIndex { $0.id == id } } ?? 0
         if !(top...top + 1).contains(k) { course = nine.id }
@@ -126,7 +126,7 @@ struct CourseRow: View {
             .padding(.horizontal, 16)
 
             let locked = !game.canPlayRound(nine)
-            HoleStrip(holes: Array(nine.holes), first: $first) { i in
+            HoleStrip(holes: nine.holes, first: $first) { i in
                 let level = GameModel.levels[i]
                 HoleCard(number: game.holeNumber(i), level: level, best: game.best(for: level), trophy: game.hasTrophy(level),
                          locked: !game.canPlay(i), free: locked && game.isFree(i)) {

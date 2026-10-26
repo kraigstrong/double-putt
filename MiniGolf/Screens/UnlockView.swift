@@ -124,7 +124,7 @@ struct UnlockView: View {
 
     /// A course as its free hole's card, the whole hole with its flags and moving parts, over the course's name.
     private func preview(_ nine: Nine) -> some View {
-        let level = GameModel.levels[game.freeHoles.first { nine.holes.contains($0) } ?? nine.holes.lowerBound]
+        let level = GameModel.levels[game.freeHoles.first { nine.holes.contains($0) } ?? nine.holes[0]]
         let theme = Theme.for(level)
         return Color(theme.rough)
             .aspectRatio(CourseArt.cardAspect, contentMode: .fit)

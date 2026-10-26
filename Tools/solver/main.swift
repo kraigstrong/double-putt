@@ -266,7 +266,7 @@ if args.contains("--readme") {
         print("| --- | --- | --- | --- | --- | --- |")
         for (i, l) in holes {
             let needs = l.solution.map { $0.mirrored ? "Mirror" : "Same" } ?? "—"
-            print("| \(i - nine.holes.lowerBound + 1) | \(l.name) | \(Levels.settingNames[l.setting] ?? l.setting) | "
+            print("| \(i - nine.holes[0] + 1) | \(l.name) | \(Levels.settingNames[l.setting] ?? l.setting) | "
                   + "\(l.par.reduce(0, +)) | \(needs) | \(mechanics(l)) |")
         }
         print("")
@@ -357,7 +357,7 @@ if args.contains("--report") {
         }
         let off = aimOff(level).map { $0.map { $0.map { String(format: "%.0f", $0) } ?? "?" }.joined(separator: "/") + "°" } ?? "—"
         let c = course(of: i)
-        let n = c.map { i - $0.holes.lowerBound + 1 } ?? i + 1
+        let n = c.map { i - $0.holes[0] + 1 } ?? i + 1
         print(pad("\(n)", 4) + pad(c?.name ?? "draft", 13) + pad(level.name, 18) + pad("\(level.par[0])/\(level.par[1])", 6)
               + pad("\(sideAce[0] >= 0.25 ? 2 : 3)/\(sideAce[1] >= 0.25 ? 2 : 3)", 6) + pad(String(format: "%.3f%%", ace), 9)
               + pad(needs, 8) + pad(window, 13) + pad(off, 10) + pad(String(format: "%.2f/%.2f", sideAce[0], sideAce[1]), 12)

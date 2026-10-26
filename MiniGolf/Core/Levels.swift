@@ -206,8 +206,9 @@ struct Level {
 struct Nine: Identifiable, Equatable {
     let id: String
     let name: String
-    /// Indices into the holes being played (`Levels.playable.course`, or `Levels.course` for the solver).
-    let holes: Range<Int>
+    /// Indices into the holes being played (`Levels.playable.course`, or `Levels.course` for the solver), in the order
+    /// they're played.
+    let holes: [Int]
 }
 
 enum Levels {
@@ -318,7 +319,7 @@ enum Levels {
         var start = 0
         return courses.map { c in
             defer { start += c.holes.count }
-            return Nine(id: c.id, name: c.name, holes: start..<start + c.holes.count)
+            return Nine(id: c.id, name: c.name, holes: Array(start..<start + c.holes.count))
         }
     }
 
