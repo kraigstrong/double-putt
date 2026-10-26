@@ -4,6 +4,10 @@ Thanks for playing! This is the build we plan to release as 1.0, and it's free t
 - Anything locked offers the purchase: a locked course or hole, the Sampler's scorecard, and "8 more holes like this" after a free hole.
 - No more medal locks: once you have All Courses, every course is open from the start, and a finished round's scorecard takes you straight to the next course.
 
+Also new:
+- How to Play: three quick practice holes that teach aiming, Same and Mirror, and scoring. New players start there; it's in Settings any time.
+- The menus now show every hole's flags and moving parts: windmills, sliding gates, carousels, robots and force fields.
+
 If you played earlier builds, every course you saw before is now behind the purchase until you buy it in TestFlight (for free). Your scores, medals and trophies are all still there.
 
 We'd love to hear whether the free holes made you want the rest, whether anything about the purchase felt pushy or unclear, which holes felt too hard or too easy, and any bugs, crashes or sound problems. Sound follows the phone's silent switch, so turn that off to hear it.
