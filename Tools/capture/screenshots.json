@@ -1,5 +1,5 @@
 {
-  "about": "App Store screenshots, in the listing's order (Tools/capture/screenshots.sh, then frames.py). Each is a still of a clip in clips.json, \"at\" seconds in (a clip's look, Tools/capture/footage.sh --look, shows where its moments fall), and a caption for frames.py. Captions follow the player-copy rules: simple and human, a hole is two greens, never A and B or pair.",
+  "about": "App Store screenshots (Tools/capture/screenshots.sh, then frames.py), listed per device below. Each is a still of a clip in clips.json, \"at\" seconds in (a clip's look, Tools/capture/footage.sh --look, shows where its moments fall), and a caption for frames.py. Captions follow the player-copy rules: simple and human, a hole is two greens, never A and B or pair.",
   "shots": [
     {"name": "one-swing", "clip": "reflection", "at": 2.6, "caption": "ONE SWING. TWO GREENS."},
     {"name": "windmill", "clip": "windmill", "at": 5.4, "caption": "TIME IT PAST THE WINDMILL"},
@@ -8,5 +8,16 @@
     {"name": "space", "clip": "teleporter", "at": 4.6, "caption": "MEADOWS TO SPACE STATIONS"},
     {"name": "double-ace", "clip": "grand-finale", "at": 9.5, "caption": "CHASE THE DOUBLE ACE"},
     {"name": "trophies", "clip": "trophy-shelf", "at": 0.5, "caption": "FILL THE TROPHY SHELF"}
-  ]
+  ],
+  "devices": {
+    "about": "Each device's listing (screenshots.sh --device), in order: the shots above as its capture simulator shows them (\"size\"), or name@pose laid out in one of its poses instead (-canvas at that size, saved at \"size\"). App Store Connect takes up to 10 a device. Its iPhone Duo slot takes either screen in one set, so the Duo's leads with the inner screen, opened like a book (which a simulator can't do from the command line), then the outer one, closed, as the Duo's simulator boots.",
+    "iphone": {"size": "1320x2868", "shots": ["one-swing", "windmill", "springboard", "slopes", "space", "double-ace", "trophies"]},
+    "ipad": {"size": "2064x2752", "shots": ["one-swing", "windmill", "springboard", "slopes", "space", "double-ace", "trophies"]},
+    "duo": {
+      "size": "1398x2034",
+      "poses": {"open": {"canvas": "951x669", "size": "2853x2007"}},
+      "shots": ["one-swing@open", "windmill@open", "springboard@open", "slopes@open", "space@open", "double-ace@open",
+                "trophies@open", "one-swing", "windmill", "double-ace"]
+    }
+  }
 }

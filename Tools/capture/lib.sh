@@ -2,8 +2,9 @@
 # playing a clip from clips.json. Sourced, not run.
 #
 # The app's capture mode (MiniGolf/Game/StoreCapture.swift) stages a fresh saved state each launch, so it runs on a
-# simulator of its own, "DP Capture iPhone 17 Pro Max" (made the first time; CAPTURE_DEVICE picks another by name or
-# UDID): your usual simulator keeps its progress. Its screen is 1320x2868, the App Store's 6.9" size.
+# simulator of its own, made the first time (CAPTURE_DEVICE picks another by name or UDID): your usual simulator keeps
+# its progress. "DP Capture iPhone 17 Pro Max" by default, whose screen is 1320x2868, the App Store's 6.9" size;
+# use_device picks the iPad's or the iPhone Duo's instead.
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 ROOT="$PWD"
@@ -11,8 +12,19 @@ OUT="$ROOT/build/capture"
 DERIVED="$OUT/DerivedData"
 CLIPS="$ROOT/Tools/capture/clips.json"
 BUNDLE=com.kraigstrong.doubleputt
-DEVICE_NAME="${CAPTURE_DEVICE:-DP Capture iPhone 17 Pro Max}"
-DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max
+
+# Picks the capture simulator for a device: iphone (the default), ipad (an iPad Pro 13-inch, 2064x2752 upright) or duo
+# (an iPhone Duo, which boots closed: the outer screen, 1398x2034).
+use_device() {
+    case "$1" in
+        iphone) DEVICE_NAME="DP Capture iPhone 17 Pro Max"; DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max ;;
+        ipad) DEVICE_NAME="DP Capture iPad Pro 13-inch"; DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB ;;
+        duo) DEVICE_NAME="DP Capture iPhone Duo"; DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPhone-Duo ;;
+        *) echo "no capture device called $1 (iphone, ipad or duo)" >&2; return 1 ;;
+    esac
+    DEVICE_NAME="${CAPTURE_DEVICE:-$DEVICE_NAME}"
+}
+use_device iphone
 
 # The capture simulator's UDID, made if it isn't there yet.
 capture_device() {
