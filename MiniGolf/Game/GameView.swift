@@ -731,8 +731,9 @@ private struct ResultCard: View {
                         }
                     } else {
                         PillButton(title: "Retry", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
-                        PillButton(title: game.isLastLevel ? "Free Play" : "Next", symbol: game.isLastLevel ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
-                            if game.isLastLevel { app.backToFreePlay() } else { game.next() }
+                        let last = game.nextHole == nil
+                        PillButton(title: last ? "Free Play" : "Next", symbol: last ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
+                            if last { app.backToFreePlay() } else { game.next() }
                         }
                     }
                 }
