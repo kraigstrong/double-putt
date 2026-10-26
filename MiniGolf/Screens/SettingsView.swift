@@ -1,8 +1,13 @@
 import SwiftUI
 
-/// Settings, from the title screen's gear: sound, the privacy policy and support pages, and the version.
+/// Settings, from the title screen's gear: sound, All Courses and Restore Purchase, the privacy policy and support
+/// pages, and the version.
 struct SettingsView: View {
     let app: AppState
+
+    private enum Restore { case idle, checking, restored, nothing }
+    @State private var restore = Restore.idle
+    private var purchases: Purchases { app.game.purchases }
 
     static let privacyURL = URL(string: "https://brightbench.app/doubleputt/privacy")!
     static let supportURL = URL(string: "https://brightbench.app/doubleputt/support")!
@@ -35,6 +40,26 @@ struct SettingsView: View {
                     }
                     .buttonStyle(PressStyle(scale: 0.97))
 
+                    if purchases.ownsAllCourses {
+                        row(symbol: "checkmark.seal.fill", title: "All Courses") {
+                            Text("Unlocked").font(.rounded(16, .heavy)).foregroundStyle(Color.putt)
+                        }
+                    } else {
+                        Button { app.offerUnlock(.settings) } label: {
+                            row(symbol: "lock.open.fill", title: "Unlock All Holes") {
+                                Text(purchases.displayPrice ?? "").font(.rounded(16, .heavy)).foregroundStyle(Color.putt)
+                            }
+                        }
+                        .buttonStyle(PressStyle(scale: 0.97))
+                    }
+                    Button { restorePurchase() } label: {
+                        row(symbol: "arrow.clockwise", title: "Restore Purchase") {
+                            Text(restoreStatus).font(.rounded(14, .bold)).foregroundStyle(.white.opacity(0.6))
+                        }
+                    }
+                    .buttonStyle(PressStyle(scale: 0.97))
+                    .disabled(restore == .checking)
+
                     Link(destination: Self.privacyURL) {
                         row(symbol: "hand.raised.fill", title: "Privacy Policy") { external }
                     }
@@ -63,6 +88,20 @@ struct SettingsView: View {
             LinearGradient(colors: [Color(UIColor(hex: 0x1B3A28)), Color.ink], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
+    }
+
+    private var restoreStatus: String {
+        switch restore {
+        case .idle: ""
+        case .checking: "Checking…"
+        case .restored: "Restored"
+        case .nothing: "Nothing to restore"
+        }
+    }
+
+    private func restorePurchase() {
+        restore = .checking
+        Task { restore = await purchases.restore() ? .restored : .nothing }
     }
 
     private var external: some View {
