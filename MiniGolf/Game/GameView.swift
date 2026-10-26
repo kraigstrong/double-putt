@@ -721,6 +721,18 @@ private struct ResultCard: View {
                 }
                 .font(.rounded(15, .semibold))
                 .foregroundStyle(.white.opacity(0.75))
+                // A free hole of a course that needs All Courses: the rest of the course is one tap from here.
+                if let course = game.sampledCourse {
+                    Button { app.offerUnlock(.freeHole, course: course.id) } label: {
+                        Label("\(course.holes.count - 1) more holes like this in \(course.name)", systemImage: "lock.open.fill")
+                            .font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
+                            .lineLimit(1).minimumScaleFactor(0.8)
+                            .padding(.horizontal, 14).padding(.vertical, 8)
+                            .background(Capsule().fill(.white.opacity(0.1)))
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(PressStyle(scale: 0.96))
+                }
                 HStack(spacing: 12) {
                     if game.inRound {
                         PillButton(title: "Card", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 52) {

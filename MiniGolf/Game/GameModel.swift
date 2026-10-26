@@ -197,6 +197,13 @@ final class GameModel {
     /// Some course needs All Courses: Free Play shows the free row, and the menus show locks.
     var hasLockedCourses: Bool { nines.contains { !canPlayRound($0) } }
 
+    /// The course whose free hole is being played on its own, while the rest of it needs All Courses: the result card
+    /// offers its other holes.
+    var sampledCourse: Nine? {
+        guard !inRound, isFree(levelIndex), let nine = nine(containing: levelIndex), !canPlayRound(nine) else { return nil }
+        return nine
+    }
+
     /// Each course's free hole, in course order (the free course has none): Free Play's first row.
     var freeHoles: [Int] {
         nines.compactMap { nine in
