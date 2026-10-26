@@ -304,14 +304,15 @@ Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # th
 ```
 
 - **Clips** (`clips.json`) name a hole and its swings: `"aim": "solution"` or `[degrees, power]`, which ball the drag
-  is on, Same or Mirror, timings, a round to show in the top bar. Or a screen instead, as it stands: the Trophy Shelf,
-  with the trophies won. The file says how.
+  is on, Same or Mirror, timings, a round to show in the top bar. Or a screen instead, as it stands: the Trophy Shelf
+  with the trophies won, or Courses with the medals earned. Or a How to Play lesson, its cards following the swings.
+  The file says how.
 - A capture plays the courses players get: a course still in development (`Levels.inDevelopment`) is left out, as in
   TestFlight and App Store builds.
 - **Screenshots** (`screenshots.json`) are a clip and a moment in it, with the caption `frames.py` sets over the
   screen. A clip's `--look` shows where its moments fall. Each device lists its own set: the iPhone's and the iPad's
-  upright (the iPad's with the scorecard and the setting's landmark beside the course), and the iPhone Duo's seven
-  opened like a book, the course turned to fill the screen, then three closed. A simulator can't open a Duo from the
+  upright (the iPad's with the scorecard and the setting's landmark beside the course), and the iPhone Duo's nine
+  opened like a book, the course turned to fill the screen, then one closed. A simulator can't open a Duo from the
   command line, so those are laid out with `-canvas 951x669` on the closed Duo's simulator and saved at the inner
   screen's size. `appstore/push.py media` uploads each folder to its device (see `appstore/README.md`).
 - **The trailer** (`trailer/edl.json`) cuts the clips into shots with slow camera moves and big captions, then the

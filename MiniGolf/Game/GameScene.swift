@@ -1346,6 +1346,8 @@ final class GameScene: SKScene {
         dragNode.path = nil
         captureFinger?.isHidden = true
         tickBucket = -1
+        // As a finger lifting off does (endDrag): a lesson's card moves on.
+        model.finishedAiming()
     }
     #endif
 

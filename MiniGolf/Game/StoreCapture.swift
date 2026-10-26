@@ -25,10 +25,15 @@ enum StoreCapture {
     /// A clip's script: one entry of Tools/capture/clips.json.
     struct Clip: Decodable {
         var name: String
-        /// The hole, by name (unless the clip shows a screen).
+        /// The hole, by name (unless the clip shows a screen or a lesson).
         var hole: String?
         /// A screen shown instead of a hole, as it stands.
         var screen: Screen?
+        /// How to Play's lesson, 1–3, played instead of a hole: its practice hole, with its cards.
+        var lesson: Int?
+        /// Best rounds, staged: per course in order, the medal its best round earned ("gold", "silver", "bronze" or
+        /// "none"). Courses left out have none.
+        var medals: [String]?
         /// Trophies won, staged: per course in order, its cabinet's three shelves of three holes, "x" a trophy and "."
         /// an empty slot ("xx. x.x ..x"). Courses left out have none.
         var trophies: [String]?
@@ -49,10 +54,13 @@ enum StoreCapture {
     enum Screen: String, Decodable {
         /// The Trophy Shelf.
         case trophies
+        /// Courses.
+        case courses
 
         var shown: AppState.Screen {
             switch self {
             case .trophies: .trophies
+            case .courses: .courses
             }
         }
     }
@@ -170,6 +178,7 @@ enum StoreCapture {
         if let domain = Bundle.main.bundleIdentifier { defaults.removePersistentDomain(forName: domain) }
         defaults.set(true, forKey: "tutorialDone")
         if let trophies = clip?.trophies { stage(trophies: trophies) }
+        if let medals = clip?.medals { stage(medals: medals) }
         guard let clip, let round = clip.round, let hole = clip.hole, let index = levelIndex(hole),
               let nine = Nine.all(levelCount: GameModel.levels.count).first(where: { $0.holes.contains(index) }) else { return }
         let played = nine.holes.firstIndex(of: index) ?? 0
@@ -211,7 +220,27 @@ enum StoreCapture {
         UserDefaults.standard.set(won, forKey: "trophies")
     }
 
-    /// Opens the clip's hole, or its screen, and records it once it's up.
+    /// The best rounds a clip lists (Clip.medals): each course's at the most strokes that earn its medal.
+    @MainActor private static func stage(medals: [String]) {
+        let nines = Nine.all(levelCount: GameModel.levels.count)
+        guard medals.count <= nines.count else { return fail("medals for \(medals.count) courses, but there are \(nines.count)") }
+        var best: [String: Int] = [:]
+        for (nine, name) in zip(nines, medals) {
+            let medal: Medal? = switch name {
+            case "gold": .gold
+            case "silver": .silver
+            case "bronze": .bronze
+            case "none": Medal.none
+            default: nil
+            }
+            guard let medal else { return fail("\(nine.name)'s medal is gold, silver, bronze or none, not \"\(name)\"") }
+            let par = nine.holes.reduce(0) { $0 + GameModel.levels[$1].par.reduce(0, +) }
+            if medal != .none { best[nine.id] = medal.threshold(par: par) }
+        }
+        UserDefaults.standard.set(best, forKey: "bestRounds")
+    }
+
+    /// Opens the clip's hole, its screen or its lesson, and records it once it's up.
     @MainActor static func open(_ app: AppState) {
         guard isActive else { return }
         guard let clip else { return fail("no clip: DP_CAPTURE_CLIP holds its JSON (Tools/capture/clips.json)") }
@@ -219,8 +248,12 @@ enum StoreCapture {
         SoundFX.shared.captureCue = { name, volume in cues.append(String(format: "%.4f %@ %.3f", clock, name, volume)) }
         if let screen = clip.screen {
             app.screen = screen.shown
+        } else if let number = clip.lesson {
+            guard let lesson = Lesson(rawValue: number - 1) else { return fail("lessons are 1–\(Lesson.allCases.count), not \(number)") }
+            app.startTutorial(returningTo: .title)
+            app.game.start(lesson: lesson)
         } else {
-            guard let hole = clip.hole else { return fail("\(clip.name) has no hole or screen") }
+            guard let hole = clip.hole else { return fail("\(clip.name) has no hole, screen or lesson") }
             guard let index = levelIndex(hole) else { return fail("no hole called \(hole)") }
             if clip.round != nil, app.game.round != nil {
                 app.continueRound()
