@@ -25,6 +25,8 @@ final class AppState {
     var artReady = false
     var soundOn = SoundFX.shared.isEnabled
     var freePlay = FreePlaySpot()
+    /// The purchase screen, while it's up, and what opened it.
+    var unlockOffer: UnlockOffer?
     let game: GameModel
     @ObservationIgnored let scene: GameScene
     #if DEBUG
@@ -106,6 +108,11 @@ final class AppState {
         screen = .game
     }
 
+    /// Open the purchase screen over the screen that's showing.
+    func offerUnlock(_ source: UnlockOffer.Source, course: String? = nil) {
+        unlockOffer = UnlockOffer(source: source, course: course)
+    }
+
     func toggleSound() {
         soundOn.toggle()
         SoundFX.shared.isEnabled = soundOn
@@ -131,9 +138,13 @@ struct RootView: View {
                 case .settings: SettingsView(app: app).transition(.opacity.combined(with: .scale(scale: 1.04)))
                 case .game: GameView(app: app).transition(.opacity)
                 }
+                if let offer = app.unlockOffer {
+                    UnlockView(app: app, offer: offer).transition(.opacity).zIndex(1)
+                }
             }
         }
         .animation(.easeInOut(duration: 0.35), value: app.screen)
+        .animation(.easeInOut(duration: 0.25), value: app.unlockOffer)
         .onChange(of: scenePhase) { _, phase in if phase == .background { app.game.analytics.backgrounded() } }
         #if DEBUG
         // A store capture steps time itself, frame by frame, and SwiftUI's animations would run on the wall clock in
