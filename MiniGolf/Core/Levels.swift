@@ -202,7 +202,8 @@ struct Level {
     }
 }
 
-/// A nine-hole course: played as a round, one cabinet on the trophy shelf, one section in Free Play.
+/// A nine-hole course: played as a round, one cabinet on the trophy shelf, one section in Free Play. The Sampler is
+/// one too, played as a round only: a free hole from each course, so its holes aren't side by side.
 struct Nine: Identifiable, Equatable {
     let id: String
     let name: String

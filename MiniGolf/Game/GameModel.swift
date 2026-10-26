@@ -185,7 +185,8 @@ final class GameModel {
     /// A round of the whole course can be played: All Courses, the free course, dev mode, or a course still in
     /// development (Debug builds only).
     func canPlayRound(_ nine: Nine) -> Bool {
-        purchases.ownsAllCourses || devMode || nine.id == Levels.freeCourse || Levels.inDevelopment.contains(nine.id)
+        purchases.ownsAllCourses || devMode || nine.id == Levels.freeCourse || nine.id == Self.samplerID
+            || Levels.inDevelopment.contains(nine.id)
     }
 
     /// The hole can be played, on its own or in a round.
@@ -204,23 +205,38 @@ final class GameModel {
         return nine
     }
 
-    /// Each course's free hole, in course order (the free course has none): Free Play's first row.
+    /// The Sampler's id among the courses' (rounds, best rounds, analytics).
+    static let samplerID = "sampler"
+
+    /// The Sampler: each course's free hole, played as a round. Courses offers it while some course is locked, but it's
+    /// always here, so a round of it saved before buying All Courses can still be finished.
+    var sampler: Nine { Nine(id: Self.samplerID, name: "Sampler", holes: freeHoles) }
+
+    /// Each course's free hole, in course order (the free course has none): Free Play's first row, and the Sampler.
     var freeHoles: [Int] {
         nines.compactMap { nine in
             Levels.freeHoles[nine.id].flatMap { name in nine.holes.first { Self.levels[$0].name == name } }
         }
     }
 
-    /// The course after this one in the list, if any: the scorecard's Up next.
-    func nine(after nine: Nine) -> Nine? {
-        guard let i = nines.firstIndex(of: nine), i + 1 < nines.count else { return nil }
+    /// The scorecard's Up next: after the free course while some course is locked, the Sampler; after the Sampler,
+    /// nothing (its scorecard offers All Courses); otherwise the next course in the list.
+    func upNext(after nine: Nine) -> Nine? {
+        if nine.id == Levels.freeCourse && hasLockedCourses { return sampler }
+        guard nine.id != Self.samplerID, let i = nines.firstIndex(of: nine), i + 1 < nines.count else { return nil }
         return nines[i + 1]
     }
 
     /// A hole's number within its nine (1–9).
     func holeNumber(_ index: Int) -> Int { index - (nine(containing: index)?.holes[0] ?? 0) + 1 }
+    /// The hole's number as the top bar shows it: its place in the round being played (the Sampler's are from all
+    /// over), else in its course.
+    var shownHoleNumber: Int {
+        if inRound, let k = roundNine?.holes.firstIndex(of: levelIndex) { return k + 1 }
+        return holeNumber(levelIndex)
+    }
     /// The nine the saved round is on.
-    var roundNine: Nine? { round.flatMap { r in nines.first { $0.id == r.nine } } }
+    var roundNine: Nine? { round.flatMap { r in r.nine == Self.samplerID ? sampler : nines.first { $0.id == r.nine } } }
     /// The last hole of the round being played.
     var isLastInRound: Bool { inRound && levelIndex == roundNine?.holes.last }
 

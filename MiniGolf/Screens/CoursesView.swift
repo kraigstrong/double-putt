@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Every course as a card with its par, best medal and trophies. Tapping one starts a round, or for a course that
-/// needs All Courses, opens the purchase screen.
+/// needs All Courses, opens the purchase screen. While some course is locked, the Sampler (a free hole from each)
+/// follows the free course.
 struct CoursesView: View {
     let app: AppState
     /// Starting this nine would end the round in progress, so ask first.
@@ -27,6 +28,9 @@ struct CoursesView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 12)], spacing: 12) {
                     ForEach(Array(game.nines.enumerated()), id: \.element.id) { k, nine in
                         CourseCard(number: k + 1, nine: nine, game: game) { play(nine) }
+                        if nine.id == Levels.freeCourse && game.hasLockedCourses {
+                            CourseCard(number: nil, nine: game.sampler, game: game) { play(game.sampler) }
+                        }
                     }
                 }
                 .padding(.horizontal, 16)
@@ -66,7 +70,8 @@ struct CoursesView: View {
 }
 
 private struct CourseCard: View {
-    let number: Int
+    /// Its place in the list; none for the Sampler, which isn't a course of its own.
+    let number: Int?
     let nine: Nine
     let game: GameModel
     let action: () -> Void
@@ -81,14 +86,17 @@ private struct CourseCard: View {
         let inProgress = game.round.map { $0.nine == nine.id && !$0.isFinished && $0.hasProgress } ?? false
         Button(action: action) {
             HStack(spacing: 12) {
-                Text("\(number)")
-                    .font(.rounded(16, .black))
-                    .foregroundStyle(Color.ink)
-                    .frame(width: 34, height: 34)
-                    .background(Circle().fill(Color(theme.accent)))
+                Group {
+                    if let number { Text("\(number)") } else { Image(systemName: "sparkles") }
+                }
+                .font(.rounded(16, .black))
+                .foregroundStyle(Color.ink)
+                .frame(width: 34, height: 34)
+                .background(Circle().fill(Color(theme.accent)))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(nine.name).font(.rounded(21, .heavy))
-                    Text(nine.settingNames).font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.65))
+                    Text(number == nil ? "One hole from every course" : nine.settingNames)
+                        .font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.65))
                     Text("Par \(game.par(of: nine)) · \(won)/\(nine.holes.count) 🏆" + (inProgress ? " · in progress" : ""))
                         .font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.85))
                 }

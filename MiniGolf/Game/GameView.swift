@@ -86,6 +86,8 @@ struct GameView: View {
                         } else {
                             app.offerUnlock(.scorecard, course: game.roundNine?.id)
                         }
+                    } unlock: {
+                        app.offerUnlock(.scorecard, course: game.roundNine?.id)
                     }
                     .transition(.opacity)
                 }
@@ -133,7 +135,7 @@ struct GameView: View {
     }
 
     private var subtitle: String {
-        var s = "HOLE \(game.holeNumber(game.levelIndex)) · PAR \(game.par)"
+        var s = "HOLE \(game.shownHoleNumber) · PAR \(game.par)"
         if game.inRound { s += " · " + (game.roundToPar.map { "ROUND \(GameModel.toPar($0))" } ?? "ROUND E") }
         return s
     }
