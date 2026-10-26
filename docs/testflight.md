@@ -179,7 +179,7 @@ April 2027 every app built with the iOS 27.1 SDK needs them. Apple's sizes are i
    ```bash
    Tools/capture/screenshots.sh                 # iPhone: 1320x2868, and 1284x2778 from those
    Tools/capture/screenshots.sh --device ipad   # iPad, upright: 2064x2752
-   Tools/capture/screenshots.sh --device duo    # iPhone Duo: seven opened (2853x2007), three closed (1398x2034)
+   Tools/capture/screenshots.sh --device duo    # iPhone Duo: nine opened (2853x2007), one closed (1398x2034)
    ```
    Each still's size is checked against the device's; a warning means the simulator isn't the one the set expects
    (the Duo's has to be closed, as it boots).
