@@ -337,16 +337,6 @@ final class Analytics {
         enqueue(stamp(event))
     }
 
-    /// A medal opened the next course.
-    func courseUnlocked(_ course: String) {
-        guard enabled else { return }
-        var event = AnalyticsEvent(kind: .milestone)
-        event.name = "course_unlocked"
-        event.course = course
-        event.revision = Levels.revision
-        once("course_unlocked." + course, event)
-    }
-
     // MARK: Queue
 
     /// `flag` names the on-device once-per-install flag when it differs from `name`.

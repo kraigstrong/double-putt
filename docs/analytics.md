@@ -53,8 +53,9 @@ This file is the contract between the app (`MiniGolf/Game/Analytics.swift`) and 
 { "kind": "milestone", "name": "trophy_won", "context": { ... } }
 ```
 - `first_launch`: no other fields.
-- `course_unlocked`: `course` and `revision`; sent when a medal opens the next course, or would have in the beta,
-  which opens every course (not for dev mode, and not for Daybreak or Nightfall, which are open from the start).
+- `course_unlocked`: `course` and `revision`; sent by builds before 1.0 when a medal opened the next course, or would
+  have in the beta, which opened every course. From 1.0 every course is open and it's never sent; the server still
+  takes it from older builds.
 - `hole_finished`: `context`; the first time this install finishes the hole, in either mode. A hole whose
   `pair_finished` an older build already sent isn't sent again.
 - `trophy_won`: `context`; the first double ace on the hole (its trophy).

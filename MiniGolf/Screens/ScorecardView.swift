@@ -1,12 +1,14 @@
 import SwiftUI
 
 /// A nine's scorecard, in classic notation: filled circle = double ace, circle = under par, square = over par.
-/// A finished round shows its medal.
+/// A finished round shows its medal, and offers the next course.
 struct ScorecardView: View {
     let game: GameModel
     /// The round just finished (vs. peeking mid-round).
     let final: Bool
     let close: () -> Void
+    /// Start a round of this course (Up next).
+    let playNext: (Nine) -> Void
 
     private var scores: [Int?] { game.round?.scores ?? [] }
     private var nine: Nine { game.roundNine ?? game.nines[0] }
@@ -30,13 +32,6 @@ struct ScorecardView: View {
                                 .font(.rounded(11, .semibold))
                                 .foregroundStyle(.white.opacity(0.55))
                         }
-                    }
-                    if let next = game.newlyUnlocked {
-                        Label("\(next.name) unlocked!", systemImage: "lock.open.fill")
-                            .font(.rounded(15, .heavy))
-                            .padding(.horizontal, 14).padding(.vertical, 7)
-                            .background(Capsule().fill(Color.putt))
-                            .foregroundStyle(Color.ink)
                     }
                 }
                 VStack(spacing: 2) {
@@ -70,7 +65,12 @@ struct ScorecardView: View {
                     }
                 }
                 .frame(maxHeight: 430)
-                PillButton(title: final ? "Done" : "Back to Game", symbol: final ? "flag.checkered" : "play.fill", fill: .putt, height: 50, action: close)
+                if final, let next = game.nine(after: nine) {
+                    PillButton(title: "Up next: \(next.name)", symbol: "play.fill", fill: .putt, height: 50) { playNext(next) }
+                    PillButton(title: "Done", symbol: "flag.checkered", fill: .white.opacity(0.14), text: .white, height: 46, action: close)
+                } else {
+                    PillButton(title: final ? "Done" : "Back to Game", symbol: final ? "flag.checkered" : "play.fill", fill: .putt, height: 50, action: close)
+                }
             }
             .frame(maxWidth: 460)
             .padding(20)

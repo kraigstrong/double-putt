@@ -80,18 +80,12 @@ struct CourseRow: View {
     let play: (Int) -> Void
 
     var body: some View {
-        let locked = !game.isUnlocked(nine)
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(nine.name).font(.rounded(22, .black))
                     Spacer()
-                    if locked, let before = game.prerequisite(of: nine) {
-                        Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
-                            .font(.rounded(12, .bold)).foregroundStyle(Color.putt)
-                    } else {
-                        Text(summary).font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.6))
-                    }
+                    Text(summary).font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.6))
                 }
                 // A one-setting course's line would only repeat its name ("Midway", "The Links").
                 if !nine.name.localizedCaseInsensitiveContains(nine.settingNames) {
@@ -106,7 +100,7 @@ struct CourseRow: View {
                         ForEach(nine.holes, id: \.self) { i in
                             let level = GameModel.levels[i]
                             HoleCard(number: game.holeNumber(i), level: level, best: game.best(for: level),
-                                     trophy: game.hasTrophy(level), locked: locked) {
+                                     trophy: game.hasTrophy(level)) {
                                 play(i)
                             }
                             .containerRelativeFrame(.horizontal) { length, _ in Self.cardWidth(in: length) }
@@ -146,8 +140,6 @@ private struct HoleCard: View {
     let level: Level
     let best: Int?
     let trophy: Bool
-    /// Its course isn't open yet.
-    let locked: Bool
     let action: () -> Void
 
     var body: some View {
@@ -175,15 +167,9 @@ private struct HoleCard: View {
                                 .frame(width: 24, height: 24)
                                 .background(Circle().fill(Color(theme.accent)))
                             Spacer()
-                            Group {
-                                if locked {
-                                    Image(systemName: "lock.fill").font(.system(size: 13, weight: .bold)).frame(width: 20, height: 22)
-                                } else {
-                                    TrophyView(earned: trophy, accent: Color(theme.accent), size: 22)
-                                }
-                            }
-                            .padding(5)
-                            .background(Circle().fill(Color.ink.opacity(0.5)))
+                            TrophyView(earned: trophy, accent: Color(theme.accent), size: 22)
+                                .padding(5)
+                                .background(Circle().fill(Color.ink.opacity(0.5)))
                         }
                         Spacer()
                         Text(level.name).font(.rounded(15, .heavy)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.7)
@@ -196,9 +182,7 @@ private struct HoleCard: View {
                 .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
                 .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
-                .opacity(locked ? 0.45 : 1)
         }
         .buttonStyle(PressStyle(scale: 0.95))
-        .disabled(locked)
     }
 }

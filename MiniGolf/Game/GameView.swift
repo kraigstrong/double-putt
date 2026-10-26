@@ -79,6 +79,9 @@ struct GameView: View {
                         } else {
                             game.showScorecard = false
                         }
+                    } playNext: { nine in
+                        game.closeScorecard()
+                        app.playRound(nine)
                     }
                     .transition(.opacity)
                 }

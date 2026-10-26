@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Every course as a card with its par, best medal and trophies. Tapping one starts a round; later courses stay
-/// locked until the one before has a medal (all are open in the beta).
+/// Every course as a card with its par, best medal and trophies. Tapping one starts a round.
 struct CoursesView: View {
     let app: AppState
     /// Starting this nine would end the round in progress, so ask first.
@@ -73,7 +72,6 @@ private struct CourseCard: View {
     var body: some View {
         let first = GameModel.levels[nine.holes.lowerBound]
         let theme = Theme.for(first)
-        let unlocked = game.isUnlocked(nine)
         let best = game.bestRound(nine)
         let won = nine.holes.filter { game.hasTrophy(GameModel.levels[$0]) }.count
         let inProgress = game.round.map { $0.nine == nine.id && !$0.isFinished && $0.hasProgress } ?? false
@@ -87,24 +85,15 @@ private struct CourseCard: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(nine.name).font(.rounded(21, .heavy))
                     Text(nine.settingNames).font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.65))
-                    if unlocked {
-                        Text("Par \(game.par(of: nine)) · \(won)/\(nine.holes.count) 🏆" + (inProgress ? " · in progress" : ""))
-                            .font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.85))
-                    } else if let before = game.prerequisite(of: nine) {
-                        Label("Earn a medal on \(before.name)", systemImage: "lock.fill")
-                            .font(.rounded(12, .bold)).foregroundStyle(Color.putt)
-                    }
+                    Text("Par \(game.par(of: nine)) · \(won)/\(nine.holes.count) 🏆" + (inProgress ? " · in progress" : ""))
+                        .font(.rounded(12, .bold)).foregroundStyle(.white.opacity(0.85))
                 }
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
                 Spacer(minLength: 0)
-                if unlocked {
-                    VStack(spacing: 3) {
-                        MedalView(medal: game.medal(nine), size: 36)
-                        Text(best.map { "Best \($0)" } ?? "—").font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.75))
-                    }
-                } else {
-                    Image(systemName: "lock.fill").font(.system(size: 24, weight: .bold)).foregroundStyle(.white.opacity(0.7))
+                VStack(spacing: 3) {
+                    MedalView(medal: game.medal(nine), size: 36)
+                    Text(best.map { "Best \($0)" } ?? "—").font(.rounded(11, .bold)).foregroundStyle(.white.opacity(0.75))
                 }
             }
             .padding(14)
@@ -126,10 +115,8 @@ private struct CourseCard: View {
             .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
             .shadow(color: .black.opacity(0.3), radius: 6, y: 4)
-            .opacity(unlocked ? 1 : 0.6)
         }
         .buttonStyle(PressStyle(scale: 0.97))
-        .disabled(!unlocked)
     }
 }
 
