@@ -13,15 +13,18 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Bundle ID `com.kraigstrong.doubleputt`** (team `MKACSCQ588`, automatic signing). Permanent once the App
   Store Connect record exists. A phone that ran the old `com.kraig.minigolf` builds gets this as a separate app,
   so its local progress doesn't carry over.
-- [x] **Debug tools in Debug builds only**: dev mode (long-press the logo: every course open, Show Ace, full-path
-  guide, Reset), the debug launch arguments and the mechanic test holes. TestFlight and App Store builds don't
+- [x] **Debug tools in Debug builds only**: dev mode (long-press the logo: every hole playable, Show Ace,
+  full-path guide, Reset), the debug launch arguments and the mechanic test holes. TestFlight and App Store builds don't
   have them.
-- **Every course open**: the medal locks went in 1.0. Medals are a goal, not a key, and a finished round's scorecard
-  offers the next course.
+- [x] **Free to try** (1.0): Daybreak and one hole of every other course are free, and one non-consumable, All
+  Courses (`com.kraigstrong.doubleputt.fullgame`, $4.99, Family Sharing on), opens the rest. No medal locks: medals
+  are a goal, not a key, and a finished round's scorecard offers the next course. TestFlight purchases are in the
+  sandbox, so testers aren't charged.
 - [x] **The screen stays awake while playing** (aiming can take longer than auto-lock), and sleeps normally on
   the menus.
 - [x] **Coming back to the app shows the pause menu** if a hole was in play.
-- [x] **Settings screen** from the title's gear: Sound, Privacy Policy, Support, and the version.
+- [x] **Settings screen** from the title's gear: Sound, Unlock All Holes and Restore Purchase, Privacy Policy,
+  Support, and the version.
 - [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-hole difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
@@ -31,15 +34,15 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
   screen on iPhone Duo. Sound follows the silent switch (ambient), so it never surprises anyone.
 
 ### In BrightBench (a separate session)
-- [ ] `brightbench.app/api/double-putt/events`: validates batches against `docs/analytics.md` and keeps daily
+- [x] `brightbench.app/api/double-putt/events`: validates batches against `docs/analytics.md` and keeps daily
   counters, like Bigger Fish's endpoint.
-- [ ] `brightbench.app/doubleputt/stats`: the counts, by build and channel.
-- [ ] `brightbench.app/doubleputt/privacy`: the privacy policy (no account, progress stays on the device,
+- [x] `brightbench.app/doubleputt/stats`: the counts, by build and channel.
+- [x] `brightbench.app/doubleputt/privacy`: the privacy policy (no account, progress stays on the device,
   anonymous gameplay counts).
 
 ### In App Store Connect (you)
 - [x] **Bundle ID** `com.kraigstrong.doubleputt`, registered through the API (2026-10-15).
-- [ ] **App record.** Apps, + New App: iOS, name "Double Putt: Mini Golf", English (U.S.), bundle ID
+- [x] **App record.** Apps, + New App: iOS, name "Double Putt: Mini Golf", English (U.S.), bundle ID
   `com.kraigstrong.doubleputt`, SKU `doubleputt`, Full Access. Then category Games > Puzzle (or Sports), and add
   its Apple ID to the "App Store Connect" 1Password Environment as `ASCC_APP_ID_DOUBLE_PUTT` (`push.py check`
   lists it).
@@ -90,6 +93,16 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
   NEW TROPHY and lands on the Trophy Shelf.
 - A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Hole.
 - Progress survives force-quitting and reopening.
+- Free to try, before buying: Courses shows Daybreak open and the rest with a lock and "Unlock"; Free Play starts
+  with "Try a hole from every course" (Windmill, Sundial, Springboard, Juggler, Sparkler, Two Tiers, Grandstand,
+  Teleporter), and the course rows lock everything but each one's FREE hole. Tapping anything locked opens "Unlock
+  all 81 holes". A free hole's result card offers "8 more holes like this in …", and Next goes on to the next free
+  hole. Daybreak's scorecard has "Up next: Nightfall" with a lock, opening the purchase screen with "Try a hole from
+  every course".
+- Buying (free in the TestFlight sandbox): Unlock for $4.99 shows the sandbox sheet; afterwards the screen says
+  "Every course is open", every lock is gone, the free row disappears, and Settings shows All Courses · Unlocked. On
+  a second device signed in to the same Apple Account (or after deleting and reinstalling), Restore Purchase brings
+  it back; in Airplane Mode it says it can't reach the App Store rather than "nothing to restore".
 - The screen doesn't dim while aiming; it sleeps normally on the title screen.
 - Background the app mid-hole: on return the pause menu is up and nothing moved while away.
 - Sound off in Settings and the pause menu is remembered; with the phone on silent there's no sound.
@@ -120,6 +133,35 @@ On an iPhone Duo, if there's one to hand:
 - Opening or closing it mid-hole fades, redraws and carries on.
 - Bent part way open, nothing you tap sits in the fold: the bars split either side of it, and held upright the
   power meter moves up out of it.
+
+## Releasing on the App Store
+
+Version 1.0 waits in App Store Connect (Prepare for Submission). Before submitting it:
+
+**In App Store Connect (you).** These are agreements and declarations, so they're yours to make on the website:
+- [ ] **Agreements, Tax, and Banking**: the Paid Apps Agreement, the tax forms and a bank account. Nothing can be
+  bought until they're active, and they can take days to clear, so start early.
+- [ ] **App Store Small Business Program**: apply, so Apple's commission is 15% rather than 30%.
+- [ ] **Pricing and Availability**: the app free, in the countries it should be in. `push.py purchase` gives All
+  Courses the app's own countries, so set these first.
+- [ ] **App Information**: category Games > Puzzle (or Sports), the age rating questionnaire, and content rights
+  (no third-party content).
+- [ ] **App Privacy**: Product Interaction, used for Analytics, not linked to the user, not used for tracking.
+- [ ] **The version**: copyright (`2026 Kraig Strong`), and the App Review contact (or add `ASCC_REVIEW_*` to the
+  1Password Environment and let `push.py push` send it with the notes). Release: manually, so launch day is a
+  choice.
+- [ ] **EU**: the Digital Services Act trader status, under Business, if Bigger Fish hasn't set it already.
+
+**From this repo, once the agreements are active:**
+1. `python3 appstore/push.py purchase --app double-putt --dry-run`, then without `--dry-run`: creates All Courses
+   ($4.99, Family Sharing on) with its name and description. Add `--screenshot FILE` with a still of the purchase
+   screen for App Review.
+2. `python3 appstore/push.py push --app double-putt --dry-run`, then for real: the listing (with "Free to try"
+   first), the marketing URL, the purchase's text, and the App Review notes (`appstore/double-putt/review_notes.txt`).
+3. Bump `MARKETING_VERSION` to 1.0 and the build number in a PR, archive and upload as above, and smoke-check it on
+   TestFlight, buying All Courses in the sandbox.
+4. In App Store Connect, attach that build to 1.0, add All Courses under In-App Purchases (the first purchase is
+   reviewed with the version), and submit for review.
 
 ## App Store screenshots
 TestFlight needs none, but the App Store listing does, one set per device. As a universal app, Double Putt needs the

@@ -71,6 +71,11 @@ FIELDS = {
 }
 REQUIRED = ["name", "subtitle", "description", "keywords", "support_url", "privacy_policy_url"]
 IAP_LIMITS = {"name": 30, "description": 45}
+# App Review's notes for the version being submitted (appstore/<app>/review_notes.txt), sent with the review contact
+# from the environment (the same as Beta App Review's) and no sign-in needed.
+REVIEW_NOTES, REVIEW_NOTES_LIMIT = "review_notes", 4000
+REVIEW_CONTACT = {"contactFirstName": "ASCC_REVIEW_FIRST_NAME", "contactLastName": "ASCC_REVIEW_LAST_NAME",
+                  "contactPhone": "ASCC_REVIEW_PHONE", "contactEmail": "ASCC_REVIEW_EMAIL"}
 # An app's first version has no What's New, so release_notes.txt is left out until there's a second.
 EDITABLE_STATES = {"PREPARE_FOR_SUBMISSION", "READY_FOR_REVIEW", "DEVELOPER_REJECTED", "REJECTED", "METADATA_REJECTED",
                    "WAITING_FOR_REVIEW", "INVALID_BINARY"}
@@ -146,6 +151,11 @@ def problems(app: str, locale: str) -> list[str]:
 def validate(apps: list[str]) -> int:
     bad = 0
     for app in apps:
+        notes = read(HERE / app / f"{REVIEW_NOTES}.txt")
+        if notes is not None:
+            over = len(notes) > REVIEW_NOTES_LIMIT
+            print(f"{app} review notes: {'NOT OK' if over else 'ok'} ({len(notes)}/{REVIEW_NOTES_LIMIT})")
+            bad += over
         for locale in locales(app):
             found = problems(app, locale)
             sizes = ", ".join(f"{name} {measure(name, value)}/{FIELDS[name][2]}" for name, value in listing(app, locale).items())
@@ -340,8 +350,37 @@ def push(app: str, only: set[str] | None, dry_run: bool) -> int:
                         for l in client.get(f"/v2/inAppPurchases/{purchase}/inAppPurchaseLocalizations?limit=50")}
                 changes += upsert(client, "inAppPurchaseLocalizations", locs.get(locale), fields,
                                   ("inAppPurchaseV2", "inAppPurchases", purchase), locale, dry_run, f"iap {folder}")
+    notes = read(HERE / app / f"{REVIEW_NOTES}.txt")
+    if notes is not None and (only is None or REVIEW_NOTES in only):
+        print("[App Review]")
+        changes += review_detail(client, version["id"], notes, dry_run)
     print(f"{changes} localization{'' if changes == 1 else 's'} {'would change' if dry_run else 'changed'}.")
     return 0
+
+
+def review_detail(client: Client, version_id: str, notes: str, dry_run: bool) -> bool:
+    """App Review's notes and contact for the editable version, and no sign-in needed; created if the version has
+    none yet. Contact details missing from the environment are left as they are."""
+    wanted = {"notes": notes, "demoAccountRequired": False}
+    wanted.update({attribute: os.environ[env] for attribute, env in REVIEW_CONTACT.items() if os.environ.get(env)})
+    missing = [env for env in REVIEW_CONTACT.values() if not os.environ.get(env)]
+    if missing:
+        print(f"  review contact: {', '.join(missing)} not set, left as they are")
+    detail = client.get_one(f"/v1/appStoreVersions/{version_id}/appStoreReviewDetail")
+    current = detail.get("attributes", {}) if detail else {}
+    changed = {k: v for k, v in wanted.items() if current.get(k) != v}
+    for k in wanted:
+        print(f"  review.{k}: {'changes' if k in changed else 'same'}")
+    if changed and not dry_run:
+        if detail:
+            client.call("PATCH", f"/v1/appStoreReviewDetails/{detail['id']}",
+                        {"data": {"type": "appStoreReviewDetails", "id": detail["id"], "attributes": changed}})
+        else:
+            client.call("POST", "/v1/appStoreReviewDetails",
+                        {"data": {"type": "appStoreReviewDetails", "attributes": changed,
+                                  "relationships": {"appStoreVersion": {"data": {"type": "appStoreVersions",
+                                                                                 "id": version_id}}}}})
+    return bool(changed)
 
 
 def check() -> int:
@@ -827,8 +866,7 @@ def testflight(app: str, build_number: str | None, submit: bool, invite: list[st
         wanted = {"demoAccountRequired": False}
         if notes is not None:
             wanted["notes"] = notes
-        contact = {"contactFirstName": "ASCC_REVIEW_FIRST_NAME", "contactLastName": "ASCC_REVIEW_LAST_NAME",
-                   "contactPhone": "ASCC_REVIEW_PHONE", "contactEmail": "ASCC_REVIEW_EMAIL"}
+        contact = REVIEW_CONTACT
         for attribute, env in contact.items():
             if os.environ.get(env):
                 wanted[attribute] = os.environ[env]
@@ -957,7 +995,7 @@ def main() -> int:
     checks.add_argument("--app", choices=APPS)
     send = sub.add_parser("push", help="push an app's text to its editable version")
     send.add_argument("--app", choices=APPS, required=True)
-    send.add_argument("--only", help="comma-separated fields to push (file names, or iap)")
+    send.add_argument("--only", help="comma-separated fields to push (file names, iap, or review_notes)")
     send.add_argument("--dry-run", action="store_true", help="show what would change; write nothing")
     images = sub.add_parser("media", help="replace the editable version's screenshots and creative assets")
     images.add_argument("--app", choices=APPS, required=True)
@@ -1017,8 +1055,8 @@ def main() -> int:
     if args.command == "validate":
         return validate([args.app] if args.app else [a for a in APPS if (HERE / a).exists()])
     only = set(args.only.split(",")) if args.only else None
-    if only and only - set(FIELDS) - {"iap"}:
-        raise SystemExit(f"unknown fields: {', '.join(sorted(only - set(FIELDS) - {'iap'}))}")
+    if only and only - set(FIELDS) - {"iap", REVIEW_NOTES}:
+        raise SystemExit(f"unknown fields: {', '.join(sorted(only - set(FIELDS) - {'iap', REVIEW_NOTES}))}")
     try:
         return push(args.app, only, args.dry_run)
     except RuntimeError as error:
