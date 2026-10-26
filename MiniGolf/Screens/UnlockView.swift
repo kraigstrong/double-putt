@@ -90,6 +90,13 @@ struct UnlockView: View {
             .disabled(busy)
             .padding(.top, 4)
         if let note { Text(note).font(.rounded(13, .semibold)).foregroundStyle(.white.opacity(0.8)).multilineTextAlignment(.center) }
+        // After a round of the free course, a player not ready to buy can still see the rest of the game.
+        if offer.source == .scorecard {
+            PillButton(title: "Try a hole from every course", symbol: "flag.fill", fill: .white.opacity(0.14), text: .white, height: 46) {
+                app.showFreeHoles()
+            }
+            .disabled(busy)
+        }
         Button { restore() } label: {
             Text(phase == .restoring ? "Checking…" : "Restore Purchase").font(.rounded(14, .bold)).foregroundStyle(.white.opacity(0.7))
                 .padding(.vertical, 4).padding(.horizontal, 12).contentShape(Rectangle())

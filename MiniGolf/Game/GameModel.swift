@@ -161,7 +161,6 @@ final class GameModel {
     var isComplete: Bool { sunk[0] && sunk[1] }
     var canAim: Bool { !isRolling && !isDemo && !isComplete && !paused }
     var canPutt: Bool { aim != nil && canAim }
-    var isLastLevel: Bool { levelIndex == levelCount - 1 }
 
     func best(for level: Level) -> Int? { bests[level.name] }
     func par(of level: Level) -> Int { level.par[0] + level.par[1] }
@@ -197,6 +196,13 @@ final class GameModel {
 
     /// Some course needs All Courses: Free Play shows the free row, and the menus show locks.
     var hasLockedCourses: Bool { nines.contains { !canPlayRound($0) } }
+
+    /// The course whose free hole is being played on its own, while the rest of it needs All Courses: the result card
+    /// offers its other holes.
+    var sampledCourse: Nine? {
+        guard !inRound, isFree(levelIndex), let nine = nine(containing: levelIndex), !canPlayRound(nine) else { return nil }
+        return nine
+    }
 
     /// Each course's free hole, in course order (the free course has none): Free Play's first row.
     var freeHoles: [Int] {
@@ -346,7 +352,11 @@ final class GameModel {
         }
     }
 
-    func next() { start(level: levelIndex + 1) }
+    /// Free Play's Next: the next hole in course order that can be played, skipping locked ones (so a free hole leads
+    /// to the next course's), or nil after the last.
+    var nextHole: Int? { (levelIndex + 1 ..< levelCount).first(where: canPlay) }
+
+    func next() { if let nextHole { start(level: nextHole) } }
 
     func setMirrored(_ on: Bool) {
         guard on != mirrored else { return }

@@ -80,8 +80,12 @@ struct GameView: View {
                             game.showScorecard = false
                         }
                     } playNext: { nine in
-                        game.closeScorecard()
-                        app.playRound(nine)
+                        if game.canPlayRound(nine) {
+                            game.closeScorecard()
+                            app.playRound(nine)
+                        } else {
+                            app.offerUnlock(.scorecard, course: game.roundNine?.id)
+                        }
                     }
                     .transition(.opacity)
                 }
@@ -721,6 +725,18 @@ private struct ResultCard: View {
                 }
                 .font(.rounded(15, .semibold))
                 .foregroundStyle(.white.opacity(0.75))
+                // A free hole of a course that needs All Courses: the rest of the course is one tap from here.
+                if let course = game.sampledCourse {
+                    Button { app.offerUnlock(.freeHole, course: course.id) } label: {
+                        Label("\(course.holes.count - 1) more holes like this in \(course.name)", systemImage: "lock.open.fill")
+                            .font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
+                            .lineLimit(1).minimumScaleFactor(0.8)
+                            .padding(.horizontal, 14).padding(.vertical, 8)
+                            .background(Capsule().fill(.white.opacity(0.1)))
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(PressStyle(scale: 0.96))
+                }
                 HStack(spacing: 12) {
                     if game.inRound {
                         PillButton(title: "Card", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 52) {
@@ -731,8 +747,9 @@ private struct ResultCard: View {
                         }
                     } else {
                         PillButton(title: "Retry", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
-                        PillButton(title: game.isLastLevel ? "Free Play" : "Next", symbol: game.isLastLevel ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
-                            if game.isLastLevel { app.backToFreePlay() } else { game.next() }
+                        let last = game.nextHole == nil
+                        PillButton(title: last ? "Free Play" : "Next", symbol: last ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
+                            if last { app.backToFreePlay() } else { game.next() }
                         }
                     }
                 }
