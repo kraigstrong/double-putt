@@ -80,8 +80,12 @@ struct GameView: View {
                             game.showScorecard = false
                         }
                     } playNext: { nine in
-                        game.closeScorecard()
-                        app.playRound(nine)
+                        if game.canPlayRound(nine) {
+                            game.closeScorecard()
+                            app.playRound(nine)
+                        } else {
+                            app.offerUnlock(.scorecard, course: game.roundNine?.id)
+                        }
                     }
                     .transition(.opacity)
                 }
