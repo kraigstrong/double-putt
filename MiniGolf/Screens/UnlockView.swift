@@ -76,9 +76,15 @@ struct UnlockView: View {
             Text("One purchase, yours to keep.").font(.rounded(15, .semibold)).foregroundStyle(.white.opacity(0.7))
         }
         .padding(.horizontal, 30)
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 10) {
-            ForEach(courses) { tile($0) }
+        // Out to the card's edges, so the row reads as one that swipes.
+        ScrollView(.horizontal) {
+            HStack(spacing: 10) {
+                ForEach(courses) { preview($0) }
+            }
         }
+        .contentMargins(.horizontal, 20, for: .scrollContent)
+        .scrollIndicators(.hidden)
+        .padding(.horizontal, -20)
         VStack(alignment: .leading, spacing: 7) {
             perk("Every course, and every one we add")
             perk("Shared with your family")
@@ -116,18 +122,29 @@ struct UnlockView: View {
             .padding(.top, 6)
     }
 
-    private func tile(_ nine: Nine) -> some View {
-        let first = GameModel.levels[nine.holes.lowerBound]
-        return VStack(spacing: 4) {
-            Color(Theme.for(first).rough)
-                .aspectRatio(1.25, contentMode: .fit)
-                .overlay {
-                    if let img = MenuArt.shared.card(first) { Image(uiImage: img).resizable().scaledToFill() }
+    /// A course as its free hole's card, the whole hole with its flags and moving parts, over the course's name.
+    private func preview(_ nine: Nine) -> some View {
+        let level = GameModel.levels[game.freeHoles.first { nine.holes.contains($0) } ?? nine.holes.lowerBound]
+        let theme = Theme.for(level)
+        return Color(theme.rough)
+            .aspectRatio(CourseArt.cardAspect, contentMode: .fit)
+            .frame(width: 140)
+            .overlay {
+                if let img = MenuArt.shared.card(level) { Image(uiImage: img).resizable().scaledToFill() }
+            }
+            .overlay {
+                LinearGradient(colors: [.clear, .clear, Color.ink.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+            }
+            .overlay(alignment: .bottomLeading) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(nine.name).font(.rounded(15, .heavy)).lineLimit(1).minimumScaleFactor(0.7)
+                    Text("\(nine.holes.count) holes · Par \(game.par(of: nine))").font(.rounded(11, .semibold))
+                        .foregroundStyle(.white.opacity(0.75))
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.18), lineWidth: 1))
-            Text(nine.name).font(.rounded(11, .heavy)).lineLimit(1).minimumScaleFactor(0.7)
-        }
+                .padding(9)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(.white.opacity(0.18), lineWidth: 1))
     }
 
     private func perk(_ text: String) -> some View {
