@@ -59,6 +59,21 @@ EOF
 [ -n "$plan" ] || { echo "$device's listing has none of those shots" >&2; exit 1; }
 mkdir -p "$DIR"
 [ "$device" = iphone ] && mkdir -p "$OUT/screenshots-6.5"
+# The whole listing: stills of shots it no longer has go, so the folder is exactly the listing (frames.py and
+# push.py take a folder as one device's set).
+if [ $# -eq 0 ]; then
+    keep=$(awk '{ print $1 ".png" }' <<< "$plan")
+    dirs=("$DIR")
+    [ "$device" = iphone ] && dirs+=("$OUT/screenshots-6.5")
+    for dir in "${dirs[@]}"; do
+        for file in "$dir"/*.png; do
+            [ -e "$file" ] || continue
+            grep -qxF "$(basename "$file")" <<< "$keep" && continue
+            rm -f "$file"
+            echo "removed ${file#"$OUT/"}: not in $device's listing"
+        done
+    done
+fi
 build_and_install
 failed=0
 # One launch per clip and pose, saving all of its stills.
