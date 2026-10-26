@@ -33,8 +33,8 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
 - **Drag anywhere** and pull back to aim. The aim stays when you let go — re-drag as often as you like.
 - **‹ ›** nudge the aim (hold to repeat). Drag the **power bar** or use its **+ / −**.
 - **Same / Mirror** picks how the swing maps onto green B's ball. **Putt** fires — nothing fires by accident.
-- The guide shows each ball's direction and first bounce (or tunnel) only — never where it stops. It runs straight
-  over slopes (reading them is your job) and reaches further the firmer you putt.
+- The guide points each ball's way up to its first bounce (or tunnel). Where it stops is yours to work out. It runs
+  straight over slopes (reading them is your job) and reaches further the firmer you putt.
 - Any ball can drop in any cup (one ball per cup). Water = +1 and the ball goes back.
 - Each green is scored on its own; a hole's par is the sum of its two greens' pars (2 or 3 each).
 - A round is played as it lies: there's no restarting a hole. Free Play has Retry and Restart Hole.

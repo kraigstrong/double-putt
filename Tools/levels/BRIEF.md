@@ -12,9 +12,9 @@ played as a round. About ten courses are planned, each a little harder than the 
   green) is fine.
 - Scoring is per side: every swing counts as a stroke on each side whose ball is still out. Par per side is 2 or 3.
   A **double ace** (both in on the first swing) is the jackpot and wins that hole's trophy.
-- The aim guide only shows each ball's direction and first bounce — never where it stops. It runs straight (slopes
-  and surfaces don't bend or slow it), ignores movers, and reaches further for a firmer putt. So
-  the puzzle is reasoning about angles, banks, power, timing and mechanics.
+- The aim guide points each ball's way up to its first bounce and no further: where it stops is the player's to work
+  out. It runs straight (slopes and surfaces don't bend or slow it), ignores movers, and reaches further for a firmer
+  putt. So the puzzle is reasoning about angles, banks, power, timing and mechanics.
 
 ## Read these first
 - `MiniGolf/Core/Levels.swift` — the `Level` builder API, the course lineup, and the first holes (good examples:
