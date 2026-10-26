@@ -144,6 +144,8 @@ final class GameModel {
 
     @ObservationIgnored weak var scene: GameScene?
     @ObservationIgnored let analytics = Analytics()
+    /// The All Courses purchase.
+    let purchases = Purchases()
     /// The tips were asked for again (How to Play), so they're generic: the Mirror tip doesn't depend on the hole.
     @ObservationIgnored private var replayingTips = false
     /// First swing of the last attempt, restored on Retry so you can tweak it.

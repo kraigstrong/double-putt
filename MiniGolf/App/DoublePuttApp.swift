@@ -45,6 +45,7 @@ final class AppState {
         game.scene = scene
         SoundFX.shared.start()
         game.analytics.launched()
+        game.purchases.start()
         #if DEBUG
         // Launch args for testing, e.g. `-level 3 -aim 70.25,0.71,mirror -guide full`
         let d = UserDefaults.standard
