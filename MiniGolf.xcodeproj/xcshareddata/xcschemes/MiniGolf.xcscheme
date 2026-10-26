@@ -42,5 +42,8 @@
             ReferencedContainer = "container:MiniGolf.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../../DoublePutt.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
 </Scheme>
