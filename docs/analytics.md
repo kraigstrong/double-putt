@@ -2,8 +2,9 @@
 
 Anonymous gameplay counts, modeled on Bigger Fish's (`bigger-fish/BiggerFish/ArcadeAnalytics.swift` and
 BrightBench's `apps/marketing/src/lib/bigger-fish-analytics.ts`). They answer two questions: **which holes are too
-hard or too easy** for real players (strokes against par, attempts, double aces), and **how players move through
-the courses** (rounds started and finished, medals, unlocks, where they stop).
+hard or too easy** for real players (strokes against par, attempts, double aces), **how players move through
+the courses** (rounds started and finished, medals, where they stop), and **where the purchase screen is seen**
+(never whether anything was bought: App Store Connect counts sales).
 
 No user, install, session or device IDs and no client timestamps are ever sent. Per-install facts (first launch,
 which holes this install has finished, attempt counts) are kept on the device only, to decide what to send.
@@ -100,6 +101,21 @@ and leaving without swinging sends nothing and isn't numbered.
 | `medal` | `finished` only: `none`, `bronze`, `silver` or `gold` |
 | `best` | `finished` only: `true` if it's this install's best round of the course |
 
+### `unlock` (the purchase screen opened)
+```json
+{ "kind": "unlock", "source": "free_hole", "course": "midway", "first": false }
+{ "kind": "unlock", "source": "settings", "first": true }
+```
+| Field | Rule |
+|---|---|
+| `source` | what opened it: `scorecard` (a finished round's Up next), `free_hole` (a free hole's result card), `course` (a locked course on Courses), `hole` (a locked hole in Free Play), `trophy` (a locked hole on the Trophy Shelf), `settings` (Unlock All Holes), `round` (Continue on a round of a locked course) |
+| `course` | the course it was opened about: present for every source but `settings`, and absent for `settings`. For `scorecard` it's the round just finished |
+| `first` | `true` the first time this install sees the purchase screen, from anywhere |
+
+Schema 2 only. Nothing about the purchase itself (bought, cancelled, restored) is ever sent, so the App Privacy label
+stays Product Interaction only. An event whose `course` doesn't fit its `source` isn't sent, since the server would
+turn away its whole batch.
+
 ## Schema 1
 TestFlight builds 1–3 called a hole a pair, and send `"schema": 1` with every other rule the same:
 `"kind": "pair"`, a context of `{ course, pair, slug, revision }`, `"name": "pair_finished"`, and `pair` on a
@@ -112,5 +128,6 @@ Per build and channel, for the chosen days (counters kept 90 days):
   finished at or under par, double aces, mean attempts before a first finish, water per attempt, the share of
   swings in Mirror, and quits. Sort by "strokes over par" to spot the hardest holes.
 - **Courses:** rounds started (and first-time starts), left (by hole, to see where players stop), finished,
-  medals, and unlocks.
+  medals, and (from builds before 1.0) unlocks.
+- **Purchase screen:** views and first views by source and by course, to set against App Store Connect's sales.
 - **Installs:** first launches.

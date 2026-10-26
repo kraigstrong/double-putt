@@ -111,6 +111,7 @@ final class AppState {
     /// Open the purchase screen over the screen that's showing.
     func offerUnlock(_ source: UnlockOffer.Source, course: String? = nil) {
         unlockOffer = UnlockOffer(source: source, course: course)
+        game.analytics.unlockShown(source: source.rawValue, course: source == .settings ? nil : course)
     }
 
     func toggleSound() {

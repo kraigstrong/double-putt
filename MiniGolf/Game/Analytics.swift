@@ -14,7 +14,7 @@ struct HoleContext: Codable, Equatable {
 }
 
 struct AnalyticsEvent: Codable, Equatable {
-    enum Kind: String, Codable { case milestone, hole, round }
+    enum Kind: String, Codable { case milestone, hole, round, unlock }
 
     /// A hole attempt's strokes per side, or a finished round's total.
     enum Strokes: Codable, Equatable {
@@ -58,6 +58,7 @@ struct AnalyticsEvent: Codable, Equatable {
     var hole: Int?
     var medal: String?
     var best: Bool?
+    var source: String?
 }
 
 struct AnalyticsBatch: Codable {
@@ -334,6 +335,20 @@ final class Analytics {
         case .gold: "gold"
         }
         event.best = best
+        enqueue(stamp(event))
+    }
+
+    /// The purchase screen opened. `source` is what opened it (`UnlockOffer.Source`), and `course` the course it was
+    /// opened about: the server takes one for every source but `settings` and none for `settings`, and turns away the
+    /// whole batch otherwise, so a mismatch isn't sent.
+    func unlockShown(source: String, course: String?) {
+        guard enabled, (source == "settings") == (course == nil) else { return }
+        let firstKey = prefix + "unlock.shown"
+        var event = AnalyticsEvent(kind: .unlock)
+        event.source = source
+        event.course = course
+        event.first = !defaults.bool(forKey: firstKey)
+        defaults.set(true, forKey: firstKey)
         enqueue(stamp(event))
     }
 
