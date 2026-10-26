@@ -86,6 +86,12 @@ final class AppState {
         #endif
     }
 
+    /// The menu art is ready, so the screens can show. A new player starts on How to Play.
+    func artLoaded() {
+        artReady = true
+        if !game.tutorialDone && screen == .title { startTutorial(returningTo: .title) }
+    }
+
     /// How to Play, from its first lesson.
     func startTutorial(returningTo screen: Screen) {
         tutorialReturn = screen

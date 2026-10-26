@@ -34,7 +34,7 @@ struct LoadingView: View {
             .task {
                 // The title's backdrop is drawn for this size, which is the title screen's too.
                 await MenuArt.shared.prepare(GameModel.levels, screen: geo.size, scale: scale) { progress = $0 }
-                withAnimation(.easeInOut(duration: 0.35)) { app.artReady = true }
+                withAnimation(.easeInOut(duration: 0.35)) { app.artLoaded() }
             }
         }
         .task {
