@@ -11,6 +11,7 @@ appstore/
     ├── app/<locale>/<field>.txt            # name, subtitle, promotional_text, description, keywords,
     │                                       # release_notes, support_url, marketing_url, privacy_policy_url
     ├── iap/all-courses/<locale>/           # the All Courses purchase: name.txt, description.txt
+    ├── review_notes.txt                    # notes for App Review, sent with the version
     └── testflight/
         ├── <locale>/description.txt        # the Beta App Description testers see
         ├── <locale>/what_to_test.txt       # each build's What to Test
@@ -36,6 +37,9 @@ python3 appstore/push.py media --app double-putt --screenshots DIR DIR --creativ
   with `--only promotional_text`.
 - **Edited something in App Store Connect's website?** Copy it back into the file, or the next push overwrites it.
 - **An app's first version has no What's New**, so `release_notes.txt` waits for the second.
+- **App Review's notes** go out with `push` (`--only review_notes` for just those), with the review contact from
+  the 1Password Environment (`ASCC_REVIEW_*`, the same as Beta App Review's) and no sign-in needed. Contact details
+  that aren't set are left as they are in App Store Connect.
 - **validate checks**: the character limits (name and subtitle 30, promotional text 170, keywords 100, description
   and What's New 4000), https links, no space after a keyword's comma, and no keyword that's already in the name or
   subtitle (those are searched anyway).
