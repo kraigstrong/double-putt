@@ -11,13 +11,13 @@
   ],
   "devices": {
     "about": "Each device's listing (screenshots.sh --device), in order: the shots above as its capture simulator shows them (\"size\"), or name@pose laid out in one of its poses instead (-canvas at that size, saved at \"size\"). App Store Connect takes up to 10 a device. Its iPhone Duo slot takes either screen in one set, so the Duo's leads with the inner screen, opened like a book (which a simulator can't do from the command line), then the outer one, closed, as the Duo's simulator boots.",
-    "iphone": {"size": "1320x2868", "shots": ["one-swing", "windmill", "springboard", "slopes", "space", "double-ace", "trophies"]},
-    "ipad": {"size": "2064x2752", "shots": ["one-swing", "windmill", "springboard", "slopes", "space", "double-ace", "trophies"]},
+    "iphone": {"size": "1320x2868", "shots": ["one-swing", "double-ace", "trophies", "windmill", "springboard", "slopes", "space"]},
+    "ipad": {"size": "2064x2752", "shots": ["one-swing", "double-ace", "trophies", "windmill", "springboard", "slopes", "space"]},
     "duo": {
       "size": "1398x2034",
       "poses": {"open": {"canvas": "951x669", "size": "2853x2007"}},
-      "shots": ["one-swing@open", "windmill@open", "springboard@open", "slopes@open", "space@open", "double-ace@open",
-                "trophies@open", "one-swing", "windmill", "double-ace"]
+      "shots": ["one-swing@open", "double-ace@open", "trophies@open", "windmill@open", "springboard@open", "slopes@open",
+                "space@open", "one-swing", "double-ace", "windmill"]
     }
   }
 }
