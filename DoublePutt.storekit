@@ -1,0 +1,38 @@
+{
+  "identifier" : "D0F1A5C1",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : true,
+      "internalID" : "6823401930",
+      "localizations" : [
+        {
+          "description" : "Every hole, and every course to come.",
+          "displayName" : "All Courses",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.kraigstrong.doubleputt.fullgame",
+      "referenceName" : "Unlock every course",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

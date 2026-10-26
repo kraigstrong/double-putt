@@ -290,6 +290,17 @@ enum Levels {
     /// builds play them: TestFlight and App Store builds leave them out.
     static let inDevelopment: Set<String> = ["muni"]
 
+    /// Free to try: every hole of this course, and one hole of each other course (`freeHoles`). The All Courses
+    /// purchase opens the rest.
+    static let freeCourse = "daybreak"
+
+    /// Each course's free hole, by course id: one of the friendlier holes in its course, and where it could be, one
+    /// the store page shows. `solve.sh --verify` checks every released course but the free one has one.
+    static let freeHoles: [String: String] = [
+        "nightfall": "Windmill", "thunderhead": "Sundial", "midway": "Springboard", "bigtop": "Juggler",
+        "fireworks": "Sparkler", "links": "Two Tiers", "stadium": "Grandstand", "starbase": "Teleporter",
+    ]
+
     /// The holes and nines a player gets: the whole lineup in Debug builds, and without the courses still in
     /// development otherwise. (`course` and `nines` are always the whole lineup, for the solver.)
     static let playable: (course: [Level], nines: [Nine]) = {

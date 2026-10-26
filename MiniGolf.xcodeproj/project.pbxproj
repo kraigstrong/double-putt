@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		D0F1A0000000000000000004 /* DoublePutt.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json.storekit; path = DoublePutt.storekit; sourceTree = "<group>"; };
 		D0F1A0000000000000000003 /* MiniGolf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MiniGolf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -33,6 +34,7 @@
 			isa = PBXGroup;
 			children = (
 				D0F1A0000000000000000010 /* MiniGolf */,
+				D0F1A0000000000000000004 /* DoublePutt.storekit */,
 				D0F1A0000000000000000002 /* Products */,
 			);
 			sourceTree = "<group>";

@@ -10,6 +10,7 @@ appstore/
 └── double-putt/
     ├── app/<locale>/<field>.txt            # name, subtitle, promotional_text, description, keywords,
     │                                       # release_notes, support_url, marketing_url, privacy_policy_url
+    ├── iap/all-courses/<locale>/           # the All Courses purchase: name.txt, description.txt
     └── testflight/
         ├── <locale>/description.txt        # the Beta App Description testers see
         ├── <locale>/what_to_test.txt       # each build's What to Test
@@ -105,6 +106,26 @@ python3 appstore/push.py media --app double-putt --dry-run --preview build/captu
 
 The dry run lists each device's set, its sizes, and how many screenshots or previews it replaces. Run it again without
 `--dry-run` to upload.
+
+## The purchase
+
+Double Putt is free to try, with one purchase, **All Courses** (`com.kraigstrong.doubleputt.fullgame`): a
+non-consumable at $4.99 with Family Sharing on, that opens every hole past the free ones, courses added later
+included. Its settings are `PURCHASE_SETUP` in `push.py`, and its display name and description are in
+`double-putt/iap/all-courses/` (30 and 45 characters at most). The product ID is permanent once created, and Family
+Sharing can't be turned off once it's on.
+
+```bash
+python3 appstore/push.py purchase --app double-putt --dry-run                        # what it would create or fill in
+python3 appstore/push.py purchase --app double-putt --screenshot FILE                # the purchase screen, for App Review
+```
+
+`purchase` creates the purchase if App Store Connect doesn't have it, then fills in what's missing: its text, its
+price, its availability (the app's own territories, so set the app's availability first), and the review
+screenshot. It never changes a price or availability that's already set. Later text edits go out with `push`
+(`--only iap` for just those). The first purchase is reviewed together with the app version it's submitted with,
+and nothing can be bought until the Paid Apps Agreement, tax and banking are done in App Store Connect.
+Xcode runs buy it from `DoublePutt.storekit` at the repo root (the scheme's StoreKit configuration) instead.
 
 ## Credentials
 

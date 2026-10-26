@@ -144,6 +144,8 @@ final class GameModel {
 
     @ObservationIgnored weak var scene: GameScene?
     @ObservationIgnored let analytics = Analytics()
+    /// The All Courses purchase.
+    let purchases = Purchases()
     /// The tips were asked for again (How to Play), so they're generic: the Mirror tip doesn't depend on the hole.
     @ObservationIgnored private var replayingTips = false
     /// First swing of the last attempt, restored on Retry so you can tweak it.
@@ -172,6 +174,26 @@ final class GameModel {
     func par(of nine: Nine) -> Int { nine.holes.reduce(0) { $0 + par(of: Self.levels[$1]) } }
     func bestRound(_ nine: Nine) -> Int? { bestRounds[nine.id] }
     func medal(_ nine: Nine) -> Medal { Medal(round: bestRound(nine), par: par(of: nine)) }
+
+    // MARK: Free to try
+
+    /// Free without All Courses: every hole of the free course, and each other course's free hole.
+    func isFree(_ index: Int) -> Bool {
+        guard let nine = nine(containing: index) else { return true }
+        return nine.id == Levels.freeCourse || Levels.freeHoles[nine.id] == Self.levels[index].name
+    }
+
+    /// A round of the whole course can be played: All Courses, the free course, dev mode, or a course still in
+    /// development (Debug builds only).
+    func canPlayRound(_ nine: Nine) -> Bool {
+        purchases.ownsAllCourses || devMode || nine.id == Levels.freeCourse || Levels.inDevelopment.contains(nine.id)
+    }
+
+    /// The hole can be played, on its own or in a round.
+    func canPlay(_ index: Int) -> Bool {
+        guard let nine = nine(containing: index) else { return true }
+        return isFree(index) || canPlayRound(nine)
+    }
 
     /// The course after this one in the list, if any: the scorecard's Up next.
     func nine(after nine: Nine) -> Nine? {

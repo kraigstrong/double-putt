@@ -45,13 +45,16 @@ API = "https://api.appstoreconnect.apple.com"
 
 # Each app: where its Apple ID comes from, and its in-app purchases (folder under iap/ -> product ID).
 APPS = {
-    "double-putt": {"app_id_env": "ASCC_APP_ID_DOUBLE_PUTT", "iap": {}},
+    "double-putt": {"app_id_env": "ASCC_APP_ID_DOUBLE_PUTT",
+                    "iap": {"all-courses": "com.kraigstrong.doubleputt.fullgame"}},
 }
 
 # How `purchase` sets up each in-app purchase, by product ID. The product ID is permanent once created, and Family
 # Sharing can't be turned off once it's on. The price is in US dollars, the base territory; Apple sets the others.
-# Double Putt has none yet.
-PURCHASE_SETUP: dict[str, dict] = {}
+PURCHASE_SETUP: dict[str, dict] = {
+    "com.kraigstrong.doubleputt.fullgame": {"reference_name": "Unlock every course", "type": "NON_CONSUMABLE",
+                                            "price": "4.99", "family_sharable": True},
+}
 
 # Listing fields: file name -> (where App Store Connect keeps it, its attribute, character limit). Version
 # localizations hold what can change with each version; app info localizations hold the name and subtitle.
