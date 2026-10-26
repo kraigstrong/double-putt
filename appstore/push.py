@@ -37,6 +37,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import Counter
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -379,8 +380,12 @@ def check() -> int:
 
 SCREENSHOT, HEADER, SEARCH = "APP_SCREENSHOT", "PRODUCT_PAGE_HEADER_ASSET", "APP_STORE_SEARCH_RESULTS_ASSET"
 PREVIEW = "APP_PREVIEW"
-# The app preview goes to the 6.9" and 6.3" iPhones; Apple fills in smaller sizes from these.
-PREVIEW_GROUPS = ("IPHONE_DYNAMIC_ISLAND_LARGE_PROFILE", "IPHONE_DYNAMIC_ISLAND_MEDIUM_PROFILE")
+# The app preview goes to the 6.9" and 6.3" iPhones, and the iPhone Duo, which takes the same 886x1920 video; Apple fills
+# in smaller iPhones from these. (An iPad preview is a 1200x1600 or 1600x1200 video of its own.)
+PREVIEW_GROUPS = ("IPHONE_DYNAMIC_ISLAND_LARGE_PROFILE", "IPHONE_DYNAMIC_ISLAND_MEDIUM_PROFILE", "IPHONE_DUO_PROFILE")
+# A size that fits more than one device goes to the first of these it fits: 2048x2732 fits the 13" iPad and the 12.9",
+# and the 13" is the one App Store Connect requires (it scales those down for the smaller iPads).
+PREFERRED_GROUPS = ("IPAD_13_PROFILE",)
 VIDEO_SUFFIXES = {".mp4", ".m4v", ".mov"}
 
 
@@ -417,6 +422,8 @@ def media(app: str, locale: str, folders: list[Path], creatives: dict[str, Path]
     specs = {s["specId"]: s for s in ref["imageSpecs"]}
 
     def groups_for(kind: str, width: int, height: int) -> list[str]:
+        """The devices a file of that size and placement can go to, from Apple's reference data (so any device App Store
+        Connect takes, the iPad and iPhone Duo included): the preferred one first."""
         out = []
         for placement in ref["placementTypes"]:
             if placement["placementTypeId"] != kind:
@@ -427,19 +434,30 @@ def media(app: str, locale: str, folders: list[Path], creatives: dict[str, Path]
                     if d.get("minWidth", 0) <= width <= d.get("maxWidth", 0) and d.get("minHeight", 0) <= height <= d.get("maxHeight", 0):
                         out.append(mapping["placementGroupId"])
                         break
-        return out
+        return sorted(out, key=lambda group: group not in PREFERRED_GROUPS)
 
-    # What goes where: (placement type, group) -> files in order.
+    # What goes where: (placement type, group) -> files in order. A folder is one device's set, which can mix sizes the
+    # device takes (an iPhone Duo's closed and opened screens, upright or sideways).
     plan: dict[tuple[str, str], list[Path]] = {}
+    sizes: dict[Path, str] = {}
     for folder in folders:
-        for path in sorted(folder.glob("*.png")):
+        paths = sorted(folder.glob("*.png"))
+        if not paths:
+            raise SystemExit(f"{folder}: no PNGs")
+        placed: dict[str, Path] = {}
+        for path in paths:
             width, height, alpha = png_info(path)
             if alpha:
                 raise SystemExit(f"{path}: has an alpha channel, which App Store Connect refuses")
             groups = groups_for(SCREENSHOT, width, height)
             if not groups:
                 raise SystemExit(f"{path}: {width}x{height} isn't an App Store screenshot size")
+            placed.setdefault(groups[0], path)
+            sizes[path] = f"{width}x{height}"
             plan.setdefault((SCREENSHOT, groups[0]), []).append(path)
+        if len(placed) > 1:
+            raise SystemExit(f"{folder}: one device's set per folder, but it has "
+                             + " and ".join(f"{group} ({path.name}, {sizes[path]})" for group, path in placed.items()))
     for kind, creative in creatives.items():
         width, height, alpha = png_info(creative)
         if alpha:
@@ -478,7 +496,9 @@ def media(app: str, locale: str, folders: list[Path], creatives: dict[str, Path]
 
     current = {key: existing(*key) for key in plan}
     for (kind, group), files in plan.items():
-        print(f"  {kind} {group}: replace {len(current[(kind, group)])} with {len(files)}: "
+        counts = Counter(sizes[p] for p in files if p in sizes)
+        print(f"  {kind} {group}: replace {len(current[(kind, group)])} with {len(files)}"
+              + (f" ({', '.join(f'{n} at {size}' for size, n in counts.items())})" if counts else "") + ": "
               + ", ".join(p.name for p in files) + (f" (poster at {poster})" if kind == PREVIEW and poster else ""))
     if dry_run:
         return 0
@@ -901,7 +921,8 @@ def main() -> int:
     images.add_argument("--creative", type=Path, help="a 5244x2950 PNG for the product page header and search results")
     images.add_argument("--header", type=Path, help="a 5244x2950 PNG for the product page header only")
     images.add_argument("--search", type=Path, help="a 5244x2950 PNG for the search results asset only")
-    images.add_argument("--preview", type=Path, help="the app preview video (1920x886), for the 6.9\" and 6.3\" iPhones")
+    images.add_argument("--preview", type=Path,
+                        help="the app preview video (886x1920), for the 6.9\" and 6.3\" iPhones and the iPhone Duo")
     images.add_argument("--poster", help="the preview's poster frame, the still shown before it plays (HH:MM:SS:FF)")
     images.add_argument("--dry-run", action="store_true", help="show what would change; write nothing")
     buy = sub.add_parser("purchase", help="create the app's in-app purchases and fill in what they're missing")
