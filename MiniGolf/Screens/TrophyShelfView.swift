@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// One trophy per hole, won with a double ace (in a round or Free Play). Each nine is a cabinet of three
-/// shelves; tapping a slot plays that hole.
+/// shelves; tapping a slot plays that hole, or for a hole that needs All Courses, opens the purchase screen.
 struct TrophyShelfView: View {
     let app: AppState
     private var game: GameModel { app.game }
@@ -87,8 +87,17 @@ struct TrophyShelfView: View {
     private func slot(_ i: Int) -> some View {
         let level = GameModel.levels[i]
         let earned = game.hasTrophy(level)
-        return Button { app.play(level: i) } label: {
+        let locked = !game.canPlay(i)
+        return Button {
+            if locked { app.offerUnlock(.trophy, course: game.nine(containing: i)?.id) } else { app.play(level: i) }
+        } label: {
             TrophyView(earned: earned, accent: Color(Theme.for(level).accent), size: 62)
+                .overlay {
+                    if locked {
+                        Image(systemName: "lock.fill").font(.system(size: 15, weight: .bold)).foregroundStyle(.white.opacity(0.55))
+                            .offset(y: -6)
+                    }
+                }
                 .padding(.top, 8)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
