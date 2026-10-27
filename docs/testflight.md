@@ -194,8 +194,8 @@ April 2027 every app built with the iOS 27.1 SDK needs them. Apple's sizes are i
      build/capture/captioned-6.5 build/capture/captioned-ipad build/capture/captioned-duo
    ```
    Add `--preview build/capture/trailer/double-putt-app-preview.mp4 build/capture/trailer/double-putt-app-preview-ipad.mp4`
-   (from `Tools/capture/trailer.sh`, and `--device ipad`) to put the app previews on the iPhones, the Duo and the
-   iPad too. See [appstore/README.md](../appstore/README.md#media).
+   (from `Tools/capture/trailer.sh`, and `--device ipad`) to put the app previews on the iPhones and the iPad too
+   (not the iPhone Duo, whose slot only takes the iPhone's sizes). See [appstore/README.md](../appstore/README.md#media).
 
 ## Test Information
 The Beta App Description and What to Test are in `appstore/double-putt/testflight/en-US/`, and the Beta App Review
