@@ -35,8 +35,9 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
   saved; a round in progress survives relaunches). A round's scorecard offers the next course (Up next).
 - **Free to try**: Daybreak and one hole of every other course are free (`Levels.freeCourse`, `Levels.freeHoles`).
   One purchase, **All Courses** ($4.99, Family Sharing on, courses added later included), opens the rest, and there
-  are no medal locks: every course it opens can be played straight away. Without it, Courses has the **Sampler**
-  under Daybreak: the free holes played back to back as a round (par 41), and Daybreak's scorecard leads into it.
+  are no medal locks: every course it opens can be played straight away. Courses has the **Sampler** under
+  Daybreak: the free holes played back to back as a round (par 41). It stays after buying, but only without All
+  Courses does Daybreak's scorecard lead into it.
   Anything locked opens the purchase screen; so do the Sampler's scorecard ("Unlock All Holes") and a free hole's
   result card ("8 more holes like this in …").
 - **Free Play** plays any hole on its own: each course is a row you swipe to pick a hole, and without All Courses a

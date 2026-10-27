@@ -105,7 +105,9 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
   the Sampler's scorecard has "Unlock All Holes", opening the purchase screen. Its whole-hole cards swipe, and show
   flags and moving parts.
 - Buying (free in the TestFlight sandbox): Unlock for $4.99 shows the sandbox sheet; afterwards the screen says
-  "Every course is open", every lock is gone, the free row disappears, and Settings shows All Courses · Unlocked. On
+  "Every course is open", every lock is gone, the free row disappears, and Settings shows All Courses · Unlocked.
+  The Sampler stays on Courses (a round of it in progress can still be finished there), and its scorecard just says
+  Done; Daybreak's Up next becomes Nightfall. On
   a second device signed in to the same Apple Account (or after deleting and reinstalling), Restore Purchase brings
   it back; in Airplane Mode it says it can't reach the App Store rather than "nothing to restore".
 - The screen doesn't dim while aiming; it sleeps normally on the title screen.
