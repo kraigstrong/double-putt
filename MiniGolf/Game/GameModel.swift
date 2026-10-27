@@ -206,6 +206,12 @@ final class GameModel {
     /// holes to play (Debug's `-tests` holes).
     var sampler: Nine? { freeHoles.isEmpty ? nil : Nine(id: Self.samplerID, name: "Sampler", holes: freeHoles) }
 
+    /// Courses lists the Sampler while some course is locked. After buying All Courses it's done its job, but a round
+    /// of it still under way keeps it there until that round ends, so Courses agrees with the title's Continue.
+    var listsSampler: Bool {
+        sampler != nil && (hasLockedCourses || round.map { $0.nine == Self.samplerID && !$0.isFinished } ?? false)
+    }
+
     /// Each course's free hole, in course order (the free course has none): Free Play's first row, and the Sampler.
     var freeHoles: [Int] {
         nines.compactMap { nine in
@@ -214,10 +220,13 @@ final class GameModel {
     }
 
     /// The scorecard's Up next: after the free course while some course is locked, the Sampler; after the Sampler,
-    /// nothing (its scorecard offers All Courses); otherwise the next course in the list.
+    /// nothing while some course is locked (its scorecard offers All Courses), else the course after the free one, so
+    /// buying leads straight into new holes; otherwise the next course in the list.
     func upNext(after nine: Nine) -> Nine? {
         if nine.id == Levels.freeCourse && hasLockedCourses, let sampler { return sampler }
-        guard nine.id != Self.samplerID, let i = nines.firstIndex(of: nine), i + 1 < nines.count else { return nil }
+        if nine.id == Self.samplerID && hasLockedCourses { return nil }
+        let after = nine.id == Self.samplerID ? Levels.freeCourse : nine.id
+        guard let i = nines.firstIndex(where: { $0.id == after }), i + 1 < nines.count else { return nil }
         return nines[i + 1]
     }
 
