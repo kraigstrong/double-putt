@@ -201,9 +201,9 @@ final class GameModel {
     /// The Sampler's id among the courses' (rounds, best rounds, analytics).
     static let samplerID = "sampler"
 
-    /// The Sampler: each course's free hole, played as a round. Courses offers it while some course is locked, but it's
-    /// always here, so a round of it saved before buying All Courses can still be finished. None when there are no free
-    /// holes to play (Debug's `-tests` holes).
+    /// The Sampler: each course's free hole, played as a round. Courses keeps it after buying All Courses, so a round
+    /// of it in progress can still be finished and its medal stays. None when there are no free holes to play (Debug's
+    /// `-tests` holes).
     var sampler: Nine? { freeHoles.isEmpty ? nil : Nine(id: Self.samplerID, name: "Sampler", holes: freeHoles) }
 
     /// Each course's free hole, in course order (the free course has none): Free Play's first row, and the Sampler.

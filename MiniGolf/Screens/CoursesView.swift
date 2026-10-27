@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Every course as a card with its par, best medal and trophies. Tapping one starts a round, or for a course that
-/// needs All Courses, opens the purchase screen. While some course is locked, the Sampler (a free hole from each)
-/// follows the free course.
+/// needs All Courses, opens the purchase screen. The Sampler (a free hole from each) follows the free course, before
+/// buying and after, so a round of it in progress, and its medal, stay in reach.
 struct CoursesView: View {
     let app: AppState
     /// Starting this nine would end the round in progress, so ask first.
@@ -28,7 +28,7 @@ struct CoursesView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 12)], spacing: 12) {
                     ForEach(Array(game.nines.enumerated()), id: \.element.id) { k, nine in
                         CourseCard(number: k + 1, nine: nine, game: game) { play(nine) }
-                        if nine.id == Levels.freeCourse && game.hasLockedCourses, let sampler = game.sampler {
+                        if nine.id == Levels.freeCourse, let sampler = game.sampler {
                             CourseCard(number: nil, nine: sampler, game: game) { play(sampler) }
                         }
                     }
