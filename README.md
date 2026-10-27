@@ -38,7 +38,8 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
   are no medal locks: every course it opens can be played straight away. Without it, Courses has the **Sampler**
   under Daybreak: the free holes played back to back as a round (par 41), and Daybreak's scorecard leads into it.
   Anything locked opens the purchase screen; so do the Sampler's scorecard ("Unlock All Holes") and a free hole's
-  result card ("8 more holes like this in …").
+  result card ("8 more holes like this in …"). Once bought, the Sampler leaves Courses, but a round of it under way
+  stays there until it's finished, and its scorecard leads into Nightfall.
 - **Free Play** plays any hole on its own: each course is a row you swipe to pick a hole, and without All Courses a
   first row holds the free holes. Next skips locked holes. A double ace on a hole, in a round or not, wins its trophy
   on the **Trophy Shelf** (one per hole).
