@@ -422,11 +422,11 @@ def check() -> int:
 
 SCREENSHOT, HEADER, SEARCH = "APP_SCREENSHOT", "PRODUCT_PAGE_HEADER_ASSET", "APP_STORE_SEARCH_RESULTS_ASSET"
 PREVIEW = "APP_PREVIEW"
-# The devices with screenshots of their own get an app preview: an 886x1920 video goes to the 6.9" and 6.5" iPhones and
-# the iPhone Duo, a 1200x1600 (or 1600x1200) one to the 13" iPad. The 6.3" iPhone has no set of its own: App Store
-# Connect shows it the 6.5"'s, and Apple fills in the smaller iPhones and iPads from these.
-PREVIEW_GROUPS = ("IPHONE_DYNAMIC_ISLAND_LARGE_PROFILE", "IPHONE_FACE_ID_LARGE_PROFILE", "IPHONE_DUO_PROFILE",
-                  "IPAD_13_PROFILE")
+# The devices with screenshots of their own get an app preview: an 886x1920 video goes to the 6.9" and 6.5" iPhones, a
+# 1200x1600 (or 1600x1200) one to the 13" iPad. The 6.3" iPhone has no set of its own: App Store Connect shows it the
+# 6.5"'s, and Apple fills in the smaller iPhones and iPads from these. The iPhone Duo gets none: its slot only takes the
+# iPhone's sizes, which sit in bars on a Duo's screens (2:3 closed, 3:2 opened), so its screenshots lead instead.
+PREVIEW_GROUPS = ("IPHONE_DYNAMIC_ISLAND_LARGE_PROFILE", "IPHONE_FACE_ID_LARGE_PROFILE", "IPAD_13_PROFILE")
 # A size that fits more than one device goes to the first of these it fits: 2048x2732 fits the 13" iPad and the 12.9",
 # and the 13" is the one App Store Connect requires (it scales those down for the smaller iPads).
 PREFERRED_GROUPS = ("IPAD_13_PROFILE",)
@@ -1007,7 +1007,7 @@ def main() -> int:
     images.add_argument("--search", type=Path, help="a 5244x2950 PNG for the search results asset only")
     images.add_argument("--preview", type=Path, nargs="*", default=[],
                         help="app preview videos, each to the devices its size fits: 886x1920 for the 6.9\" and 6.5\" "
-                             "iPhones and the iPhone Duo, 1200x1600 for the 13\" iPad")
+                             "iPhones, 1200x1600 for the 13\" iPad (the iPhone Duo gets none)")
     images.add_argument("--poster", help="the previews' poster frame, the still shown before one plays (HH:MM:SS:FF)")
     images.add_argument("--dry-run", action="store_true", help="show what would change; write nothing")
     buy = sub.add_parser("purchase", help="create the app's in-app purchases and fill in what they're missing")
