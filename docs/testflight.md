@@ -29,7 +29,7 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-hole difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
-- Version 1.0, build 7 (builds 1-5 were 0.1). Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each
+- Version 1.0, build 8 (builds 1-5 were 0.1). Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each
   upload.
 - iPhone (portrait) and iPad (either way round), from build 5; archive with Xcode 27.1, whose SDK runs the app full
   screen on iPhone Duo. Sound follows the silent switch (ambient), so it never surprises anyone.
@@ -54,12 +54,12 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by one in a PR first).
 
 1. Check out `main` at the commit you want and tag it `double-putt-vV-beta.B`, with `V` the version
-   (`MARKETING_VERSION`): `double-putt-v1.0-beta.7` for build 7.
+   (`MARKETING_VERSION`): `double-putt-v1.0-beta.8` for build 8.
 2. Archive and upload: in Xcode, the MiniGolf scheme and Any iOS Device (arm64), Product > Archive, then in the
    Organizer, Distribute App > App Store Connect > Upload. Or from the command line, with the Apple ID Xcode is
    signed in with:
    ```bash
-   V=1.0 B=7
+   V=1.0 B=8
    xcodebuild archive -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
      -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-$V-$B.xcarchive
    xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-$V-$B.xcarchive \

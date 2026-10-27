@@ -1,6 +1,7 @@
 Thanks for playing! This is the build we plan to release as 1.0, and it's free to try:
 - Daybreak and one hole of every other course are free. Play them all as a round in the Sampler, right under Daybreak in Courses, or one at a time from the first row in Free Play.
 - One purchase, All Courses, opens all 81 holes and every course we add later. In TestFlight you won't be charged, so please try buying it. Then try Restore Purchase in Settings, after reinstalling or on another device with the same Apple Account.
+- Buy partway through the Sampler and you can still finish that round; its scorecard then takes you on to Nightfall.
 - Anything locked offers the purchase: a locked course or hole, the Sampler's scorecard, and "8 more holes like this" after a free hole.
 - No more medal locks: once you have All Courses, every course is open from the start, and a finished round's scorecard takes you straight to the next course.
 
