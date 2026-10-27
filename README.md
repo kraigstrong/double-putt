@@ -317,8 +317,8 @@ Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # th
   screen's size. `appstore/push.py media` uploads each folder to its device (see `appstore/README.md`).
 - **The trailer** (`trailer/edl.json`) cuts the clips into shots with slow camera moves and big captions, then the
   end card with the wordmark: `double-putt-trailer.mp4` (1080x1920, 60 fps, for the site),
-  `double-putt-app-preview.mp4` (886x1920, 30 fps, 15-30 seconds: the App Store preview for the iPhones and the iPhone
-  Duo) and, with `--device ipad`, `double-putt-app-preview-ipad.mp4` (1200x1600, upright, for the iPad). The iPad cut
+  `double-putt-app-preview.mp4` (886x1920, 30 fps, 15-30 seconds: the App Store preview for the iPhones; the iPhone
+  Duo has none, as its slot only takes the iPhone's sizes) and, with `--device ipad`, `double-putt-app-preview-ipad.mp4` (1200x1600, upright, for the iPad). The iPad cut
   is the same edit on the iPad's footage, which plays every clip on the same clock, with each shot's `ipad` camera
   (`zoom`, `center`) where its layout needs one. The previews are in Apple's format (H.264 at 11 Mbps, stereo 256 kbps
   AAC). Each shot keeps its own game sounds, under the music if there is a track (`--music` or `TRAILER_MUSIC`); the

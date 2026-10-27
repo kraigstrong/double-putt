@@ -91,7 +91,7 @@ among the devices with a set of their own:
 
 | Video (`build/capture/trailer/`) | Size | App Store Connect |
 |---|---|---|
-| `double-putt-app-preview.mp4` | 886x1920 | iPhone 6.9", iPhone 6.5" and iPhone Duo. The 6.3" has no set of its own: it shows the 6.5"'s |
+| `double-putt-app-preview.mp4` | 886x1920 | iPhone 6.9" and iPhone 6.5". The 6.3" has no set of its own: it shows the 6.5"'s. The iPhone Duo gets no preview: its slot only takes the iPhone's sizes, which sit in bars on a Duo's screens, so its opened screenshots lead its page |
 | `double-putt-app-preview-ipad.mp4` | 1200x1600 | iPad 13"; scaled down for the smaller iPads |
 
 Both come from `Tools/capture/trailer.sh` (`--device ipad` for the iPad's), 15-30 seconds at 30 fps. The poster is a
