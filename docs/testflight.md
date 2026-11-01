@@ -29,7 +29,7 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 - [x] **Anonymous gameplay counts** (see `docs/analytics.md`): per-hole difficulty and the course funnel, no
   names or device IDs, tagged `debug` / `testflight` / `appstore`.
 - [x] **CI builds the Release configuration**, so an archive can't fail on code only Debug builds hide.
-- Version 1.0, build 8 (builds 1-5 were 0.1). Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each
+- Version 1.0, build 9 (builds 1-5 were 0.1). Bump the build number (`CURRENT_PROJECT_VERSION`) by one for each
   upload.
 - iPhone (portrait) and iPad (either way round), from build 5; archive with Xcode 27.1, whose SDK runs the app full
   screen on iPhone Duo. Sound follows the silent switch (ambient), so it never surprises anyone.
@@ -54,12 +54,12 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by one in a PR first).
 
 1. Check out `main` at the commit you want and tag it `double-putt-vV-beta.B`, with `V` the version
-   (`MARKETING_VERSION`): `double-putt-v1.0-beta.8` for build 8.
+   (`MARKETING_VERSION`): `double-putt-v1.0-beta.9` for build 9.
 2. Archive and upload: in Xcode, the MiniGolf scheme and Any iOS Device (arm64), Product > Archive, then in the
    Organizer, Distribute App > App Store Connect > Upload. Or from the command line, with the Apple ID Xcode is
    signed in with:
    ```bash
-   V=1.0 B=8
+   V=1.0 B=9
    xcodebuild archive -project MiniGolf.xcodeproj -scheme MiniGolf -configuration Release \
      -destination 'generic/platform=iOS' -archivePath .build/archives/DoublePutt-$V-$B.xcarchive
    xcodebuild -exportArchive -archivePath .build/archives/DoublePutt-$V-$B.xcarchive \
@@ -218,3 +218,4 @@ The feedback email and the review contact are personal, so they come from the 1P
 | 0.1 (5) | 2026-10-25 | `5ffaa30` (tag `double-putt-v0.1-beta.5`) | The first universal build: iPad either way round and iPhone Duo (the course turned a quarter on wide screens, the nine's scorecard and a landmark per setting beside the course, roomier menus, a redraw when the screen resizes, controls kept out of a Duo's fold, one window). Archived with Xcode 27.1 and uploaded with `xcodebuild -exportArchive`: cloud signing worked from the command line this time. What to Test set and submitted to Friends with `push.py testflight --build 5 --submit`. |
 | 1.0 (6) | 2026-10-26 | `d2ff046` (tag `double-putt-v1.0-beta.6`) | The free-to-try release candidate: Daybreak and a hole of every other course free, All Courses ($4.99) for the rest, no medal locks, purchase-screen analytics. Archived and uploaded with `xcodebuild -exportArchive`; What to Test set with `push.py testflight --build 6` (Internal only, not sent to Friends). Kraig's feedback on it led to build 7. |
 | 1.0 (7) | 2026-10-26 | `844e707` (tag `double-putt-v1.0-beta.7`) | The 1.0 candidate after Kraig's feedback on build 6: the Sampler (the free holes as a round, Daybreak's Up next), How to Play's three lessons, the purchase screen's whole-hole cards, flags and movers in the menu art, and the rating prompt. Archived and uploaded with `xcodebuild -exportArchive`; What to Test set, added to Friends and submitted for Beta App Review (the first 1.0 build to go external) with `push.py testflight --build 7 --submit`. |
+| 1.0 (8) | 2026-10-26 | `7497227` (tag `double-putt-v1.0-beta.8`) | The 1.0 candidate for App Review: build 7 plus the Sampler after buying (a round of it under way still finishes, and its scorecard leads into Nightfall). Archived and uploaded with `xcodebuild -exportArchive`; What to Test set and added to Friends with `push.py testflight --build 8 --submit`. Apple refused its Beta App Review submission while build 7 was still waiting (one build of a version in beta review at a time), so it was submitted again on 2026-10-27, once build 7 was approved. |
