@@ -42,6 +42,7 @@ final class SoundFX {
     private var splashBuffer: AVAudioPCMBuffer?
     private var aceBuffer: AVAudioPCMBuffer?
     private var doubleAceBuffer: AVAudioPCMBuffer?
+    private var trophyBuffer: AVAudioPCMBuffer?
     private var goodBuffer: AVAudioPCMBuffer?
     private var neutralBuffer: AVAudioPCMBuffer?
     private var tapBuffer: AVAudioPCMBuffer?
@@ -204,6 +205,8 @@ final class SoundFX {
 
     func doubleAce() { play(doubleAceBuffer, volume: 0.9) }
 
+    func trophyLanded() { play(trophyBuffer, volume: 0.8) }
+
     func result(good: Bool) {
         play(good ? goodBuffer : neutralBuffer, volume: good ? 0.8 : 0.7)
     }
@@ -287,6 +290,7 @@ final class SoundFX {
         splashBuffer = makeBuffer(Synth.splash(), peak: 0.7, fadeOut: 0.05)
         aceBuffer = makeBuffer(Synth.ace(), peak: 0.5, fadeOut: 0.08)
         doubleAceBuffer = makeBuffer(Synth.doubleAce(), peak: 0.5, fadeOut: 0.12)
+        trophyBuffer = makeBuffer(Synth.trophyLanded(), peak: 0.5, fadeOut: 0.05)
         goodBuffer = makeBuffer(Synth.resultGood(), peak: 0.45, fadeOut: 0.08)
         neutralBuffer = makeBuffer(Synth.resultNeutral(), peak: 0.4, fadeOut: 0.08)
         tapBuffer = makeBuffer(Synth.tap(), peak: 0.35)
@@ -301,7 +305,7 @@ final class SoundFX {
         }
         let singles: [(String, AVAudioPCMBuffer?)] = [
             ("cup", cupBuffer), ("splash", splashBuffer), ("ace", aceBuffer), ("double-ace", doubleAceBuffer),
-            ("good", goodBuffer), ("neutral", neutralBuffer), ("tap", tapBuffer), ("tick", tickBuffer),
+            ("trophy", trophyBuffer), ("good", goodBuffer), ("neutral", neutralBuffer), ("tap", tapBuffer), ("tick", tickBuffer),
         ]
         return each("putt-soft", puttSoft) + each("putt-hard", puttHard) + each("wall", wallHits)
             + each("clack", ballClacks) + singles.compactMap { name, buffer in buffer.map { (name, $0) } }
@@ -555,6 +559,15 @@ private enum Synth {
         t.bell(659.26, at: 0.0, amp: 0.5, tau: 0.16)
         t.bell(783.99, at: 0.1, amp: 0.5, tau: 0.16)
         t.bell(1046.50, at: 0.2, amp: 0.6, tau: 0.26)
+        return t.data
+    }
+
+    /// A small brass cup set down on a wooden shelf: a soft knock under a bright ting.
+    static func trophyLanded() -> [Float] {
+        var t = Track(0.4)
+        t.tone(196, at: 0, amp: 0.4, tau: 0.03, attack: 0.001, wave: .triangle)
+        t.bell(1760, at: 0.004, amp: 0.3, tau: 0.08)
+        t.bell(2637.02, at: 0.012, amp: 0.18, tau: 0.11)
         return t.data
     }
 

@@ -690,106 +690,167 @@ private struct ResultCard: View {
     /// Moves the card sideways (off a crease down the middle); the dimming still covers the screen.
     var shift: CGFloat = 0
     @State private var shown = false
+    // A new trophy's way to the shelf: where it sets off from and lands, and how far along it is.
+    @State private var trophyFrame = CGRect.zero
+    @State private var slotFrame = CGRect.zero
+    @State private var flight: CGFloat = 0
+    @State private var flying = false
+    @State private var landed = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    fileprivate static let space = "resultCard"
     private var game: GameModel { app.game }
+
+    /// The cabinet a new trophy goes into.
+    private var newTrophyNine: Nine? { game.newTrophy ? game.nine(containing: game.levelIndex) : nil }
+
+    /// No flight or bounce: for Reduce Motion, and for a store capture, which steps its own clock.
+    private var plainLanding: Bool {
+        #if DEBUG
+        if StoreCapture.isActive { return true }
+        #endif
+        return reduceMotion
+    }
+
+    /// A new trophy shows on the card, then flies to its empty slot on the shelf and lands with a clink.
+    private func flyNewTrophy() async {
+        guard newTrophyNine != nil else { return }
+        #if DEBUG
+        if StoreCapture.isActive {
+            landed = true
+            return
+        }
+        #endif
+        try? await Task.sleep(for: .seconds(0.8))
+        guard !Task.isCancelled else { return }
+        if !plainLanding {
+            flying = true
+            withAnimation(.timingCurve(0.4, 0, 0.35, 1, duration: 0.6)) { flight = 1 }
+            try? await Task.sleep(for: .seconds(0.6))
+            guard !Task.isCancelled else { return }
+            flying = false
+        }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) { landed = true }
+        SoundFX.shared.trophyLanded()
+    }
 
     var body: some View {
         ZStack {
             Color.black.opacity(0.45).ignoresSafeArea()
-            VStack(spacing: 14) {
-                // Holes earn a trophy for a double ace (medals are for nine-hole rounds); lessons don't.
-                if game.strokes == [1, 1] && game.lesson == nil {
-                    VStack(spacing: 8) {
-                        TrophyView(accent: Color(game.theme.accent), size: 92)
-                            .scaleEffect(shown ? 1 : 0.2)
-                            .rotationEffect(.degrees(shown ? 0 : -40))
-                        if game.newTrophy {
-                            Text("NEW TROPHY")
-                                .font(.rounded(12, .black)).tracking(1.2)
-                                .fixedSize()
-                                // Tracking also pads after the last letter; even it out so the text sits centered.
-                                .padding(.leading, 11).padding(.trailing, 10).padding(.vertical, 5)
-                                .background(Capsule().fill(Color.putt))
-                                .foregroundStyle(Color.ink)
-                                .opacity(shown ? 1 : 0)
-                        }
-                    }
+            VStack(spacing: 12) {
+                if let nine = newTrophyNine {
+                    TrophyPanel(game: game, nine: nine, landed: landed, pops: !plainLanding, slotFrame: $slotFrame)
                 }
-                Text(game.resultTitle)
-                    .font(.rounded(36, .black))
-                    .foregroundStyle(game.strokes == [1, 1] ? Color.putt : .white)
-                HStack(spacing: 34) {
-                    score(0)
-                    score(1)
-                }
-                HStack(spacing: 6) {
-                    Text("Total \(game.total) · Par \(game.par)" + (game.inRound ? " · Round \(game.roundToPar.map(GameModel.toPar) ?? "E")" : ""))
-                    if game.newBest {
-                        Text("NEW BEST")
-                            .font(.rounded(11, .black)).tracking(1)
-                            .padding(.horizontal, 8).padding(.vertical, 4)
-                            .background(Capsule().fill(Color(game.theme.accent)))
-                            .foregroundStyle(Color.ink)
-                    } else if let best = game.best {
-                        Text("· Best \(best)")
-                    }
-                }
-                .font(.rounded(15, .semibold))
-                .foregroundStyle(.white.opacity(0.75))
-                if let lesson = game.lesson {
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Image(systemName: "lightbulb.fill").foregroundStyle(Color.putt)
-                        Text(lesson.takeaway).fixedSize(horizontal: false, vertical: true)
-                        Spacer(minLength: 0)
-                    }
-                    .font(.rounded(16, .bold))
-                    .foregroundStyle(.white)
-                    .padding(14)
-                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.white.opacity(0.1)))
-                }
-                // A free hole of a course that needs All Courses: the rest of the course is one tap from here.
-                if let course = game.sampledCourse {
-                    Button { app.offerUnlock(.freeHole, course: course.id) } label: {
-                        Label("\(course.holes.count - 1) more holes like this in \(course.name)", systemImage: "lock.open.fill")
-                            .font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
-                            .lineLimit(1).minimumScaleFactor(0.8)
-                            .padding(.horizontal, 14).padding(.vertical, 8)
-                            .background(Capsule().fill(.white.opacity(0.1)))
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(PressStyle(scale: 0.96))
-                }
-                if let lesson = game.lesson {
-                    lessonButtons(lesson).padding(.top, 6)
-                } else {
-                    HStack(spacing: 12) {
-                        if game.inRound {
-                            PillButton(title: "Card", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 52) {
-                                game.showScorecard = true
-                            }
-                            PillButton(title: game.isLastInRound ? "Finish" : "Next", symbol: game.isLastInRound ? "flag.checkered" : "arrow.right", fill: .putt, height: 52) {
-                                game.nextInRound()
-                            }
-                        } else {
-                            PillButton(title: "Retry", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
-                            let last = game.nextHole == nil
-                            PillButton(title: last ? "Free Play" : "Next", symbol: last ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
-                                if last { app.backToFreePlay() } else { game.next() }
-                            }
-                        }
-                    }
-                    .padding(.top, 6)
-                }
+                card
             }
-            .frame(maxWidth: PauseMenu.maxWidth)
-            .padding(26)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
-            .padding(.horizontal, 26)
             .offset(x: shift)
             .scaleEffect(shown ? 1 : 0.9)
             .opacity(shown ? 1 : 0)
+            if newTrophyNine != nil {
+                TrophyView(accent: Color(game.theme.accent), size: trophyFrame.height)
+                    .modifier(TrophyFlight(progress: flight, from: trophyFrame, to: slotFrame))
+                    .opacity(flying ? 1 : 0)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .allowsHitTesting(false)
+            }
         }
+        .coordinateSpace(.named(Self.space))
         .onAppear { withAnimation(.spring(response: 0.5, dampingFraction: 0.65)) { shown = true } }
+        .task { await flyNewTrophy() }
+    }
+
+    private var card: some View {
+        VStack(spacing: 14) {
+            // Holes earn a trophy for a double ace (medals are for nine-hole rounds); lessons don't.
+            if game.strokes == [1, 1] && game.lesson == nil {
+                VStack(spacing: 8) {
+                    // Smaller beside the cabinet, so both fit on a short screen.
+                    TrophyView(accent: Color(game.theme.accent), size: newTrophyNine == nil ? 92 : 72)
+                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.space)) } action: { trophyFrame = $0 }
+                        .scaleEffect(shown ? 1 : 0.2)
+                        .rotationEffect(.degrees(shown ? 0 : -40))
+                    if game.newTrophy {
+                        Text("NEW TROPHY")
+                            .font(.rounded(12, .black)).tracking(1.2)
+                            .fixedSize()
+                            // Tracking also pads after the last letter; even it out so the text sits centered.
+                            .padding(.leading, 11).padding(.trailing, 10).padding(.vertical, 5)
+                            .background(Capsule().fill(Color.putt))
+                            .foregroundStyle(Color.ink)
+                            .opacity(shown ? 1 : 0)
+                    }
+                }
+            }
+            Text(game.resultTitle)
+                .font(.rounded(36, .black))
+                .foregroundStyle(game.strokes == [1, 1] ? Color.putt : .white)
+            HStack(spacing: 34) {
+                score(0)
+                score(1)
+            }
+            HStack(spacing: 6) {
+                Text("Total \(game.total) · Par \(game.par)" + (game.inRound ? " · Round \(game.roundToPar.map(GameModel.toPar) ?? "E")" : ""))
+                if game.newBest {
+                    Text("NEW BEST")
+                        .font(.rounded(11, .black)).tracking(1)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(Capsule().fill(Color(game.theme.accent)))
+                        .foregroundStyle(Color.ink)
+                } else if let best = game.best {
+                    Text("· Best \(best)")
+                }
+            }
+            .font(.rounded(15, .semibold))
+            .foregroundStyle(.white.opacity(0.75))
+            if let lesson = game.lesson {
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Image(systemName: "lightbulb.fill").foregroundStyle(Color.putt)
+                    Text(lesson.takeaway).fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+                .font(.rounded(16, .bold))
+                .foregroundStyle(.white)
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.white.opacity(0.1)))
+            }
+            // A free hole of a course that needs All Courses: the rest of the course is one tap from here.
+            if let course = game.sampledCourse {
+                Button { app.offerUnlock(.freeHole, course: course.id) } label: {
+                    Label("\(course.holes.count - 1) more holes like this in \(course.name)", systemImage: "lock.open.fill")
+                        .font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
+                        .lineLimit(1).minimumScaleFactor(0.8)
+                        .padding(.horizontal, 14).padding(.vertical, 8)
+                        .background(Capsule().fill(.white.opacity(0.1)))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(PressStyle(scale: 0.96))
+            }
+            if let lesson = game.lesson {
+                lessonButtons(lesson).padding(.top, 6)
+            } else {
+                HStack(spacing: 12) {
+                    if game.inRound {
+                        PillButton(title: "Card", symbol: "list.number", fill: .white.opacity(0.14), text: .white, height: 52) {
+                            game.showScorecard = true
+                        }
+                        PillButton(title: game.isLastInRound ? "Finish" : "Next", symbol: game.isLastInRound ? "flag.checkered" : "arrow.right", fill: .putt, height: 52) {
+                            game.nextInRound()
+                        }
+                    } else {
+                        PillButton(title: "Retry", symbol: "arrow.counterclockwise", fill: .white.opacity(0.14), text: .white, height: 52) { game.restart() }
+                        let last = game.nextHole == nil
+                        PillButton(title: last ? "Free Play" : "Next", symbol: last ? "square.grid.3x3.fill" : "arrow.right", fill: .putt, height: 52) {
+                            if last { app.backToFreePlay() } else { game.next() }
+                        }
+                    }
+                }
+                .padding(.top, 6)
+            }
+        }
+        .frame(maxWidth: PauseMenu.maxWidth)
+        .padding(26)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
+        .padding(.horizontal, 26)
     }
 
     /// Again, or on to the next lesson. After the last, a new player goes on to the first course's round, on a button
@@ -819,6 +880,108 @@ private struct ResultCard: View {
             Text("\(game.strokes[i])").font(.rounded(34, .black).monospacedDigit())
         }
         .foregroundStyle(.white)
+    }
+}
+
+/// Above the result card when a hole earns its trophy: the course's cabinet, the trophy's slot empty (and uncounted)
+/// until it lands.
+private struct TrophyPanel: View {
+    let game: GameModel
+    let nine: Nine
+    let landed: Bool
+    /// Whether the landing bounces and rings.
+    let pops: Bool
+    @Binding var slotFrame: CGRect
+
+    var body: some View {
+        let waiting = landed ? 0 : 1
+        let won = GameModel.levels.filter(game.hasTrophy).count - waiting
+        let wonHere = nine.holes.filter { game.hasTrophy(GameModel.levels[$0]) }.count - waiting
+        VStack(spacing: 5) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(nine.name).font(.rounded(14, .black))
+                Spacer()
+                Text("\(wonHere)/\(nine.holes.count)")
+                    .font(.rounded(12, .heavy))
+                    .foregroundStyle(Color.putt)
+                    .contentTransition(.numericText())
+            }
+            TrophyCabinet(holes: nine.holes, small: true) { i in
+                slot(i)
+            } plaque: { _ in
+                EmptyView()
+            }
+            Text("\(won) of \(GameModel.levels.count) on your Trophy Shelf")
+                .font(.rounded(11, .semibold))
+                .foregroundStyle(.white.opacity(0.7))
+                .contentTransition(.numericText())
+        }
+        .foregroundStyle(.white)
+        .padding(10)
+        .frame(width: 240)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 1))
+    }
+
+    private func slot(_ i: Int) -> some View {
+        let level = GameModel.levels[i]
+        let isNew = i == game.levelIndex
+        return TrophyView(earned: game.hasTrophy(level) && (landed || !isNew), accent: Color(Theme.for(level).accent), size: 24)
+            // Swaps at once, or it would fade in after the flying trophy has gone.
+            .transaction { $0.animation = nil }
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(ResultCard.space)) } action: { frame in
+                if isNew { slotFrame = frame }
+            }
+            .keyframeAnimator(initialValue: 1.0, trigger: isNew && landed && pops) { view, scale in
+                view.scaleEffect(scale)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    CubicKeyframe(1.4, duration: 0.1)
+                    SpringKeyframe(1, duration: 0.35)
+                }
+            }
+            .background {
+                if isNew && landed && pops { LandingRing() }
+            }
+            .padding(.top, 2)
+            .frame(maxWidth: .infinity)
+    }
+}
+
+/// A ring of light that spreads and fades where a trophy lands.
+private struct LandingRing: View {
+    @State private var spread = false
+
+    var body: some View {
+        Circle()
+            .stroke(Color.putt, lineWidth: 2)
+            .frame(width: 34, height: 34)
+            .scaleEffect(spread ? 1.5 : 0.5)
+            .opacity(spread ? 0 : 0.9)
+            .onAppear { withAnimation(.easeOut(duration: 0.5)) { spread = true } }
+    }
+}
+
+/// Carries a view (laid out at the top left of the frames' coordinate space) in an arc from one frame to another,
+/// shrinking it to fit: straight up off the card, then across into its slot.
+private struct TrophyFlight: GeometryEffect {
+    var progress: CGFloat
+    let from: CGRect
+    let to: CGRect
+
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        let p = progress, q = 1 - progress
+        let x = q * q * from.midX + 2 * q * p * from.midX + p * p * to.midX
+        let y = q * q * from.midY + 2 * q * p * to.midY + p * p * to.midY
+        let scale = q + p * to.height / max(from.height, 1)
+        return ProjectionTransform(CGAffineTransform(translationX: x, y: y)
+            .scaledBy(x: scale, y: scale)
+            .translatedBy(x: -size.width / 2, y: -size.height / 2))
     }
 }
 

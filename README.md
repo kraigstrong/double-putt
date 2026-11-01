@@ -42,7 +42,8 @@ xcodebuild -project MiniGolf.xcodeproj -scheme MiniGolf -destination 'platform=i
   stays there until it's finished, and its scorecard leads into Nightfall.
 - **Free Play** plays any hole on its own: each course is a row you swipe to pick a hole, and without All Courses a
   first row holds the free holes. Next skips locked holes. A double ace on a hole, in a round or not, wins its trophy
-  on the **Trophy Shelf** (one per hole).
+  on the **Trophy Shelf** (one per hole). Each new trophy flies into its course's cabinet, above the result card, so
+  a player sees the shelf and how full it is.
 - **Rating prompt**: a round finished with two or more double aces, or double aces on three different holes in Free
   Play since the app opened, earns a moment to ask; back on the menus, the game asks Apple to show its rating prompt,
   at most once per app version. Apple decides whether it appears, and never shows it in TestFlight (Debug builds

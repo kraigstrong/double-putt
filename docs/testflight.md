@@ -92,8 +92,10 @@ On a physical iPhone, with a fresh install (and later, as an update over the pre
 - Play a few holes in a round: strokes show as numbers when balls drop; the result card shows the hole's verdict;
   finishing a round shows the scorecard and medal, and its Up next starts a round of the next course.
 - Free Play shows a row per course that swipes sideways, and keeps each row where you left it until the app quits.
-  Every card is there when it opens, and scrolling doesn't stutter. It plays any open hole; a double ace shows
-  NEW TROPHY and lands on the Trophy Shelf.
+  Every card is there when it opens, and scrolling doesn't stutter. It plays any open hole.
+- A first double ace on a hole, in a round or Free Play, shows NEW TROPHY and the course's cabinet above the result
+  card: the trophy flies into its empty slot with a clink, the counts go up, and it's there on the Trophy Shelf. A
+  second double ace on that hole shows no cabinet. With Reduce Motion on, the trophy just appears in its slot.
 - A round has no restart, in the top bar or the pause menu; Free Play still has Retry and Restart Hole.
 - Progress survives force-quitting and reopening.
 - The rating prompt can't be checked here: Apple never shows it in TestFlight. (Debug builds show it after a round
