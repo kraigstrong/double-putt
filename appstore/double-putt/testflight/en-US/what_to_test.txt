@@ -1,17 +1,9 @@
-Thanks for playing! This is the build we plan to release as 1.0, and it's free to try:
+Thanks for playing! Double Putt is almost ready for the App Store, and it's free to try:
+- You'll start with How to Play: three quick practice holes that teach aiming, Same and Mirror, and scoring. It's in Settings any time.
 - Daybreak and one hole of every other course are free. Play them all as a round in the Sampler, right under Daybreak in Courses, or one at a time from the first row in Free Play.
-- One purchase, All Courses, opens all 81 holes and every course we add later. In TestFlight you won't be charged, so please try buying it. Then try Restore Purchase in Settings, after reinstalling or on another device with the same Apple Account.
-- Buy partway through the Sampler and you can still finish that round; its scorecard then takes you on to Nightfall.
-- Anything locked offers the purchase: a locked course or hole, the Sampler's scorecard, and "8 more holes like this" after a free hole.
-- No more medal locks: once you have All Courses, every course is open from the start, and a finished round's scorecard takes you straight to the next course.
+- Anything locked offers All Courses, one purchase that opens all 81 holes and every course we add later. It'll be $4.99 on the App Store, and you won't be charged in TestFlight. Please play the free holes first, then unlock it if you want to keep going.
 
-Also new:
-- How to Play: three quick practice holes that teach aiming, Same and Mirror, and scoring. New players start there; it's in Settings any time.
-- The menus now show every hole's flags and moving parts: windmills, sliding gates, carousels, robots and force fields.
-
-If you played earlier builds, every course you saw before is now behind the purchase until you buy it in TestFlight (for free). Your scores, medals and trophies are all still there.
-
-We'd love to hear whether the free holes made you want the rest, whether anything about the purchase felt pushy or unclear, which holes felt too hard or too easy, and any bugs, crashes or sound problems. Sound follows the phone's silent switch, so turn that off to hear it.
+We'd love to hear whether the free holes made you want the rest, whether you'd pay $4.99 for them, whether anything about the purchase felt pushy or unclear, which holes felt too hard or too easy, and any bugs, crashes or sound problems. Sound follows the phone's silent switch, so turn that off to hear it.
 
 To send feedback, take a screenshot while playing and share it with TestFlight, or use Send Beta Feedback in the TestFlight app.
 
