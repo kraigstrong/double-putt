@@ -72,11 +72,12 @@ Below, `B` is this upload's build number (`CURRENT_PROJECT_VERSION`, bumped by o
    ```bash
    python3 appstore/push.py testflight --app double-putt --build $B --dry-run
    ```
-   The first run also creates the Internal group (every build) and the Friends group.
+   The first run also creates any missing group: Internal (every build), Friends and Departures (departures.to's
+   testers, kept apart so their session counts can be read on their own).
 4. When it finishes processing, install from TestFlight as an internal tester and run the smoke check below.
-5. Send it to Friends: `--build $B --submit` adds it to the group and submits it for Beta App Review (the first
-   build of each version is reviewed), and turns on Friends' public link, which it prints. Share the link, or
-   invite with `--invite EMAIL`. Anyone who opens the link before the build is approved is told to wait.
+5. Send it to testers: `--build $B --submit` adds it to Friends and Departures and submits it for Beta App Review (the
+   first build of each version is reviewed), and turns on each group's public link, which it prints. Share a link, or
+   invite to Friends with `--invite EMAIL`. Anyone who opens a link before the build is approved is told to wait.
 6. Record it in the build log at the end of this file.
 
 ## Smoke check on the TestFlight build

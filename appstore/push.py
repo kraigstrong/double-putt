@@ -8,7 +8,7 @@
     python3 appstore/push.py push --app double-putt --only promotional_text,description
     python3 appstore/push.py testflight --app double-putt --dry-run    # TestFlight's test information and groups
     python3 appstore/push.py testflight --app double-putt --build 1 --dry-run           # and build 1's What to Test
-    python3 appstore/push.py testflight --app double-putt --build 1 --submit --dry-run  # to Friends, beta review
+    python3 appstore/push.py testflight --app double-putt --build 1 --submit --dry-run  # to external groups, beta review
     python3 appstore/push.py testflight --app double-putt --invite EMAIL --dry-run      # a tester, to Friends
     python3 appstore/push.py media --app double-putt --screenshots DIR [DIR ...] --creative FILE --dry-run
 
@@ -806,8 +806,11 @@ def purchase(app: str, screenshot: Path | None, dry_run: bool) -> int:
 TESTFLIGHT_LIMIT = 4000
 # Tester groups to have. An internal group (App Store Connect users) gets every build; an external one gets the builds
 # added to it, each version's first after Beta App Review. A public link lets anyone with it join, no invite needed.
+# Each place a link is shared gets its own group, so App Store Connect's session counts can be read per group. Invites
+# go to the first external group.
 TESTFLIGHT_GROUPS = [{"name": "Internal", "internal": True},
-                     {"name": "Friends", "internal": False, "public_link": True}]
+                     {"name": "Friends", "internal": False, "public_link": True},
+                     {"name": "Departures", "internal": False, "public_link": True}]
 
 
 def testflight_text(app: str) -> tuple[dict[str, dict[str, str]], str | None]:

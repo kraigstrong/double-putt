@@ -26,7 +26,7 @@ python3 appstore/push.py push --app double-putt                 # push only what
 python3 appstore/push.py push --app double-putt --only promotional_text
 python3 appstore/push.py testflight --app double-putt --dry-run                     # test information, groups
 python3 appstore/push.py testflight --app double-putt --build 4 --dry-run           # and build 4's What to Test
-python3 appstore/push.py testflight --app double-putt --build 4 --submit --dry-run  # to Friends, beta review
+python3 appstore/push.py testflight --app double-putt --build 4 --submit --dry-run  # to external groups, beta review
 python3 appstore/push.py testflight --app double-putt --invite EMAIL --dry-run      # a tester, to Friends
 python3 appstore/push.py media --app double-putt --screenshots DIR DIR --creative FILE --dry-run   # see Media
 ```
@@ -51,12 +51,13 @@ python3 appstore/push.py media --app double-putt --screenshots DIR DIR --creativ
 - **Test information**, per locale: the Beta App Description from `testflight/<locale>/description.txt`, the
   feedback email, and the listing's privacy policy (and marketing) links.
 - **Beta App Review details**: the notes from `testflight/review_notes.txt`, the contact, and no sign-in needed.
-- **Groups**: creates **Internal** (App Store Connect users, every build) and **Friends** (external) if they're
-  missing, and turns on Friends' public link (printed on each run), so anyone with the link can join.
+- **Groups**: creates **Internal** (App Store Connect users, every build), **Friends** and **Departures** (external,
+  the second for departures.to, so its testers' session counts stay separate) if they're missing, and turns on the
+  external groups' public links (printed on each run), so anyone with a link can join.
 - **`--build N`**: the newest upload with that build number gets its What to Test from
   `testflight/<locale>/what_to_test.txt`. With `--submit`, once the build has finished processing, it's added to
-  Friends and submitted for Beta App Review (the first build of each version is reviewed; later ones usually go out
-  right away).
+  the external groups and submitted for Beta App Review (the first build of each version is reviewed; later ones
+  usually go out right away).
 - **`--invite EMAIL`** (repeatable): invites a tester to Friends. Addresses come from the command line and are never
   kept in the repo. The public link works without an invite.
 
