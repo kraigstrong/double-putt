@@ -31,7 +31,7 @@ struct TrophyShelfView: View {
                                 Spacer()
                                 Text("\(won(nine.holes))/\(nine.holes.count)").font(.rounded(14, .heavy)).foregroundStyle(Color.putt)
                             }
-                            cabinet(nine.holes)
+                            TrophyCabinet(holes: nine.holes, slot: slot, plaque: plaque)
                         }
                     }
                 }
@@ -48,40 +48,6 @@ struct TrophyShelfView: View {
 
     private func won<C: Collection>(_ indices: C) -> Int where C.Element == Int {
         indices.filter { game.hasTrophy(GameModel.levels[$0]) }.count
-    }
-
-    private func cabinet(_ holes: [Int]) -> some View {
-        let rows = stride(from: 0, to: holes.count, by: 3).map { Array(holes[$0..<min($0 + 3, holes.count)]) }
-        return VStack(spacing: 14) {
-            ForEach(rows, id: \.self) { row in
-                VStack(spacing: 0) {
-                    HStack(alignment: .bottom, spacing: 0) {
-                        ForEach(row, id: \.self) { i in slot(i) }
-                    }
-                    .padding(.horizontal, 6)
-                    // The plank, with a brass plaque under each trophy.
-                    HStack(spacing: 0) {
-                        ForEach(row, id: \.self) { i in plaque(i) }
-                    }
-                    .padding(.horizontal, 6)
-                    .frame(height: 26)
-                    .background(
-                        LinearGradient(colors: [Color(UIColor(hex: 0xB07A45)), Color(UIColor(hex: 0x7A4B24)), Color(UIColor(hex: 0x5E3819))],
-                                       startPoint: .top, endPoint: .bottom)
-                    )
-                    .overlay(alignment: .top) { Rectangle().fill(Color(UIColor(hex: 0xD49A60))).frame(height: 2) }
-                    .shadow(color: .black.opacity(0.45), radius: 4, y: 4)
-                }
-            }
-        }
-        .padding(.top, 12)
-        .padding(.bottom, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(LinearGradient(colors: [Color(UIColor(hex: 0x3A2514)), Color(UIColor(hex: 0x24170D))], startPoint: .top, endPoint: .bottom))
-        )
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color(UIColor(hex: 0x8A5A2E)), lineWidth: 3))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private func slot(_ i: Int) -> some View {
@@ -123,5 +89,50 @@ struct TrophyShelfView: View {
             )
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 4)
+    }
+}
+
+/// A nine's cabinet: shelves of three, each on a wooden plank. The Trophy Shelf's are full size; a `small` one sits
+/// above the result card when a new trophy lands in it.
+struct TrophyCabinet<Slot: View, Plaque: View>: View {
+    let holes: [Int]
+    var small = false
+    @ViewBuilder let slot: (Int) -> Slot
+    @ViewBuilder let plaque: (Int) -> Plaque
+
+    var body: some View {
+        let rows = stride(from: 0, to: holes.count, by: 3).map { Array(holes[$0..<min($0 + 3, holes.count)]) }
+        let corner: CGFloat = small ? 10 : 16
+        VStack(spacing: small ? 4 : 14) {
+            ForEach(rows, id: \.self) { row in
+                VStack(spacing: 0) {
+                    HStack(alignment: .bottom, spacing: 0) {
+                        ForEach(row, id: \.self) { i in slot(i) }
+                    }
+                    .padding(.horizontal, 6)
+                    // The plank, with a brass plaque under each trophy.
+                    HStack(spacing: 0) {
+                        ForEach(row, id: \.self) { i in plaque(i) }
+                    }
+                    .padding(.horizontal, 6)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: small ? 6 : 26)
+                    .background(
+                        LinearGradient(colors: [Color(UIColor(hex: 0xB07A45)), Color(UIColor(hex: 0x7A4B24)), Color(UIColor(hex: 0x5E3819))],
+                                       startPoint: .top, endPoint: .bottom)
+                    )
+                    .overlay(alignment: .top) { Rectangle().fill(Color(UIColor(hex: 0xD49A60))).frame(height: small ? 1 : 2) }
+                    .shadow(color: .black.opacity(0.45), radius: small ? 2 : 4, y: small ? 2 : 4)
+                }
+            }
+        }
+        .padding(.top, small ? 6 : 12)
+        .padding(.bottom, small ? 6 : 14)
+        .background(
+            RoundedRectangle(cornerRadius: corner, style: .continuous)
+                .fill(LinearGradient(colors: [Color(UIColor(hex: 0x3A2514)), Color(UIColor(hex: 0x24170D))], startPoint: .top, endPoint: .bottom))
+        )
+        .overlay(RoundedRectangle(cornerRadius: corner, style: .continuous).strokeBorder(Color(UIColor(hex: 0x8A5A2E)), lineWidth: small ? 2 : 3))
+        .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
     }
 }
