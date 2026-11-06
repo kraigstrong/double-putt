@@ -7,7 +7,8 @@ How to get a Double Putt beta to friends, and what each build was. Modeled on Bi
 ### In this repo
 - [x] **App icon without an alpha channel.** App Store Connect rejects icons that have one.
 - [x] **Privacy manifest** (`MiniGolf/PrivacyInfo.xcprivacy`): UserDefaults for saved progress and settings
-  (reason CA92.1), and anonymous gameplay counts (product interaction, not linked to the player, not tracking).
+  (reason CA92.1), the system uptime clock that spaces out sounds (`Sound.swift`, reason 35F9.1, never sent off the
+  device), and anonymous gameplay counts (product interaction, not linked to the player, not tracking).
 - [x] **`ITSAppUsesNonExemptEncryption = NO`**: the only encryption is the system's HTTPS, so App Store Connect
   won't ask the export-compliance question on each upload.
 - [x] **Bundle ID `com.kraigstrong.doubleputt`** (team `MKACSCQ588`, automatic signing). Permanent once the App
