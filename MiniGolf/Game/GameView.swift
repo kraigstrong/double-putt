@@ -604,7 +604,7 @@ private struct BouncingArrow: View {
 }
 
 /// A ghost finger demonstrating the pull-back: down the screen, or to the left when the course is turned (tees on
-/// the left).
+/// the left), the finger turned with it to point at the cups.
 private struct DragDemo: View {
     let frame: CGRect
     var turned = false
@@ -614,6 +614,7 @@ private struct DragDemo: View {
         Image(systemName: "hand.point.up.left.fill")
             .font(.system(size: 44))
             .foregroundStyle(.white)
+            .rotationEffect(.degrees(turned ? 90 : 0))
             .shadow(color: .black.opacity(0.4), radius: 4, y: 2)
             .position(turned ? CGPoint(x: frame.minX + frame.width * 0.4 - (t ? 110 : 0), y: frame.midY - 30)
                              : CGPoint(x: frame.midX + 30, y: frame.minY + frame.height * 0.6 + (t ? 110 : 0)))
