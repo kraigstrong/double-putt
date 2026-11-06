@@ -62,7 +62,11 @@ struct GameView: View {
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                         .onTapGesture { withAnimation { showHint = false } }
                 }
-                if game.lessonStep == .pull { DragDemo(frame: localCourseFrame(geo), turned: game.courseTurned) }
+                if game.lessonStep == .pull {
+                    // A new demo when the course turns: the running loop keeps the way it set off, so an iPad that
+                    // lays the course sideways after the lesson opens (or is turned mid-lesson) kept pulling down.
+                    DragDemo(frame: localCourseFrame(geo), turned: game.courseTurned).id(game.courseTurned)
+                }
 
                 // Across a fold down the middle, the cards move to the left half, clear of the crease.
                 let shift = crease.map { $0.minX / 2 - geo.size.width / 2 } ?? 0
