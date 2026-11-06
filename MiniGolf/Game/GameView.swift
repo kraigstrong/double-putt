@@ -62,7 +62,11 @@ struct GameView: View {
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                         .onTapGesture { withAnimation { showHint = false } }
                 }
-                if game.lessonStep == .pull { DragDemo(frame: localCourseFrame(geo), turned: game.courseTurned) }
+                if game.lessonStep == .pull {
+                    // A new demo when the course turns: the running loop keeps the way it set off, so an iPad that
+                    // lays the course sideways after the lesson opens (or is turned mid-lesson) kept pulling down.
+                    DragDemo(frame: localCourseFrame(geo), turned: game.courseTurned).id(game.courseTurned)
+                }
 
                 // Across a fold down the middle, the cards move to the left half, clear of the crease.
                 let shift = crease.map { $0.minX / 2 - geo.size.width / 2 } ?? 0
@@ -600,7 +604,7 @@ private struct BouncingArrow: View {
 }
 
 /// A ghost finger demonstrating the pull-back: down the screen, or to the left when the course is turned (tees on
-/// the left).
+/// the left), the finger turned with it to point at the cups.
 private struct DragDemo: View {
     let frame: CGRect
     var turned = false
@@ -610,6 +614,7 @@ private struct DragDemo: View {
         Image(systemName: "hand.point.up.left.fill")
             .font(.system(size: 44))
             .foregroundStyle(.white)
+            .rotationEffect(.degrees(turned ? 90 : 0))
             .shadow(color: .black.opacity(0.4), radius: 4, y: 2)
             .position(turned ? CGPoint(x: frame.minX + frame.width * 0.4 - (t ? 110 : 0), y: frame.midY - 30)
                              : CGPoint(x: frame.midX + 30, y: frame.minY + frame.height * 0.6 + (t ? 110 : 0)))
