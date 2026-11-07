@@ -202,6 +202,12 @@ April 2027 every app built with the iOS 27.1 SDK needs them. Apple's sizes are i
    Add `--preview build/capture/trailer/double-putt-app-preview.mp4 build/capture/trailer/double-putt-app-preview-ipad.mp4`
    (from `Tools/capture/trailer.sh`, and `--device ipad`) to put the app previews on the iPhones and the iPad too
    (not the iPhone Duo, whose slot only takes the iPhone's sizes). See [appstore/README.md](../appstore/README.md#media).
+4. The product page header and search results art, one 5244x2950 PNG for both, the same way:
+   ```bash
+   Tools/capture/creative.sh
+   python3 appstore/push.py media --app double-putt --dry-run --creative build/capture/creative/double-putt-creative.png
+   ```
+   Then check it in App Store Connect's preview of the header and search results: Apple crops it there.
 
 ## Test Information
 The Beta App Description and What to Test are in `appstore/double-putt/testflight/en-US/`, and the Beta App Review
