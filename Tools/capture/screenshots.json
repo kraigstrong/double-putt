@@ -23,5 +23,11 @@
       "shots": ["one-swing@open", "double-ace@open", "trophies@open", "windmill@open", "springboard@open", "slopes@open",
                 "space@open", "courses@open", "how-to-play@open", "one-swing"]
     }
+  },
+  "creative": {
+    "about": "The product page header and search results art (Tools/capture/creative.sh, then frames.py --creative): one 16:9 image Apple uses for both, a shot above laid out turned (-canvas, as an iPad on its side or an iPhone Duo opened shows it) on the iPhone's capture simulator, saved at \"size\", and set under the shot's caption.",
+    "shot": "one-swing",
+    "canvas": "1150x660",
+    "size": "3450x1980"
   }
 }
