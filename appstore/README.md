@@ -109,6 +109,15 @@ python3 appstore/push.py media --app double-putt --dry-run --preview build/captu
   build/capture/trailer/double-putt-app-preview-ipad.mp4 --poster 00:00:02:00
 ```
 
+The header and search results asset is one 5244x2950 PNG for both (Apple's universal size, cropped to 21:9 for the
+header and to 3:2 in search results), from `Tools/capture/creative.sh`. Apple shows it on iOS 27 and later; older
+versions, and a listing without one, show the screenshots and previews instead.
+
+```bash
+Tools/capture/creative.sh
+python3 appstore/push.py media --app double-putt --dry-run --creative build/capture/creative/double-putt-creative.png
+```
+
 The dry run lists each device's set, its sizes, and how many screenshots or previews it replaces. Run it again without
 `--dry-run` to upload.
 
