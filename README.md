@@ -319,11 +319,11 @@ Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # th
   command line, so those are laid out with `-canvas 951x669` on the closed Duo's simulator and saved at the inner
   screen's size. `appstore/push.py media` uploads each folder to its device (see `appstore/README.md`).
 - **The header and search results art** (`screenshots.json`'s `creative`) is a clip's moment (Bank Shot, aimed) laid
-  out turned, as an iPad on its side shows it (`-canvas 1150x660` on the iPhone's capture simulator), set by `frames.py --creative` under
-  a caption in an image for each: the product page's header at 21:9 and search results at 3:2. Apple shows them on
-  iOS 27 and later. An iPhone shows only the middle of the header, about half its width and its top two-thirds, with
-  the back and share buttons over its top corners, so the header's caption and screen sit inside that. (Apple also
-  takes one 16:9 image for both, but crops it far tighter in each.)
+  out turned, as an iPad on its side shows it (`-canvas 1150x660` on the iPhone's capture simulator), set by
+  `frames.py --creative` under a caption in an image for each: the product page's header at 21:9 and search results at
+  3:2. Apple shows them on iOS 27 and later. An iPhone shows the header's whole height but 84% of its width, with the
+  back and share buttons over its top corners, so the header's caption runs between the buttons and its screen sits
+  inside that width. (Apple also takes one 16:9 image for both, but crops it far tighter in each.)
 - **The trailer** (`trailer/edl.json`) cuts the clips into shots with slow camera moves and big captions, then the
   end card with the wordmark: `double-putt-trailer.mp4` (1080x1920, 60 fps, for the site),
   `double-putt-app-preview.mp4` (886x1920, 30 fps, 15-30 seconds: the App Store preview for the iPhones; the iPhone
