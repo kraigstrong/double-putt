@@ -97,16 +97,16 @@ def framed(shot, caption):
 
 
 # The header and search results art: an image of each. Apple publishes no crops, only templates, so these come from
-# App Store Connect's preview (November 2026). An iPhone shows only the middle of a 21:9 header, about 54% of its width
-# (x 881-2959 of 3840), and only its top two-thirds (to y 1112) above the app's info card, with the back and share
-# buttons over its top corners. Search results show a 3:2 image whole, its corners rounded. (A single 16:9 image for
-# both, which Apple also takes, comes out cropped far tighter in each, cutting through the caption and the screen.)
+# App Store Connect's preview of these images (November 2026). An iPhone shows a 21:9 header's whole height, down to the
+# app's info card, and 84% of its width (x 322-3535 of 3840), with the back and share buttons over its top corners.
+# Search results show a 3:2 image whole, its corners rounded. (A single 16:9 image for both, which Apple also takes, is
+# cropped far tighter in each: an iPhone showed only the middle 54% of its width and two-thirds of its height.)
 HEADER = (3840, 1646)
 SEARCH = (3840, 2560)
-# The part of the header an iPhone shows, less a margin for narrower phones, and the buttons' band at its top: the
-# back button over x 964-1193 and share over 2627-2876, both y 62-306.
-HEADER_SAFE = (960, 2880, 1050)
-HEADER_BUTTONS = (1193, 2627, 62, 306)
+# The part of the header an iPhone shows, less a margin for narrower phones and at the bottom, and the buttons' band at
+# its top: the back button over x 445-836 and share over 3021-3411, both y 14-411.
+HEADER_SAFE = (520, 3320, 1586)
+HEADER_BUTTONS = (836, 3021, 14, 411)
 
 
 def backdrop(full, w, h):
@@ -129,20 +129,22 @@ def header(shot, caption):
     back, share, band_top, band_bottom = HEADER_BUTTONS
     full = shot.convert("RGB")
     canvas = backdrop(full, w, h)
-    size = 120
-    while font(size).getlength(caption) > share - back - 2 * 70:
+    size = 200
+    while font(size).getlength(caption) > share - back - 2 * 80:
         size -= 2
     f = font(size)
     cap = -f.getbbox(caption, anchor="ls")[1]
     baseline = round((band_top + band_bottom + cap) / 2)
-    y = baseline + 60
+    y = baseline + 70
     sh = bottom - y
     sw = round(sh * full.width / full.height)
     if sw > right - left:
         sw = right - left
         sh = round(sw * full.height / full.width)
-    place(canvas, full, (w - sw) // 2, y, sw, sh, 28, 8, 18)
-    words(canvas, [(caption, baseline)], f, "ms", 6, 12)
+    # Corners, shadows and the caption's glow as the search image has them, for a screen and caption this size.
+    k, t = sw / 3400, size / 250
+    place(canvas, full, (w - sw) // 2, y, sw, sh, round(64 * k), round(16 * k), 36 * k)
+    words(canvas, [(caption, baseline)], f, "ms", round(14 * t), 28 * t)
     return canvas
 
 
