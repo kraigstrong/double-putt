@@ -430,6 +430,10 @@ struct URLAnalyticsSender: AnalyticsSender {
             request.timeoutInterval = 15
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue(Analytics.appKey, forHTTPHeaderField: "X-App-Key")
+            // The same on every phone: URLSession's own would carry the iOS version (CFNetwork/Darwin in the User-Agent)
+            // and the phone's languages, which the privacy policy says are never sent.
+            request.setValue("DoublePutt", forHTTPHeaderField: "User-Agent")
+            request.setValue("en", forHTTPHeaderField: "Accept-Language")
             Self.session.dataTask(with: request).resume()
         }
     }
