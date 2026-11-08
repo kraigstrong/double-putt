@@ -300,7 +300,7 @@ Tools/capture/screenshots.sh               # the stills in screenshots.json: 6.9
 Tools/capture/screenshots.sh --device ipad   # the iPad's, upright: 13" (2064x2752)
 Tools/capture/screenshots.sh --device duo    # the iPhone Duo's: opened (2853x2007), then closed (1398x2034)
 Tools/capture/frames.py build/capture/screenshots build/capture/captioned   # captioned, in the game's typeface
-Tools/capture/creative.sh                  # the header and search results art: 5244x2950, in build/capture/creative/
+Tools/capture/creative.sh                  # the header (3840x1646) and search results (3840x2560) art, in build/capture/creative/
 Tools/capture/trailer.sh                   # records what the edit needs, then the site's trailer and the iPhone preview
 Tools/capture/trailer.sh --device ipad     # the iPad's preview, from the iPad's footage
 Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # the site's loops, stills, trailer and preview image
@@ -319,9 +319,11 @@ Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # th
   command line, so those are laid out with `-canvas 951x669` on the closed Duo's simulator and saved at the inner
   screen's size. `appstore/push.py media` uploads each folder to its device (see `appstore/README.md`).
 - **The header and search results art** (`screenshots.json`'s `creative`) is one of those shots laid out turned, as an
-  iPad on its side shows it (`-canvas 1150x660` on the iPhone's capture simulator), set under its caption at 16:9 by
-  `frames.py --creative`. Apple shows it on iOS 27 and later, cropped to 21:9 as the product page's header and to 3:2
-  in search results, so the caption and the screen sit in the middle both crops keep.
+  iPad on its side shows it (`-canvas 1150x660` on the iPhone's capture simulator), set by `frames.py --creative` under
+  a caption in an image for each: the product page's header at 21:9 and search results at 3:2. Apple shows them on
+  iOS 27 and later. An iPhone shows only the middle of the header, about half its width and its top two-thirds, with
+  the back and share buttons over its top corners, so the header's caption and screen sit inside that. (Apple also
+  takes one 16:9 image for both, but crops it far tighter in each.)
 - **The trailer** (`trailer/edl.json`) cuts the clips into shots with slow camera moves and big captions, then the
   end card with the wordmark: `double-putt-trailer.mp4` (1080x1920, 60 fps, for the site),
   `double-putt-app-preview.mp4` (886x1920, 30 fps, 15-30 seconds: the App Store preview for the iPhones; the iPhone

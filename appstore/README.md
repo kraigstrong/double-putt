@@ -28,7 +28,7 @@ python3 appstore/push.py testflight --app double-putt --dry-run                 
 python3 appstore/push.py testflight --app double-putt --build 4 --dry-run           # and build 4's What to Test
 python3 appstore/push.py testflight --app double-putt --build 4 --submit --dry-run  # to external groups, beta review
 python3 appstore/push.py testflight --app double-putt --invite EMAIL --dry-run      # a tester, to Friends
-python3 appstore/push.py media --app double-putt --screenshots DIR DIR --creative FILE --dry-run   # see Media
+python3 appstore/push.py media --app double-putt --screenshots DIR DIR --header FILE --search FILE --dry-run   # see Media
 ```
 
 - **A push writes to the editable version** (Prepare for Submission and the like). Nothing goes public until that
@@ -109,13 +109,15 @@ python3 appstore/push.py media --app double-putt --dry-run --preview build/captu
   build/capture/trailer/double-putt-app-preview-ipad.mp4 --poster 00:00:02:00
 ```
 
-The header and search results asset is one 5244x2950 PNG for both (Apple's universal size, cropped to 21:9 for the
-header and to 3:2 in search results), from `Tools/capture/creative.sh`. Apple shows it on iOS 27 and later; older
-versions, and a listing without one, show the screenshots and previews instead.
+The product page header (3840x1646, 21:9) and the search results asset (3840x2560, 3:2) are an image each, from
+`Tools/capture/creative.sh`. Apple also takes one 5244x2950 PNG for both (`--creative`), but crops it far tighter in
+each than its 21:9 and 3:2 shapes, through the caption and the screen. Apple shows them on iOS 27 and later; older
+versions, and a listing without them, show the screenshots and previews instead.
 
 ```bash
 Tools/capture/creative.sh
-python3 appstore/push.py media --app double-putt --dry-run --creative build/capture/creative/double-putt-creative.png
+python3 appstore/push.py media --app double-putt --dry-run --header build/capture/creative/double-putt-header.png \
+  --search build/capture/creative/double-putt-search.png
 ```
 
 The dry run lists each device's set, its sizes, and how many screenshots or previews it replaces. Run it again without
