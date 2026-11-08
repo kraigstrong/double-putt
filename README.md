@@ -318,8 +318,8 @@ Tools/capture/site.sh ~/code/BrightBench/apps/marketing/public/doubleputt   # th
   opened like a book, the course turned to fill the screen, then one closed. A simulator can't open a Duo from the
   command line, so those are laid out with `-canvas 951x669` on the closed Duo's simulator and saved at the inner
   screen's size. `appstore/push.py media` uploads each folder to its device (see `appstore/README.md`).
-- **The header and search results art** (`screenshots.json`'s `creative`) is one of those shots laid out turned, as an
-  iPad on its side shows it (`-canvas 1150x660` on the iPhone's capture simulator), set by `frames.py --creative` under
+- **The header and search results art** (`screenshots.json`'s `creative`) is a clip's moment (Bank Shot, aimed) laid
+  out turned, as an iPad on its side shows it (`-canvas 1150x660` on the iPhone's capture simulator), set by `frames.py --creative` under
   a caption in an image for each: the product page's header at 21:9 and search results at 3:2. Apple shows them on
   iOS 27 and later. An iPhone shows only the middle of the header, about half its width and its top two-thirds, with
   the back and share buttons over its top corners, so the header's caption and screen sit inside that. (Apple also

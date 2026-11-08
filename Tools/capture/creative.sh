@@ -3,7 +3,7 @@
 #
 #   Tools/capture/creative.sh
 #
-# Plays the shot named in screenshots.json's "creative" (its clip, at its moment) on the iPhone's capture simulator
+# Plays the clip named in screenshots.json's "creative", to its moment, on the iPhone's capture simulator
 # (lib.sh), laid out turned with -canvas, as an iPad on its side or an iPhone Duo opened shows the course, then
 # frames.py --creative sets it under each placement's caption: the header at 21:9, laid out inside the middle an iPhone
 # shows of it, and search results at 3:2.
@@ -19,17 +19,14 @@ set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 DIR="$OUT/creative"
 
-# "<clip> <seconds> <canvas> <size>", from the shot the creative names.
+# "<clip> <seconds> <canvas> <size>", from screenshots.json's "creative".
 read -r clip at canvas want < <(python3 - "$ROOT/Tools/capture/screenshots.json" <<'EOF'
 import json, sys
-config = json.load(open(sys.argv[1]))
-creative = config["creative"]
-shot = next((s for s in config["shots"] if s["name"] == creative["shot"]), None)
-if shot is None:
-    sys.exit(f"creative: no shot called {creative['shot']}")
-print(shot["clip"], shot["at"], creative["canvas"], creative["size"])
+creative = json.load(open(sys.argv[1]))["creative"]
+print(creative["clip"], creative["at"], creative["canvas"], creative["size"])
 EOF
 )
+clip_json "$clip" >/dev/null
 
 use_device iphone
 build_and_install
