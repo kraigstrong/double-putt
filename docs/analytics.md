@@ -15,7 +15,9 @@ This file is the contract between the app (`MiniGolf/Game/Analytics.swift`) and 
 ## Transport
 - `POST https://brightbench.app/api/double-putt/events`, `Content-Type: application/json`,
   header `X-App-Key: double-putt-gameplay-v1` (a public noise filter, not authentication; strict validation is
-  the protection).
+  the protection). From build 12, `User-Agent: DoublePutt` and `Accept-Language: en` on every phone, in place of
+  URLSession's own, which carry the iOS version and the phone's languages (the privacy policy says neither is sent).
+  The server reads neither.
 - Body: one batch, at most 64 KB. A batch the server can't fully validate is rejected whole (400), so the app
   must never send a field or value this file doesn't allow.
 - Events are queued on the device (at most 100) and sent at most 25 per batch: when 25 are waiting, when the app
