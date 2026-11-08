@@ -2,7 +2,7 @@
 """Captions Double Putt's App Store screenshots, and sets the header and search results art.
 
     Tools/capture/frames.py [--only one-swing,windmill] <screenshots dir> <out dir>
-    Tools/capture/frames.py --creative <still> <out png>
+    Tools/capture/frames.py --creative <still> <out dir>
 
 The screenshots are one device's whole set from Tools/capture/screenshots.sh (NN-<name>[-<pose>].png, at any App Store
 size, upright or sideways), as screenshots.json lists it: a set with shots missing is refused, since uploading it
@@ -11,9 +11,9 @@ shrunk under its caption, in the game's typeface (SF Rounded Black, as the title
 blur of itself: no device frame. Output keeps the screenshots' names and size, with no alpha, as App Store Connect
 wants.
 
-With --creative, the still is Tools/capture/creative.sh's (screenshots.json's "creative"), set the same way under its
-shot's caption as the product page header and search results art: one 5244x2950 PNG, which Apple crops to 21:9 for the
-header and to 3:2 in search results, so the caption and the screen stay inside both crops.
+With --creative, the still is Tools/capture/creative.sh's (screenshots.json's "creative"), set the same way under each
+placement's caption: double-putt-header.png (3840x1646, 21:9) for the product page header, laid out inside the middle an
+iPhone shows, and double-putt-search.png (3840x2560, 3:2) for search results.
 """
 import argparse
 import json
@@ -96,42 +96,75 @@ def framed(shot, caption):
     return canvas
 
 
-# The header and search results art: one 16:9 image, which Apple crops to 21:9 for a product page's header and to 3:2
-# in search results. What matters stays in the middle both crops keep (4425x2247).
-CREATIVE = (5244, 2950)
+# The header and search results art: an image of each. Apple publishes no crops, only templates, so these come from
+# App Store Connect's preview (November 2026). An iPhone shows only the middle of a 21:9 header, about 54% of its width
+# (x 881-2959 of 3840), and only its top two-thirds (to y 1112) above the app's info card, with the back and share
+# buttons over its top corners. Search results show a 3:2 image whole, its corners rounded. (A single 16:9 image for
+# both, which Apple also takes, comes out cropped far tighter in each, cutting through the caption and the screen.)
+HEADER = (3840, 1646)
+SEARCH = (3840, 2560)
+# The part of the header an iPhone shows, less a margin for narrower phones, and the buttons' band at its top: the
+# back button over x 964-1193 and share over 2627-2876, both y 62-306.
+HEADER_SAFE = (960, 2880, 1050)
+HEADER_BUTTONS = (1193, 2627, 62, 306)
 
 
-def creative(shot, caption):
-    """The screen under its caption at 16:9, both inside the crops, over a darkened blur of the screen's middle."""
-    w, h = CREATIVE
-    keep_w, keep_h = round(h * 3 / 2), round(w * 9 / 21)
-    left, top = (w - keep_w) // 2, (h - keep_h) // 2
-    margin, gap = 70, 90
-    full = shot.convert("RGB")
-    # The blur comes from the middle of the screen, clear of the bars and buttons round its edges, so none of them
-    # ghosts through beside it.
+def backdrop(full, w, h):
+    """A darkened blur of the screen's middle, clear of the bars and buttons round its edges, so none of them ghosts
+    through beside it."""
     middle = full.crop((round(full.width * 0.12), round(full.height * 0.14), round(full.width * 0.88), round(full.height * 0.84)))
     scale = max(w / middle.width, h / middle.height)
     canvas = middle.resize((round(middle.width * scale), round(middle.height * scale)), Image.BICUBIC)
     x0, y0 = (canvas.width - w) // 2, (canvas.height - h) // 2
     canvas = canvas.crop((x0, y0, x0 + w, y0 + h))
     canvas = canvas.resize((w // 8, h // 8), Image.BILINEAR).filter(ImageFilter.GaussianBlur(12)).resize((w, h), Image.BICUBIC)
-    canvas = Image.blend(canvas, Image.new("RGB", (w, h), INK), 0.45)
+    return Image.blend(canvas, Image.new("RGB", (w, h), INK), 0.45)
 
-    # One line, as big as fits, its capitals' top a margin inside the header's crop.
-    size = 285
-    while font(size).getlength(caption) > keep_w - 2 * margin:
+
+def header(shot, caption):
+    """The whole screen under its caption, both inside the part of the header an iPhone shows: the caption between the
+    back and share buttons, the screen below it as big as fits above the info card."""
+    w, h = HEADER
+    left, right, bottom = HEADER_SAFE
+    back, share, band_top, band_bottom = HEADER_BUTTONS
+    full = shot.convert("RGB")
+    canvas = backdrop(full, w, h)
+    size = 120
+    while font(size).getlength(caption) > share - back - 2 * 70:
+        size -= 2
+    f = font(size)
+    cap = -f.getbbox(caption, anchor="ls")[1]
+    baseline = round((band_top + band_bottom + cap) / 2)
+    y = baseline + 60
+    sh = bottom - y
+    sw = round(sh * full.width / full.height)
+    if sw > right - left:
+        sw = right - left
+        sh = round(sw * full.height / full.width)
+    place(canvas, full, (w - sw) // 2, y, sw, sh, 28, 8, 18)
+    words(canvas, [(caption, baseline)], f, "ms", 6, 12)
+    return canvas
+
+
+def search(shot, caption):
+    """The whole screen under its caption, the two as big as fit and centred, clear of the rounded corners."""
+    w, h = SEARCH
+    margin, gap = 150, 110
+    full = shot.convert("RGB")
+    canvas = backdrop(full, w, h)
+    size = 250
+    while font(size).getlength(caption) > w - 2 * margin:
         size -= 5
     f = font(size)
-    baseline = top + margin - f.getbbox(caption, anchor="ls")[1]
-    # The screen fills what's left above the header crop's bottom, unless it would run past the search crop's sides.
-    y = baseline + gap
-    sh = top + keep_h - margin - y
+    cap = -f.getbbox(caption, anchor="ls")[1]
+    sh = h - 2 * margin - cap - gap
     sw = round(sh * full.width / full.height)
-    if sw > keep_w - 2 * margin:
-        sw = keep_w - 2 * margin
+    if sw > w - 2 * margin:
+        sw = w - 2 * margin
         sh = round(sw * full.height / full.width)
-    place(canvas, full, (w - sw) // 2, y, sw, sh, 64, 16, 36)
+    top = (h - (cap + gap + sh)) // 2
+    baseline = top + cap
+    place(canvas, full, (w - sw) // 2, baseline + gap, sw, sh, 64, 16, 36)
     words(canvas, [(caption, baseline)], f, "ms", 14, 28)
     return canvas
 
@@ -140,7 +173,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--only", help="comma-separated shots to caption (one-swing,windmill,...)")
     parser.add_argument("--creative", action="store_true",
-                        help="set creative.sh's still as the header and search results art: <still> <out png>")
+                        help="set creative.sh's still as the header and search results art: <still> <out dir>")
     parser.add_argument("screenshots", type=Path)
     parser.add_argument("out", type=Path)
     args = parser.parse_args()
@@ -149,10 +182,12 @@ def main():
     if args.creative:
         if not args.screenshots.is_file():
             sys.exit(f"no still at {args.screenshots} (Tools/capture/creative.sh)")
-        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.mkdir(parents=True, exist_ok=True)
         with Image.open(args.screenshots) as image:
-            creative(image, captions[config["creative"]["shot"]]).save(args.out)
-        print(f"{args.out}: {CREATIVE[0]}x{CREATIVE[1]}")
+            for name, make, (w, h) in (("header", header, HEADER), ("search", search, SEARCH)):
+                path = args.out / f"double-putt-{name}.png"
+                make(image, config["creative"]["captions"][name]).save(path)
+                print(f"{path}: {w}x{h}")
         return
     # Each device's set, as screenshots.sh names it: NN-<shot>[-<pose>] -> the shot.
     sets = {}

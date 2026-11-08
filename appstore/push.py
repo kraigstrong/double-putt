@@ -1006,8 +1006,8 @@ def main() -> int:
     images.add_argument("--screenshots", type=Path, nargs="*", default=[],
                         help="folders of PNGs, one per device size, uploaded in name order")
     images.add_argument("--creative", type=Path, help="a 5244x2950 PNG for the product page header and search results")
-    images.add_argument("--header", type=Path, help="a 5244x2950 PNG for the product page header only")
-    images.add_argument("--search", type=Path, help="a 5244x2950 PNG for the search results asset only")
+    images.add_argument("--header", type=Path, help="a 3840x1646 (21:9) or 5244x2950 image for the product page header")
+    images.add_argument("--search", type=Path, help="a 3:2 (1920x1280 to 3840x2560) or 5244x2950 image for search results")
     images.add_argument("--preview", type=Path, nargs="*", default=[],
                         help="app preview videos, each to the devices its size fits: 886x1920 for the 6.9\" and 6.5\" "
                              "iPhones, 1200x1600 for the 13\" iPad (the iPhone Duo gets none)")
