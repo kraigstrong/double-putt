@@ -25,8 +25,9 @@
     }
   },
   "creative": {
-    "about": "The product page header and search results art (Tools/capture/creative.sh, then frames.py --creative): a shot above laid out turned (-canvas, as an iPad on its side or an iPhone Duo opened shows it) on the iPhone's capture simulator, saved at \"size\", and set under each placement's caption in an image of its own, 21:9 for the header and 3:2 for search results. The header's caption is printed right above the subtitle; search results show the subtitle beside it, so its caption says something else.",
-    "shot": "one-swing",
+    "about": "The product page header and search results art (Tools/capture/creative.sh, then frames.py --creative): a clip's moment (clips.json; Bank Shot aimed, a moment before Putt) laid out turned (-canvas, as an iPad on its side or an iPhone Duo opened shows it) on the iPhone's capture simulator, saved at \"size\", and set under each placement's caption in an image of its own, 21:9 for the header and 3:2 for search results. The header's caption is printed right above the subtitle; search results show the subtitle beside it, so its caption says something else.",
+    "clip": "bank-shot",
+    "at": 2.07,
     "canvas": "1150x660",
     "size": "3450x1980",
     "captions": {
